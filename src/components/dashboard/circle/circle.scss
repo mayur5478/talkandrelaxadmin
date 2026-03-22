@@ -1,0 +1,12 @@
+.circular-progress {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 120px;
+    height: 120px;
+
+    .table>:not(caption)>*>* {
+      padding: 0 !important;
+  }
+  }
+ 

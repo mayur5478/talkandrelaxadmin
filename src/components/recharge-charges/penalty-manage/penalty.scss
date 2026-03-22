@@ -1,0 +1,151 @@
+.penalty-main {
+  padding: 40px 30px;
+  height: 100vh;
+  .top-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: var(--white);
+    box-shadow: 0px 5px 20px 2px #00000014;
+    border-radius: 12px;
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      .tabs {
+        border-bottom: 0 !important;
+        gap: 20px;
+      }
+      .nav-link {
+        border: 1px solid var(--black);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--black);
+
+        &:hover {
+          background-color: var(--black) !important;
+          color: var(--white);
+        }
+      }
+      button {
+        background-color: var(--white);
+        border: 1px solid var(--black);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--black);
+      }
+    }
+    .right-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .add-user-btn {
+        background-color: var(--black);
+        color: var(--white);
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid var(--black);
+      }
+    }
+  }
+  .table {
+    display: block;
+    padding: 20px;
+    background-color: var(--white);
+    box-shadow: 0px 5px 20px 2px #00000014;
+    border-radius: 12px;
+    margin-top: 20px;
+    overflow-x: auto;
+    max-width: 100%;
+    .form-label {
+        font-size: 16px;
+        font-weight: 600;
+        width: 100%;
+        text-align: start;
+    }
+    .form-control {
+        border: 1px solid var(--black);
+    }
+    .submit {
+        width: 100%;
+        text-align: start;
+        margin-top: 30px;
+        
+      button {
+        background-color: var(--white);
+        border: 1px solid var(--black);
+        color: var(--black);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        &:hover {
+          background-color: var(--black);
+          color: var(--white);
+        }
+      }
+    }
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--main-color);
+      border-radius: 4px;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+      .pagination-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+
+        p {
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--table-text);
+          min-width: 135px;
+          margin-bottom: 0;
+        }
+        .form-select {
+          min-width: 80px;
+        }
+      }
+      .pagination-details {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        .pagination-numbers {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+
+          p {
+            margin-bottom: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--table-text);
+          }
+        }
+        .pagination-controls {
+          display: flex;
+          align-items: center;
+          gap: 35px;
+        }
+      }
+    }
+  }
+      @media (max-width: 1199px) {
+    .form-label {
+      font-size: 7px !important;
+    }
+  }
+}

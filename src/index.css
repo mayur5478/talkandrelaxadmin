@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Geist:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+:root {
+  --white: #fff;
+  --black: #000;
+  --main-color: #2a3650;
+  --main-hover-color: #202c46;
+  --background-color: hsl(225, 100%, 98%);
+  --green-background: #26bf9433;
+  --pink-background: #843c9633;
+  --yellow-background: #f5b84933;
+  --soil-green-background: #8a8c2933;
+  --purple-background: #535fff33;
+  --light-brown-background: #b9424233;
+  --blue-background: #00a3ff33;
+  --dark-blue-background:#0038FF33;
+  --orange-background: #ff6b0033;
+  --table-border: #0000001a;
+  --table-text: #000000b2;
+  --grey-background: #282d5933;
+  --ups-text: #2aa33d;
+  --down-text: #ff0000;
+  --light-border: #0000004d;
+  --red-text: #ff0000;
+  --green-text: #009c35;
+  --toggle-color: #b2b2b2;
+  --toggle-background: #e4e4e4;
+  --yellow:#F0C24E;
+  --calendar-border:#0000001A;
+  --blue:blue;
+  --graph-tex:#00000099;
+  --profile-card-background:#C2CBDD;
+  --border-docs:#00000033;
+  --audio-player:#2A3650;
+  --login-sub-title:#525252;
+  --slip-grey:#2A36501A;
+  --slip-dark-grey:#2A365080;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+    font-family: manrope !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.flatpickr-calendar {
+  top: 18% !important;
+  left: auto !important;
+  right: 2.5% !important;
+}

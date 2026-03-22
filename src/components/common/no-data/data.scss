@@ -1,0 +1,17 @@
+.data-main {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin: 60px;
+
+img {
+    margin-bottom: 40px;
+}
+    p {
+        margin-bottom:0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+}

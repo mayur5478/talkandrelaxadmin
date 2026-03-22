@@ -1,0 +1,24 @@
+.main-section {
+  #main {
+    transition: all 0.3s;
+    background-color: var(--background-color);
+   
+  }
+
+  @media (min-width: 1200px) {
+    #main,
+    #footer {
+      margin-left: 240px;
+    }
+  }
+
+  .col-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .row-container {
+    width: 100%;
+    --bs-gutter-x: 0;
+  }
+}

@@ -1,0 +1,381 @@
+.users-main {
+  padding: 40px 30px;
+  .top-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: var(--white);
+    box-shadow: 0px 5px 20px 2px #00000014;
+    border-radius: 12px;
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      button {
+        background-color: var(--white);
+        border: 1px solid var(--black);
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--black);
+      }
+
+      .archived-user-btn.pressed {
+        background-color: var(--black);
+        color: var(--white);
+      }
+
+      .search-bar {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--light-border);
+        border-radius: 8px;
+        padding: 5px 10px;
+        width: 282px;
+        max-width: 282px;
+        background-color: #fff;
+
+        .search-input {
+          flex: 1;
+          border: none;
+          outline: none;
+          font-size: 14px;
+          font-weight: 400;
+          padding: 5px;
+          max-width: 282px;
+          background: transparent;
+          color: var(--dark-text); /* Replace with your color variable */
+
+          &::placeholder {
+            color: #aaa; /* Placeholder color */
+          }
+        }
+
+        .search-icon {
+          width: 20px; /* Adjust size as needed */
+          height: 20px;
+          cursor: pointer;
+        }
+      }
+    }
+    .right-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .add-user-btn {
+        background-color: var(--black);
+        color: var(--white);
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid var(--black);
+      }
+       .add-user-btn-plus {
+        display: none;
+      }
+    }
+  }
+  .table {
+    display: block;
+    padding: 20px;
+    background-color: var(--white);
+    box-shadow: 0px 5px 20px 2px #00000014;
+    border-radius: 12px;
+    margin-top: 20px;
+    overflow-x: auto;
+    max-width: 100%;
+
+    &::-webkit-scrollbar {
+      height: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--main-color);
+      border-radius: 4px;
+    }
+
+    .table-headings {
+      display: flex;
+      align-items: center;
+      min-width: 2500px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--table-border);
+      p {
+        text-align: start;
+        font-size: 16px;
+        font-weight: 600;
+       
+      }
+      /* Column Widths */
+      div:nth-child(1) {
+        width: 5%;
+      }
+      div:nth-child(2) {
+        width: 15%;
+      }
+      div:nth-child(3) {
+        width: 20%;
+      }
+      div:nth-child(4) {
+        width: 10%;
+      }
+      div:nth-child(5) {
+        width: 10%;
+      }
+      div:nth-child(6) {
+        width: 15%;
+      }
+      div:nth-child(7) {
+        width: 15%;
+      }
+      div:nth-child(8) {
+        width: 10%;
+      }
+      div:nth-child(9) {
+        width: 10%;
+      }
+      div:nth-child(10) {
+        width: 10%;
+      }
+      div:nth-child(11) {
+        width: 20%;
+      }
+      .sort {
+        margin-left: 5px;
+      }
+    }
+
+    .table-body {
+      display: flex;
+      align-items: center;
+      min-width: 2500px;
+      border-bottom: 1px solid var(--table-border);
+
+      .material-switch > input[type="checkbox"] {
+        display: none;
+      }
+
+      .material-switch > label {
+        cursor: pointer;
+        height: 0px;
+        position: relative;
+        width: 40px;
+      }
+
+      .material-switch > label::before {
+        background: var(--toggle-background);
+        box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        content: "";
+        height: 16px;
+        margin-top: -8px;
+        position: absolute;
+        opacity: 0.3;
+        transition: all 0.4s ease-in-out;
+        width: 40px;
+      }
+      .material-switch > label::after {
+        background: var(--toggle-color);
+        border-radius: 16px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+        content: "";
+        height: 24px;
+        left: -4px;
+        margin-top: -8px;
+        position: absolute;
+        top: -4px;
+        transition: all 0.3s ease-in-out;
+        width: 24px;
+      }
+      .material-switch > input[type="checkbox"]:checked + label::before {
+        background: var(--main-color);
+        opacity: 0.5;
+      }
+      .material-switch > input[type="checkbox"]:checked + label::after {
+        background: var(--main-color);
+        left: 20px;
+      }
+      .green-text {
+        color: var(--green-text) !important;
+      }
+      .red-text {
+        color: var(--red-text) !important;
+      }
+      p {
+        text-align: start;
+        font-size: 16px;
+        font-weight: 400;
+        margin-top: 10px;
+        color: var(--table-text);
+      }
+      .actions {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      div:nth-child(1) {
+        width: 5%;
+      }
+      div:nth-child(2) {
+        width: 15%;
+      }
+      div:nth-child(3) {
+        width: 20%;
+      }
+      div:nth-child(4) {
+        width: 10%;
+      }
+      div:nth-child(5) {
+        width: 10%;
+      }
+      div:nth-child(6) {
+        width: 15%;
+      }
+      div:nth-child(7) {
+        width: 15%;
+      }
+      div:nth-child(8) {
+        width: 10%;
+      }
+      div:nth-child(9) {
+        width: 10%;
+      }
+      div:nth-child(10) {
+        width: 10%;
+      }
+      div:nth-child(11) {
+        width: 20%;
+      }
+    }
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+      .pagination-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+
+        p {
+          font-size: 16px;
+          font-weight: 500;
+          color: var(--table-text);
+          min-width: 135px;
+          margin-bottom: 0;
+        }
+        .form-select {
+          min-width: 80px;
+        }
+      }
+      .pagination-details {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        .pagination-numbers {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+
+          p {
+            margin-bottom: 0;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--table-text);
+          }
+        }
+        .pagination-controls {
+          display: flex;
+          align-items: center;
+          gap: 35px;
+        }
+      }
+    }
+  }
+  @media (max-width: 1199px) {
+    .pagination {
+      min-width: 2000px;
+    }
+    .top-section {
+      justify-content: space-between;
+
+      gap: 10px;
+      .left-section {
+        width: 65% !important;
+        gap: 10px;
+        .search-bar {
+          width: 100%;
+          padding: 10px;
+
+          .search-input {
+            width: 100%;
+          
+          }
+        }
+      }
+      .right-section {
+        width: 35% !important;
+        gap: 10px !important;
+        padding-left: 5px !important;
+        .add-user-btn {
+          display: none;
+        }
+        .add-user-btn-plus {
+          background-color: var(--black);
+          color: var(--white);
+          font-size: 21px;
+          font-weight: 600;
+          border: 1px solid var(--black);
+          display: block !important;
+        }
+      }
+    }
+  }
+}
+.datepicker-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 10px;
+
+  cursor: pointer;
+
+  .calendar-icon {
+    width: 20px;
+    height: 20px;
+
+    cursor: pointer;
+  }
+  .flatpickr-input {
+    display: none;
+  }
+  .custom-datepicker {
+    border: none;
+    flex: 1;
+    font-size: 14px;
+    outline: none;
+  }
+}
+
+.flatpickr-calendar {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  box-shadow: 0px 5px 20px 0px #00000026;
+  margin-top: 5px;
+  border-radius: 8px;
+}
+
+.flatpickr-day {
+  font-size: 14px;
+  color: #333;
+}
+
+.flatpickr-day.selected {
+  background-color: #007bff;
+  color: #fff;
+}

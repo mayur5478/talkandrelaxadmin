@@ -1,0 +1,216 @@
+.docs-main {
+  padding: 40px 30px;
+
+  .btns {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: end;
+
+    .reject-btn {
+      background-color: transparent !important;
+      border: 1px solid var(--red-text);
+      color: var(--red-text);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 20px;
+      &:hover {
+        color: var(--white);
+        background-color: var(--red-text) !important;
+      }
+    }
+    .accept-btn {
+      background-color: transparent !important;
+      border: 1px solid var(--green-text);
+      color: var(--green-text);
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 10px 20px;
+      &:hover {
+        color: var(--white);
+        background-color: var(--green-text) !important;
+      }
+    }
+  }
+
+  .section-wrapper {
+    background-color: var(--white) !important;
+    text-align: start;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid var(--border-docs);
+
+    .title-text {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 0px;
+    }
+    .section-body3 {
+      margin-top: 20px;
+      border-top: 1px solid var(--border-docs);
+      padding-top: 20px;
+    }
+    .section-body2 {
+      margin-top: 20px;
+      border-top: 1px solid var(--border-docs);
+      padding-top: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    .section-body {
+      margin-top: 20px;
+      border-top: 1px solid var(--border-docs);
+      padding-top: 20px;
+
+      gap: 20px;
+      .row-class {
+        display: flex !important;
+        align-items: center;
+
+        .col-class {
+          width: 33.33%;
+          .title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+          }
+          .description {
+            font-size: 16px;
+            font-weight: 400;
+          }
+        }
+      }
+    }
+  }
+}
+.background {
+  background-color: var(--audio-player) !important;
+  border-radius: 8px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  p {
+    color: var(--white);
+    margin-bottom: 0px;
+  }
+}
+.player {
+  position: relative;
+  width: 30%;
+  .file {
+    position: relative !important;
+    left: 0px;
+    top: 0px;
+  }
+  img {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+  }
+}
+.rhap_main {
+  display: flex;
+  align-items: center;
+  flex-direction: row !important;
+}
+.rhap_stacked {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
+  padding: 5px;
+  padding-right: 50px;
+  border-radius: 8px;
+  background: var(--audio-color);
+  width: 100%;
+}
+.rhap_controls-section {
+  margin-top: 0px !important;
+  flex: none !important;
+}
+.rhap_progress-section {
+  order: 2;
+}
+.rhap_additional-controls {
+  display: none !important;
+}
+.rhap_rewind-button {
+  display: none !important;
+}
+.rhap_forward-button {
+  display: none !important;
+}
+.rhap_volume-controls {
+  display: none !important;
+}
+.rhap_container,
+.rhap_loop--off,
+.rhap_play-status--paused {
+  padding: 0px !important;
+  border-radius: 8px;
+  background: var(--audio-player) !important;
+}
+.iconify path {
+  fill: var(--white) !important;
+}
+.rhap_current-time {
+  color: var(--white) !important;
+}
+.rhap_total-time {
+  color: var(--white) !important;
+}
+.rhap_progress-bar-show-download {
+  background-color: var(--white) !important;
+}
+.rhap_progress-indicator {
+  background-color: var(--white) !important;
+}
+.accordion-item {
+  padding: 0px 20px;
+  border: 1px solid var(--border-docs) !important;
+}
+.accordion-button {
+  font-size: 16px;
+  font-weight: 600;
+}
+.accordion-button:not(.collapsed) {
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--border-docs);
+}
+.accordion-button:focus {
+  box-shadow: none !important;
+}
+.accordion-body {
+  color: var(--graph-tex);
+  font-size: 14px;
+  font-weight: 400;
+}
+@media (max-width: 1199px) {
+  .row-class {
+    flex-direction: column !important;
+   
+    .col-class {
+      width: 100% !important;
+    }
+  }
+  .section-body2 {
+    display: contents !important;
+    .player {
+      width: 100% !important;
+      margin: 10px 0 !important;
+    }
+    .background {
+      background-color: var(--audio-player) !important;
+      border-radius: 8px;
+      padding: 12px 10px !important;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  }
+}

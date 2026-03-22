@@ -1,0 +1,75 @@
+.export-modal-title {
+    font-size: 18px;
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .modal-header {
+    border-bottom: 0 !important;
+    padding: 0 !important;
+    margin-bottom: 25px;
+  }
+  .modal-dialog {
+    display: flex;
+    justify-content: center;
+  }
+  .modal-body {
+    padding: 0 !important;
+  }
+  .modal-content {
+    width: 398px !important;
+    padding: 25px;
+    box-shadow: 0px 0px 20px 0px #00000026;
+  }
+  .modal-body {
+    text-align: center;
+  
+    p {
+      font-size: 14px;
+      font-weight: 400;
+      margin-bottom: 15px;
+      margin-top: 10px;
+    }
+    .dark-text {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .excel-modal-btns {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 25px;
+      .red-btn {
+        border: 1px solid var(--red-text);
+        color: var(--red-text);
+        background-color: var(--white);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+  
+        &:hover {
+          background-color: var(--red-text);
+          color: var(--white);
+        }
+      }
+      .green-btn {
+        border: 1px solid var(--green-text);
+        color: var(--green-text);
+        background-color: var(--white);
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+  
+        &:hover {
+          background-color: var(--green-text);
+          color: var(--white);
+        }
+      }
+    }
+  }
+  

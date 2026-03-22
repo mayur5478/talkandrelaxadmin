@@ -1,0 +1,67 @@
+.dashboard-card {
+  padding: 20px;
+  border-radius: 8px;
+  background-color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  .percentage {
+    margin-bottom: 0;
+  }
+  .card-right-sec {
+    padding: 15px;
+    border-radius: 8px;
+  }
+  .blue {
+    background-color: var(--blue-background);
+  }
+  .orange {
+    background-color: var(--orange-background);
+  }
+  .purple {
+    background-color: var(--purple-background);
+  }
+  .yellow {
+    background-color: var(--yellow-background);
+  }
+  .green {
+    background-color: var(--green-background);
+  }
+  .pink {
+    background-color: var(--pink-background);
+  }
+  .soil-green {
+    background-color: var(--soil-green-background);
+  }
+  .brown {
+    background-color: var(--light-brown-background);
+  }
+  .grey {
+    background-color: var(--grey-background);
+  }
+  .title {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 10px;
+    text-align: start;
+  }
+  .amount {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .gst-amount {
+    font-size: 30px;
+    font-weight: 700;
+    margin-bottom: 0;
+  }
+  .growth-text {
+    margin-right: 5px;
+  }
+  .text-green {
+    color: var(--ups-text);
+  }
+  .text-red {
+    color: var(--down-text);
+  }
+}

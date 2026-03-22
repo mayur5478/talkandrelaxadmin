@@ -1,0 +1,138 @@
+.navbar-main {
+  position: sticky;
+  top: 0;
+  background-color: var(---white);
+  z-index: 999;
+  width: 100%;
+.dropdown-menu {
+  padding: 10px 5px;
+}
+.option {
+  padding: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #dee2e6 !important;
+  }
+}
+  .dropdown-toggle {
+    padding: 0 !important;
+    background: none !important;
+    border: none !important;
+    color: var(--black) !important;
+
+    &::after {
+      display: none !important;
+    }
+    &:hover {
+      background: none !important;
+      color: var(--black) !important;
+    }
+    &:active {
+      background: none !important;
+      color: var(--black) !important;
+    }
+  }
+
+  .navbar {
+    background-color: var(--white) !important;
+    box-shadow: 0px 2px 24px 0px #0000001f;
+    width: 100%;
+  }
+  .container {
+    margin-left: 20px !important;
+    margin-right: 0px !important;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+    width: 100%;
+    max-width: 100% !important;
+    position: relative;
+  }
+  .navbar-brand {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    p {
+      margin-bottom: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+  .search-main {
+    position: absolute;
+    left: 245px;
+    top: 10px;
+    width: 400px;
+  }
+  .right-section {
+    position: relative;
+    right: 2%;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    img {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+    }
+    .user-name {
+      .name {
+        font-size: 14px;
+        font-weight: 700;
+        margin-bottom: 5px;
+        width: max-content;
+      }
+      .role {
+        font-size: 14px;
+        font-weight: 400;
+        margin-bottom: 0;
+        width: max-content;
+      }
+    }
+  }
+  .avatar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    .avatar-image {
+      width: 100%;
+    }
+  }
+  .ul-list {
+    text-align: start;
+    padding: 0;
+    list-style-type: none;
+    list-style-type: none;
+    padding: 0px;
+    text-align: start;
+    background: var(--white);
+    padding: 5px;
+    margin-top: 10px;
+    border-radius: 5px;
+  }
+
+  @media (max-width: 1199px) {
+    .navbar-brand {
+      p {
+        display: none;
+      }
+    }
+    .right-section {
+      right: 4%;
+
+      .down-arrow-img {
+        display: none;
+      }
+
+      .user-name {
+        display: none;
+      }
+    }
+  }
+}

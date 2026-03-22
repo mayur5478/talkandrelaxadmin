@@ -1,0 +1,265 @@
+.services-main {
+  .name {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  .table-headings {
+    display: flex;
+    align-items: center;
+    // min-width: 2500px;
+    padding: 20px 0px;
+    border-bottom: 1px solid var(--table-border);
+
+    p {
+      text-align: start;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+
+    /* Column Widths */
+    div:nth-child(1) {
+      width: 10%;
+    }
+
+    div:nth-child(2) {
+      width: 10%;
+    }
+
+    div:nth-child(3) {
+      width: 10%;
+    }
+
+    div:nth-child(4) {
+      width: 10%;
+    }
+
+    div:nth-child(5) {
+      width: 10%;
+    }
+
+    div:nth-child(6) {
+      width: 10%;
+    }
+
+    div:nth-child(7) {
+      width: 10%;
+    }
+
+    div:nth-child(8) {
+      width: 10%;
+    }
+
+    div:nth-child(9) {
+      width: 10%;
+    }
+
+    div:nth-child(10) {
+      width: 10%;
+    }
+
+    div:nth-child(11) {
+      width: 10%;
+    }
+
+    .sort {
+      margin-left: 5px;
+    }
+  }
+
+  .table-body {
+    display: flex;
+    align-items: center;
+    // min-width: 2500px;
+    border-bottom: 1px solid var(--table-border);
+    padding: 0px 0px;
+
+    .material-switch>input[type="checkbox"] {
+      display: none;
+    }
+
+    .material-switch>label {
+      cursor: pointer;
+      height: 0px;
+      position: relative;
+      width: 40px;
+    }
+
+    .material-switch>label::before {
+      background: var(--toggle-background);
+      box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
+      content: "";
+      height: 14px;
+      margin-top: -8px;
+      position: absolute;
+      opacity: 0.3;
+      transition: all 0.4s ease-in-out;
+      width: 40px;
+    }
+
+    .material-switch>label::after {
+      background: var(--toggle-color);
+      border-radius: 14px;
+      box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
+      content: "";
+      height: 24px;
+      left: -4px;
+      margin-top: -8px;
+      position: absolute;
+      top: -4px;
+      transition: all 0.3s ease-in-out;
+      width: 24px;
+    }
+
+    .material-switch>input[type="checkbox"]:checked+label::before {
+      background: var(--main-color);
+      opacity: 0.5;
+    }
+
+    .material-switch>input[type="checkbox"]:checked+label::after {
+      background: var(--main-color);
+      left: 20px;
+    }
+
+    .green-text {
+      color: var(--green-text) !important;
+    }
+
+    .red-text {
+      color: var(--red-text) !important;
+    }
+
+    p {
+      text-align: start;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--table-text);
+      margin-bottom: 0;
+    }
+
+    .actions {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    div:nth-child(1) {
+      width: 10%;
+    }
+
+    div:nth-child(2) {
+      width: 10%;
+    }
+
+    div:nth-child(3) {
+      width: 10%;
+    }
+
+    div:nth-child(4) {
+      width: 10%;
+    }
+
+    div:nth-child(5) {
+      width: 10%;
+    }
+
+    div:nth-child(6) {
+      width: 10%;
+    }
+
+    div:nth-child(7) {
+      width: 10%;
+    }
+
+    div:nth-child(8) {
+      width: 10%;
+    }
+
+    div:nth-child(9) {
+      width: 10%;
+    }
+
+    div:nth-child(10) {
+      width: 10%;
+    }
+
+    div:nth-child(11) {
+      width: 10%;
+      text-align: left;
+    }
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+
+    .pagination-dropdown {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      p {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--table-text);
+        min-width: 135px;
+        margin-bottom: 0;
+      }
+
+      .form-select {
+        min-width: 80px;
+      }
+    }
+
+    .pagination-details {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .pagination-numbers {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        p {
+          margin-bottom: 0;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--table-text);
+        }
+      }
+
+      .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 35px;
+      }
+    }
+  }
+}
+
+
+@media (max-width: 768px) {
+  .services-main {
+    .table-headings {
+      width: 1000px !important;
+    }
+
+    .table-body {
+      width: 1000px !important;
+    }
+
+    .pagination {
+      width: 1000px !important;
+    }
+  }
+
+  .payment-main .pagination {
+    min-width: 1000px;
+  }
+}
