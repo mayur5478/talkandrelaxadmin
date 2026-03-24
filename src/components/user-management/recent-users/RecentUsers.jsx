@@ -132,7 +132,7 @@ function RecentUsers() {
                   <p className="heading-text">{user.fullName}</p>
                 </div>
                 <div>
-                  <p className="heading-text">{user.balance}</p>
+                  <p className="heading-text">{user.wallet_balance}</p>
                 </div>
                 <div>
                   <p className="heading-text">

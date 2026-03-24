@@ -197,7 +197,7 @@ function Users() {
       { header: "Email", key: "email" },
       { header: "Contact Number", key: "mobile_number" },
       { header: "Registration Date", key: "createdAt" },
-      { header: "Wallet Balance", key: "balance" },
+      { header: "Wallet Balance", key: "wallet_balance" },
       { header: "Form Status", key: "listener_request_status" },
       { header: "Account Freeze", key: "account_freeze" },
       { header: "Devices", key: "device_type" },
@@ -220,7 +220,7 @@ function Users() {
         createdAt: user?.createdAt
           ? moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")
           : "",
-        balance: user?.balance ?? 0,
+        wallet_balance: user?.wallet_balance ?? 0,
         listener_request_status:
           user?.listener_request_status === "no request"
             ? "Pending"
@@ -425,7 +425,7 @@ function Users() {
               </p>
             </div>
             <div>
-              <p className="heading-text">{user.balance}</p>
+              <p className="heading-text">{user.wallet_balance}</p>
             </div>
 
             <div>

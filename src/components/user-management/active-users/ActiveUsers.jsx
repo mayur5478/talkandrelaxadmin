@@ -73,7 +73,7 @@ function ActiveUsers() {
       { header: "Email", key: "email" },
       { header: "Contact Number", key: "mobile_number" },
       { header: "Registration Date", key: "createdAt" },
-      { header: "Wallet Balance", key: "balance" },
+      { header: "Wallet Balance", key: "wallet_balance" },
       { header: "Recharge Amount", key: "totalRechargeAmount" },
       { header: "Gift Amount", key: "totalGiftAmount" },
     ];
@@ -93,7 +93,7 @@ function ActiveUsers() {
         createdAt: user?.createdAt
           ? moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")
           : "",
-        balance: user?.balance ?? 0,
+        wallet_balance: user?.wallet_balance ?? 0,
         totalRechargeAmount: user?.totalRechargeAmount ?? 0,
         totalGiftAmount: user?.totalGiftAmount ?? 0,
       });
@@ -219,7 +219,7 @@ function ActiveUsers() {
                 <p className="heading-text">{user.fullName}</p>
               </div>
               <div>
-                <p className="heading-text">{user.balance}</p>
+                <p className="heading-text">{user.wallet_balance}</p>
               </div>
               <div>
                 <p className="heading-text">{user.totalRechargeAmount}</p>
