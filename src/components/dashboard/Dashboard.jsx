@@ -70,10 +70,50 @@ const {
         ))}
       </div>
 
-      {/* Top 10 Wallet Holders Section */}
+      {/* Top 10 User Wallet Holders Section */}
       <Row className="mt-4">
-        <Col sm={12}>
+        <Col sm={12} md={6}>
           <Top10Wallets />
+        </Col>
+        
+        {/* Top 10 Listener Wallet Holders Section */}
+        <Col sm={12} md={6}>
+          <div className="table p-3 mt-4" style={{ backgroundColor: '#fff', borderRadius: '15px', height: '100%' }}>
+            <div className="topbar mb-3">
+                <p style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '0' }}>Top 10 Listener Balances</p>
+                <p className="text-muted" style={{ fontSize: '0.9rem' }}>Highest earning listeners</p>
+            </div>
+            <div className="table-responsive">
+              <table className="table custom-table table-hover">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data?.top10ListenerWallets?.map((w, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>
+                        <div className="d-flex flex-column">
+                          <span style={{ fontWeight: '500' }}>{w.userName}</span>
+                          <small className="text-muted">{w.email}</small>
+                        </div>
+                      </td>
+                      <td style={{ fontWeight: 'bold', color: '#843C96' }}>₹{parseFloat(w.balance || 0).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                  {(!data?.top10ListenerWallets || data?.top10ListenerWallets?.length === 0) && (
+                    <tr>
+                      <td colSpan="3" className="text-center py-4 text-muted">No listener data available</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </Col>
       </Row>
     </div>
