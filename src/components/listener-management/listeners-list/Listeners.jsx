@@ -462,7 +462,7 @@ function Listeners() {
                         onClick={() =>
                           handleSoftDelete(user.id, user.fullName, true, user.mobile_number)
                         }
-                        src={eraser}
+                        src={deleteIcon}
                         alt={eraser}
                       />
                     </>

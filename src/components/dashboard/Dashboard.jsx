@@ -40,50 +40,35 @@ const {
         ))}
       </Row>
 
-      {/* Circle Sections */}
-      <Row>
-        <Col sm={12} md={6} lg={6}>
-          <div className="table">
-            <div className="topbar space">
-              <p>Traffic Via Website</p>
-              <Form.Select
-                className="traffic-dropdown"
-                aria-label="Default select example"
-              >
-                <option>Sort By</option>
-                <option value="1">Monthly</option>
-                <option value="2">Yearly</option>
-                <option value="3">Daily</option>
-              </Form.Select>
-            </div>
-            <div className="circle-graph">
-              <p>In the system, 62% Traffic via Website in one week.</p>
-              <Circle percentage={75} color="#2AA33D" />
-            </div>
-          </div>
-        </Col>
-
-        <Col sm={12} md={6} lg={6}>
-          <div className="table">
-            <div className="topbar space">
-              <p>Traffic Via Application</p>
-              <Form.Select
-                className="traffic-dropdown"
-                aria-label="Default select example"
-              >
-                <option>Sort By</option>
-                <option value="1">Monthly</option>
-                <option value="2">Yearly</option>
-                <option value="3">Daily</option>
-              </Form.Select>
-            </div>
-            <div className="circle-graph">
-              <p>In the system, 62% Traffic via Application in one week.</p>
-              <Circle percentage={75} color="#843C96" />
+      {/* Active Sessions Section */}
+      <h6 className="heading mt-4">Active Sessions</h6>
+      <div className="table active-sessions-table mb-4 shadow-sm" style={{ backgroundColor: 'white', borderRadius: '12px', padding: '15px' }}>
+        <div className="table-headings" style={{ display: 'flex', borderBottom: '1px solid #f0f0f0', paddingBottom: '10px' }}>
+          <div style={{ width: '5%' }}><p className="heading-text font-weight-bold mb-0">Sr.</p></div>
+          <div style={{ width: '25%' }}><p className="heading-text font-weight-bold mb-0">User</p></div>
+          <div style={{ width: '25%' }}><p className="heading-text font-weight-bold mb-0">Listener</p></div>
+          <div style={{ width: '15%' }}><p className="heading-text font-weight-bold mb-0">Type</p></div>
+          <div style={{ width: '30%' }}><p className="heading-text font-weight-bold mb-0">Started At</p></div>
+        </div>
+        
+        {(!data?.activeSessions || data?.activeSessions?.length === 0) && (
+          <p className="p-4 text-center text-muted mb-0">No active sessions right now.</p>
+        )}
+        
+        {data?.activeSessions?.map((session, index) => (
+          <div className="table-body py-2" key={session.id} style={{ display: 'flex', borderBottom: '1px solid #fafafa', alignItems: 'center' }}>
+            <div style={{ width: '5%' }}><p className="heading-text mb-0">{index + 1}</p></div>
+            <div style={{ width: '25%' }}><p className="heading-text mb-0">{session.userName}</p></div>
+            <div style={{ width: '25%' }}><p className="heading-text mb-0">{session.listenerName}</p></div>
+            <div style={{ width: '15%' }}><p className="heading-text mb-0" style={{ textTransform: 'capitalize' }}>{session.type}</p></div>
+            <div style={{ width: '30%' }}>
+              <p className="heading-text mb-0 text-muted" style={{ fontSize: '13px' }}>
+                {new Date(session.start_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>
             </div>
           </div>
-        </Col>
-      </Row>
+        ))}
+      </div>
 
       {/* Graph Section */}
      
