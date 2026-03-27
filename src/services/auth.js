@@ -119,6 +119,12 @@ export const authApi = createApi({
         body: { sessionId, userId, listenerId, reason },
       }),
     }),
+    walletReport: builder.query({
+      query: () => ({
+        url: `admin/wallet-report`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -136,4 +142,5 @@ export const {
   useLazySearchListenersQuery,
   useAdjustWalletMutation,
   useForceEndSessionMutation,
+  useWalletReportQuery,
 } = authApi;

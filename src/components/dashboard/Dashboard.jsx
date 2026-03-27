@@ -5,6 +5,7 @@ import { Col, Form, Row } from "react-bootstrap";
 import DashboardCards from "../common/dashboard-card/DashboardCards";
 import Graph from "./graph/Graph.jsx";
 import Circle from "./circle/Circle.jsx";
+import Top10Wallets from "./Top10Wallets.jsx";
 import { useDashboardQuery, useGetMeQuery } from "../../services/auth.js";
 
 function Dashboard() {
@@ -87,7 +88,13 @@ const {
       {/* Graph Section */}
      
         <Graph />
-    
+     
+      {/* Top 10 Wallet Holders Section */}
+      <Row className="mt-4">
+        <Col sm={12}>
+          <Top10Wallets />
+        </Col>
+      </Row>
     </div>
   );
 }
