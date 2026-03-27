@@ -3,7 +3,7 @@ import "./dashboard.scss";
 import { details } from "./dashboardCardsDetails.js";
 import { Col, Form, Row } from "react-bootstrap";
 import DashboardCards from "../common/dashboard-card/DashboardCards";
-import Graph from "./graph/Graph.jsx";
+
 import Circle from "./circle/Circle.jsx";
 import Top10Wallets from "./Top10Wallets.jsx";
 import { useDashboardQuery, useGetMeQuery } from "../../services/auth.js";
@@ -70,10 +70,6 @@ const {
         ))}
       </div>
 
-      {/* Graph Section */}
-     
-        <Graph />
-     
       {/* Top 10 Wallet Holders Section */}
       <Row className="mt-4">
         <Col sm={12}>
