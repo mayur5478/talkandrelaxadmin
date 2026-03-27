@@ -635,7 +635,7 @@ function Users() {
         onConfirm={confirmDelete}
         userId={selectedUserDelete}
         userName={userNameDelete}
-        isDeleteLoading={isDeleteUserLoading}
+        isDeleteUserLoading={isDeleteUserLoading}
         type="listener"
       />
       <AdjustWalletModal
