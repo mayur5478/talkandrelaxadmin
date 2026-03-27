@@ -1,0 +1,9 @@
+@import "../services/service.scss";
+
+.rejections-main {
+  @extend .services-main;
+  
+  .table-headings, .table-body {
+     min-width: 1200px;
+  }
+}

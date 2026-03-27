@@ -119,6 +119,19 @@ export const authApi = createApi({
         body: { sessionId, userId, listenerId, reason },
       }),
     }),
+    resetUserState: builder.mutation({
+      query: (userId) => ({
+        url: `admin/reset-user-state`,
+        method: "POST",
+        body: { userId },
+      }),
+    }),
+    getSessionRejections: builder.query({
+      query: ({ page, limit, fromDate, toDate }) => ({
+        url: `admin/get-session-rejections?page=${page}&limit=${limit}${fromDate ? `&fromDate=${fromDate}` : ''}${toDate ? `&toDate=${toDate}` : ''}`,
+        method: "GET",
+      }),
+    }),
     walletReport: builder.query({
       query: () => ({
         url: `admin/wallet-report`,
@@ -142,5 +155,7 @@ export const {
   useLazySearchListenersQuery,
   useAdjustWalletMutation,
   useForceEndSessionMutation,
+  useResetUserStateMutation,
+  useGetSessionRejectionsQuery,
   useWalletReportQuery,
 } = authApi;

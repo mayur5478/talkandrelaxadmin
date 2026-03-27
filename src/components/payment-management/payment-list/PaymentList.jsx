@@ -6,6 +6,7 @@ import RechargeTable from "./recharge-table/RechargeTable";
 import Gift from "./gift/Gift";
 import Services from "./services/Services";
 import Payout from "./payout/Payout";
+import Rejections from "./rejections/Rejections";
 import MultiDatePicker from "../../user-management/user-list/date-picker/MultiDatePicker";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
@@ -382,6 +383,7 @@ function PaymentList() {
             <Tab eventKey="Gift" title="Gift"></Tab>
             <Tab eventKey="Services" title="Sessions"></Tab>
             <Tab eventKey="Payout" title="Payout"></Tab>
+            <Tab eventKey="Rejections" title="Rejections"></Tab>
           </Tabs>
           <MultiDatePicker onChange={setDateRange} />
         </div>
@@ -426,6 +428,14 @@ function PaymentList() {
           <div className="tab-content">
             <Payout
               searchTerm={searchTerm}
+              fromDate={dateRange[0]}
+              toDate={dateRange[1]}
+            />
+          </div>
+        )}
+        {key === "Rejections" && (
+          <div className="tab-content">
+            <Rejections
               fromDate={dateRange[0]}
               toDate={dateRange[1]}
             />

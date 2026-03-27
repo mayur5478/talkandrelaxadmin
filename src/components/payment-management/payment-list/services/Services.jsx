@@ -5,15 +5,19 @@ import backIcon from "../../../assets/back.png";
 import forwardIcon from "../../../assets/forward.png";
 import backwardIcon from "../../../assets/backward.png";
 import deleteIcon from "../../../assets/delete.png";
+import killIcon from "../../../assets/cancel.png";
 import { Form } from "react-bootstrap";
 import "./service.scss";
-import { useSessionListQuery } from "../../../../services/listener"; // Adjust the import path as necessary
+import { useSessionListQuery } from "../../../../services/listener"; 
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
+import ForceEndModal from "../../../common/force-end/ForceEndModal.jsx";
 
 function Services({ searchUser, searchListener, dateRange, setExcelSessionData, onRefetch }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [showForceEndModal, setShowForceEndModal] = useState(false);
+  const [forceEndTarget, setForceEndTarget] = useState({ id: '', name: '', userId: '' });
   const navigate = useNavigate();
   const handleView = (id) => {
     navigate(`/dashboard/user-management/profile-view?id=${id}`);
@@ -174,11 +178,31 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
           <div style={columnStyles[9]}>
             <p className="heading-text text-end">{session.admin_credit}</p>
           </div>
-          <div style={columnStyles[10]} className="text-center">
+          <div style={columnStyles[10]} className="text-center actions d-flex justify-content-center gap-2">
             <img src={deleteIcon} alt={deleteIcon} />
+            {session.transaction_status === 'active' && (
+              <img 
+                src={killIcon} 
+                onClick={() => {
+                  setForceEndTarget({ id: session.id, name: session.username, userId: session.userId });
+                  setShowForceEndModal(true);
+                }}
+                title="Force End Session"
+                alt="Kill" 
+                style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+            )}
           </div>
         </div>
       ))}
+
+      <ForceEndModal
+        show={showForceEndModal}
+        handleClose={() => setShowForceEndModal(false)}
+        userId={forceEndTarget.userId}
+        userName={forceEndTarget.name}
+        refetch={refetch}
+      />
 
       <div className="pagination">
         <div className="pagination-dropdown">

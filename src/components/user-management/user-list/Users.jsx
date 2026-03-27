@@ -35,6 +35,7 @@ import EditUser from "../../common/edit-user/EditUser";
 import MultiDatePicker from "./date-picker/MultiDatePicker";
 import AdjustWalletModal from "../../common/adjust-wallet/AdjustWalletModal.jsx";
 import ForceEndModal from "../../common/force-end/ForceEndModal.jsx";
+import ResetStateModal from "../../common/reset-state/ResetStateModal.jsx";
 
 function Users() {
   const [modalShow, setModalShow] = useState(false);
@@ -57,6 +58,7 @@ function Users() {
   const [deleteMobile, setDeleteMobile] = useState("");
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showForceEndModal, setShowForceEndModal] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const [adjustTarget, setAdjustTarget] = useState({ id: '', name: '' });
   const [mobileNumber, setMobileNumber] = useState(null);
   const [pageSize, setPageSize] = useState(10);
@@ -318,6 +320,11 @@ function Users() {
     setAdjustTarget({ id, name }); // Reuse state for name display
     setShowForceEndModal(true);
   };
+
+  const handleResetStateClick = (id, name) => {
+    setAdjustTarget({ id, name }); // Reuse state for name display
+    setShowResetModal(true);
+  };
   return (
     <div className="users-main">
       <div className="top-section">
@@ -506,6 +513,13 @@ function Users() {
                   alt="Adj"
                   style={{ width: '18px', height: '18px' }}
                 />
+                <img
+                  onClick={() => handleResetStateClick(user.id, user.fullName)}
+                  src={eraser}
+                  title="Reset Stuck States"
+                  alt="Reset"
+                  style={{ width: '18px', height: '18px' }}
+                />
                 {user.is_session_running && (
                   <img
                     onClick={() => handleForceEndClick(user.id, user.fullName)}
@@ -648,6 +662,13 @@ function Users() {
       <ForceEndModal
         show={showForceEndModal}
         handleClose={() => setShowForceEndModal(false)}
+        userId={adjustTarget.id}
+        userName={adjustTarget.name}
+        refetch={refetch}
+      />
+      <ResetStateModal
+        show={showResetModal}
+        handleClose={() => setShowResetModal(false)}
         userId={adjustTarget.id}
         userName={adjustTarget.name}
         refetch={refetch}
