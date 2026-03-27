@@ -13,6 +13,8 @@ import forwardIcon from "../../assets/forward.png";
 import backwardIcon from "../../assets/backward.png";
 import eraser from "../../assets/eraser.png";
 import replyImage from "../../assets/reply.png";
+import adjustIcon from "../../assets/blue-amount.png";
+import killIcon from "../../assets/cancel.png";
 
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import ExcelJS from "exceljs";
@@ -27,7 +29,7 @@ import moment from "moment";
 import { useAccountFreezeMutation } from "../../../services/auth.js";
 import AccountFreeze from "../../common/account-freeze/AccountFreeze.jsx";
 import LinkShare from "../../common/link-share/LinkShare.jsx";
-import Delete from "../../common/delete-modal/Delete.jsx";
+import Delete from "../../common/delete/Delete.jsx";
 import { useNavigate } from "react-router-dom";
 import EditUser from "../../common/edit-user/EditUser";
 import MultiDatePicker from "./date-picker/MultiDatePicker";
