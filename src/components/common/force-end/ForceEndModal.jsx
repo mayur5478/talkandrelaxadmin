@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useForceEndSessionMutation } from '../../../services/auth';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 function ForceEndModal({ show, handleClose, userId, userName, refetch }) {
   const [reason, setReason] = useState('Admin manual clearing (stuck status)');
@@ -14,11 +14,11 @@ function ForceEndModal({ show, handleClose, userId, userName, refetch }) {
          reason 
       }).unwrap();
       
-      toast.success(`Force-terminated session for ${userName}`);
+      Swal.fire("Success", `Force-terminated session for ${userName}`, "success");
       refetch();
       handleClose();
     } catch (err) {
-      toast.error(err?.data?.message || "Force end failed");
+      Swal.fire("Error", err?.data?.message || "Force end failed", "error");
     }
   };
 

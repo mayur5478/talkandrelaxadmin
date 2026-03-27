@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
 import { useAdjustWalletMutation } from '../../../services/auth';
-import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 function AdjustWalletModal({ show, handleClose, userId, userName, refetch }) {
   const [adjustment, setAdjustment] = useState({
@@ -14,7 +14,7 @@ function AdjustWalletModal({ show, handleClose, userId, userName, refetch }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!adjustment.amount || !adjustment.reason) {
-      toast.error("Please provide amount and reason");
+      Swal.fire("Warning", "Please provide amount and reason", "warning");
       return;
     }
 
@@ -26,12 +26,12 @@ function AdjustWalletModal({ show, handleClose, userId, userName, refetch }) {
         reason: adjustment.reason
       }).unwrap();
       
-      toast.success(`Successfully ${adjustment.type}ed wallet`);
+      Swal.fire("Success", `Successfully ${adjustment.type}ed wallet`, "success");
       refetch();
       handleClose();
       setAdjustment({ amount: '', type: 'credit', reason: '' });
     } catch (err) {
-      toast.error(err?.data?.message || "Adjustment failed");
+      Swal.fire("Error", err?.data?.message || "Adjustment failed", "error");
     }
   };
 
