@@ -105,6 +105,20 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    adjustWallet: builder.mutation({
+      query: ({ userId, amount, type, reason }) => ({
+        url: `admin/adjust-wallet`,
+        method: "POST",
+        body: { userId, amount, type, reason },
+      }),
+    }),
+    forceEndSession: builder.mutation({
+      query: ({ sessionId, userId, listenerId, reason }) => ({
+        url: `admin/force-end-session`,
+        method: "POST",
+        body: { sessionId, userId, listenerId, reason },
+      }),
+    }),
   }),
 });
 
@@ -120,4 +134,6 @@ export const {
   useResetAdminPasswordMutation,
   useLazySearchUsersQuery,
   useLazySearchListenersQuery,
+  useAdjustWalletMutation,
+  useForceEndSessionMutation,
 } = authApi;

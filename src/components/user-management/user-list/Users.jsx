@@ -24,13 +24,15 @@ import {
 } from "../../../services/user";
 import { useListenerFormLinkMutation } from "../../../services/listener";
 import moment from "moment";
-import { useAccountFreezeMutation } from "../../../services/auth";
-import AccountFreeze from "../../common/account-freeze/AccountFreeze";
-import LinkShare from "../../common/link-share/LinkShare";
-import Delete from "../../common/delete/Delete";
+import { useAccountFreezeMutation } from "../../../services/auth.js";
+import AccountFreeze from "../../common/account-freeze/AccountFreeze.jsx";
+import LinkShare from "../../common/link-share/LinkShare.jsx";
+import Delete from "../../common/delete-modal/Delete.jsx";
 import { useNavigate } from "react-router-dom";
 import EditUser from "../../common/edit-user/EditUser";
 import MultiDatePicker from "./date-picker/MultiDatePicker";
+import AdjustWalletModal from "../../common/adjust-wallet/AdjustWalletModal.jsx";
+import ForceEndModal from "../../common/force-end/ForceEndModal.jsx";
 
 function Users() {
   const [modalShow, setModalShow] = useState(false);
@@ -50,6 +52,10 @@ function Users() {
   const [selectedUserDelete, setSelectedUserDelete] = useState(null);
   const [userNameDelete, setUserNameDelete] = useState(null);
   const [deleteStatus, setDeleteStatus] = useState(null);
+  const [deleteMobile, setDeleteMobile] = useState("");
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [showForceEndModal, setShowForceEndModal] = useState(false);
+  const [adjustTarget, setAdjustTarget] = useState({ id: '', name: '' });
   const [mobileNumber, setMobileNumber] = useState(null);
   const [pageSize, setPageSize] = useState(10);
   const [dateRange, setDateRange] = useState([]);
@@ -300,6 +306,16 @@ function Users() {
 
     saveAs(blob, fileName);
   };
+
+  const handleAdjustClick = (id, name) => {
+    setAdjustTarget({ id, name });
+    setShowAdjustModal(true);
+  };
+
+  const handleForceEndClick = (id, name) => {
+    setAdjustTarget({ id, name }); // Reuse state for name display
+    setShowForceEndModal(true);
+  };
   return (
     <div className="users-main">
       <div className="top-section">
@@ -481,6 +497,22 @@ function Users() {
                   src={editIcon}
                   alt="Edit"
                 />
+                <img
+                  onClick={() => handleAdjustClick(user.id, user.fullName)}
+                  src={adjustIcon}
+                  title="Adjust Wallet"
+                  alt="Adj"
+                  style={{ width: '18px', height: '18px' }}
+                />
+                {user.is_session_running && (
+                  <img
+                    onClick={() => handleForceEndClick(user.id, user.fullName)}
+                    src={killIcon}
+                    title="Force End Session"
+                    alt="Kill"
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                )}
                 {user?.is_soft_delete === false ? (
                   <>
                     <img
@@ -601,8 +633,22 @@ function Users() {
         onConfirm={confirmDelete}
         userId={selectedUserDelete}
         userName={userNameDelete}
-        isDeleteUserLoading={isDeleteUserLoading}
+        isDeleteLoading={isDeleteUserLoading}
         type="listener"
+      />
+      <AdjustWalletModal
+        show={showAdjustModal}
+        handleClose={() => setShowAdjustModal(false)}
+        userId={adjustTarget.id}
+        userName={adjustTarget.name}
+        refetch={refetch}
+      />
+      <ForceEndModal
+        show={showForceEndModal}
+        handleClose={() => setShowForceEndModal(false)}
+        userId={adjustTarget.id}
+        userName={adjustTarget.name}
+        refetch={refetch}
       />
       <EditUser
         show={editUserModal}
