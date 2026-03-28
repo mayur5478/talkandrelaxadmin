@@ -144,8 +144,8 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-bold">{s.userName}</td>
                       <td className="px-4 py-3 fw-bold text-primary">{s.listenerName}</td>
                       <td className="px-4 py-3">
-                        <span className={`badge border-0 px-3 ${s.type === 'chat' ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'}`}>
-                          {s.type?.toUpperCase() || 'N/A'}
+                        <span className={`badge border-0 px-3 rounded-pill ${s.type?.toLowerCase() === 'chat' ? 'bg-info-subtle text-info' : 'bg-primary-subtle text-primary'}`}>
+                          {s.type || s.service_type || 'AUDIO'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -185,12 +185,12 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-semibold">{s.userName}</td>
                       <td className="px-4 py-3 fw-semibold text-secondary">{s.listenerName}</td>
                       <td className="px-4 py-3">
-                        <span className={`badge border-0 px-2 py-1 ${s.type === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-orange-subtle text-orange'}`}>
-                          {s.type?.toUpperCase() || 'N/A'}
+                        <span className={`badge border-0 px-3 rounded-pill ${(s.type || s.service_type)?.toLowerCase() === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-emerald-subtle text-emerald'}`}>
+                          {(s.type || s.service_type || 'AUDIO').toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-monospace small">
-                        {s.total_duration ? `${Math.round(s.total_duration)}m` : '00:00'}
+                      <td className="px-4 py-3 fw-bold text-dark">
+                        {Math.round(s.total_duration || s.totalDuration || 0)}m
                       </td>
                       <td className="px-4 py-3 text-muted small">
                         {new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
