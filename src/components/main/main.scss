@@ -1,23 +1,18 @@
 .main-section {
   #main {
-    transition: all 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background-color: var(--background-color);
-   
+    margin-left: 280px; 
+    min-height: 100vh;
   }
 
-  #main {
-    margin-left: 240px;
-    transition: margin-left 0.3s ease;
-  }
-  
   &.menu-closed #main {
     margin-left: 0;
   }
 
-  @media (min-width: 1200px) {
-    #main,
-    #footer {
-      margin-left: 240px;
+  @media (max-width: 1199.98px) {
+    #main {
+      margin-left: 0 !important;
     }
   }
 
