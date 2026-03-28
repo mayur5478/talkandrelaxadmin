@@ -123,10 +123,10 @@ function RechargeTable({ searchTerm, dateRange, setExcelData }) {
             </p>
           </div>
           <div>
-            <p className="heading-text">{recharge.transaction_id}</p>
+            <p className="transaction-id">{recharge.transaction_id}</p>
           </div>
           <div>
-            <p className="heading-text">{recharge.razorpay_payment_id}</p>
+            <p className="transaction-id">{recharge.razorpay_payment_id || 'N/A'}</p>
           </div>
           <div>
             <p
@@ -137,13 +137,13 @@ function RechargeTable({ searchTerm, dateRange, setExcelData }) {
             </p>
           </div>
           <div>
-            <p className="heading-text">{recharge.recharge_amount}</p>
+            <p className="heading-text fw-bold">₹{recharge.recharge_amount}</p>
           </div>
           <div>
-            <p className="heading-text">{recharge.net_recharge}</p>
+            <p className="heading-text">₹{recharge.net_recharge}</p>
           </div>
           <div>
-            <p className="heading-text">{recharge.gst_amount}</p>
+            <p className="heading-text text-muted">₹{recharge.gst_amount}</p>
           </div>
           <div>
             <p className="heading-text">{recharge.country}</p>
@@ -153,22 +153,24 @@ function RechargeTable({ searchTerm, dateRange, setExcelData }) {
           </div>
           <div>
             <p
-              className={`heading-text  ${
+              className={`heading-text ${
                 recharge.status === "pending" || recharge.status === "failed"
                   ? "red-text"
                   : "green-text"
               }`}
             >
-              {recharge.status}
+              {recharge.status?.toUpperCase()}
             </p>
           </div>
           <div>
-            <p className="heading-text extra-space">
-              {moment(recharge.transaction_date).format("DD/MM/YYYY, hh:mm A")}
+            <p className="heading-text text-muted small">
+              {moment(recharge.transaction_date).format("DD/MM/YYYY")} <br/>
+              <span className="fw-bold text-dark">{moment(recharge.transaction_date).format("hh:mm A")}</span>
             </p>
           </div>
         </div>
       ))}
+
 
       <div className="pagination">
         <div className="pagination-dropdown">

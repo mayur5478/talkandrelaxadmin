@@ -170,39 +170,7 @@
       div:nth-child(7) { width: 15%; }
     }
 
-    .pagination {
-      padding: 1.25rem;
-      border-top: 1px solid var(--table-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-
-      .pagination-dropdown {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        p { margin: 0; font-size: 0.875rem; color: var(--text-muted); }
-      }
-
-      .pagination-details {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        .pagination-numbers { font-size: 0.875rem; color: var(--text-muted); }
-        .pagination-controls {
-          display: flex;
-          align-items: center;
-          gap: 1.25rem;
-          img {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-            opacity: 0.5;
-            &:hover { opacity: 1; }
-          }
-        }
-      }
-    }
+    /* Pagination styles moved to global index.css for consistency */
   }
 }
 

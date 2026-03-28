@@ -1,162 +1,162 @@
 .recharge-main-2 {
+  width: 100%;
+  overflow-x: auto;
+  
   .red-text {
-    color: var(--red-text) !important;
+    color: var(--danger) !important;
+    font-weight: 600;
   }
+  
+  .green-text {
+    color: var(--success) !important;
+    font-weight: 600;
+  }
+
   .name {
-    text-decoration:underline;
+    color: var(--primary);
+    text-decoration: none;
     cursor: pointer;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
+
+  /* Table Header Modernization */
   .table-headings {
     display: flex;
     align-items: center;
-    min-width: 2200px;
-padding: 20px 0px;
-    border-bottom: 1px solid var(--table-border);
+    min-width: 1600px;
+    background: #f8fafc;
+    padding: 12px 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
     p {
       text-align: start;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 0.75rem;
+      font-weight: 700;
       margin-bottom: 0;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0 15px;
     }
-    /* Column Widths */
-    div:nth-child(1) {
-      width: 5%;
-    }
-    div:nth-child(2) {
-      width: 15%;
-    }
-    div:nth-child(3) {
-      width: 15%;
-    }
-    div:nth-child(4) {
-      width: 15%;
-    }
-    div:nth-child(5) {
-      width: 10%;
-    }
-    div:nth-child(6) {
-      width: 10%;
-    }
-    div:nth-child(7) {
-      width: 10%;
-    }
-    div:nth-child(8) {
-      width: 10%;
-    }
-    div:nth-child(9) {
-      width: 15%;
-    }
-    div:nth-child(10) {
-      width: 15%;
-    }
-    div:nth-child(11) {
-      width: 15%;
-    }
+
     .sort {
-      margin-left: 5px;
+      width: 12px;
+      margin-left: 6px;
+      opacity: 0.5;
     }
   }
 
   .table-body {
     display: flex;
     align-items: center;
-    min-width: 2200px;
-    border-bottom: 1px solid var(--table-border);
-    padding: 25px 0px;
-    .material-switch > input[type="checkbox"] {
-      display: none;
+    min-width: 1600px;
+    border-bottom: 1px solid #f1f5f9;
+    padding: 16px 0;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background-color: #f8fafc;
     }
 
-    .material-switch > label {
-      cursor: pointer;
-      height: 0px;
-      position: relative;
-      width: 40px;
-    }
-
-    .material-switch > label::before {
-      background: var(--toggle-background);
-      box-shadow: inset 0px 0px 10px rgba(0, 0, 0, 0.5);
-      border-radius: 8px;
-      content: "";
-      height: 16px;
-      margin-top: -8px;
-      position: absolute;
-      opacity: 0.3;
-      transition: all 0.4s ease-in-out;
-      width: 40px;
-    }
-    .material-switch > label::after {
-      background: var(--toggle-color);
-      border-radius: 16px;
-      box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.3);
-      content: "";
-      height: 24px;
-      left: -4px;
-      margin-top: -8px;
-      position: absolute;
-      top: -4px;
-      transition: all 0.3s ease-in-out;
-      width: 24px;
-    }
-    .material-switch > input[type="checkbox"]:checked + label::before {
-      background: var(--main-color);
-      opacity: 0.5;
-    }
-    .material-switch > input[type="checkbox"]:checked + label::after {
-      background: var(--main-color);
-      left: 20px;
-    }
-    .green-text {
-      color: var(--green-text) !important;
-    }
-   
     p {
       text-align: start;
-      font-size: 16px;
-      font-weight: 400;
-      color: var(--table-text);
+      font-size: 0.875rem;
+      font-weight: 450;
+      color: var(--text-main);
       margin-bottom: 0;
+      padding: 0 15px;
+      word-break: break-all;
     }
-    .actions {
-      width: 100%;
+    
+    .transaction-id {
+       font-family: 'Inter', monospace;
+       font-size: 0.8rem;
+       color: #475569;
+       background: #f1f5f9;
+       padding: 4px 8px;
+       border-radius: 4px;
+    }
+  }
+
+  /* Column Width Alignment (11 Columns) */
+  .table-headings div, .table-body div {
+    &:nth-child(1) { width: 4%; }   /* Sr No */
+    &:nth-child(2) { width: 12%; }  /* Trans ID */
+    &:nth-child(3) { width: 12%; }  /* Pay ID */
+    &:nth-child(4) { width: 12%; }  /* Name */
+    &:nth-child(5) { width: 8%; }   /* Amount */
+    &:nth-child(6) { width: 8%; }   /* Net */
+    &:nth-child(7) { width: 6%; }   /* GST */
+    &:nth-child(8) { width: 8%; }   /* Country */
+    &:nth-child(9) { width: 8%; }   /* State */
+    &:nth-child(10) { width: 10%; } /* Status */
+    &:nth-child(11) { width: 16%; } /* Date & Time */
+  }
+
+
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background: #fff;
+    border-top: 1px solid #f1f5f9;
+
+    .pagination-dropdown {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text-muted);
+
+      select {
+        border-radius: 6px;
+        padding: 4px 8px;
+        border: 1px solid #e2e8f0;
+        outline: none;
+      }
     }
 
-    div:nth-child(1) {
-      width: 5%;
-    }
-    div:nth-child(2) {
-      width: 15%;
-    }
-    div:nth-child(3) {
-      width: 15%;
-    }
-    div:nth-child(4) {
-      width: 15%;
-    }
-    div:nth-child(5) {
-      width: 10%;
-    }
-    div:nth-child(6) {
-      width: 10%;
-    }
-    div:nth-child(7) {
-      width: 10%;
-    }
-    div:nth-child(8) {
-      width: 10%;
-    }
-    div:nth-child(9) {
-      width: 15%;
-    }
-    div:nth-child(10) {
-      width: 15%;
-    }
-    div:nth-child(11) {
-      width: 15%;
+    .pagination-details {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+
+      .pagination-numbers {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .pagination-controls {
+        display: flex;
+        gap: 10px;
+
+        img {
+          width: 28px;
+          height: 28px;
+          padding: 6px;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+          }
+        }
+      }
     }
   }
 }

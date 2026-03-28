@@ -124,7 +124,7 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-bold text-primary">{s.listenerName}</td>
                       <td className="px-4 py-3">
                         <span className={`badge border-0 px-3 ${s.service_type === 'chat' ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'}`}>
-                          {s.service_type.toUpperCase()}
+                          {s.service_type?.toUpperCase() || 'N/A'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -165,7 +165,7 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-semibold text-secondary">{s.listenerName}</td>
                       <td className="px-4 py-3">
                         <span className={`badge border-0 px-2 py-1 ${s.service_type === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-orange-subtle text-orange'}`}>
-                          {s.service_type.toUpperCase()}
+                          {s.service_type?.toUpperCase() || 'N/A'}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-monospace small">

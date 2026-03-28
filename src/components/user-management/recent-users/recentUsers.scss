@@ -220,52 +220,7 @@
         }
        
       }
-      .pagination {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 20px;
-        .pagination-dropdown {
-          display: flex;
-          align-items: center;
-          gap: 20px;
-  
-          p {
-               padding: 0 ;
-            font-size: 16px;
-            font-weight: 500;
-            color: var(--table-text);
-            min-width: 135px;
-            margin-bottom: 0;
-          }
-          .form-select {
-            min-width: 80px;
-          }
-        }
-        .pagination-details {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          .pagination-numbers {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-  
-            p {
-           
-              margin-bottom: 0;
-              font-size: 16px;
-              font-weight: 500;
-              color: var(--table-text);
-            }
-          }
-          .pagination-controls {
-            display: flex;
-            align-items: center;
-            gap: 35px;
-          }
-        }
-      }
+    /* Pagination styles moved to global index.css for consistency */
     }
     @media (max-width: 1199px) {
       .pagination{
