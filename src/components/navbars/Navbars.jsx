@@ -76,8 +76,10 @@ function Navbars({ toggleSidebar }) {
             <div className="menu-toggle-btn me-3" onClick={toggleSidebar}>
               <img src={drawer} alt="toggle" />
             </div>
-            <span className="page-breadcrumb d-none d-md-inline-block">
-              Admin <span className="text-muted mx-2">/</span> <span className="text-dark fw-bold">{location.pathname.split('/').pop().replace(/-/g, ' ').toUpperCase()}</span>
+            <span className="page-breadcrumb d-inline-block">
+              <span className="text-secondary opacity-75 d-none d-sm-inline">Admin</span> 
+              <span className="text-muted mx-2 d-none d-sm-inline">/</span> 
+              <span className="text-dark fw-bold">{location.pathname.split('/').pop().replace(/-/g, ' ').toUpperCase()}</span>
             </span>
           </Navbar.Brand>
 
