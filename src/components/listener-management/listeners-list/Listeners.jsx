@@ -526,11 +526,10 @@ function Listeners() {
                   <svg 
                     onClick={() => handleResetStateClick(user.id, user.display_name)}
                     xmlns="http://www.w3.org/2000/svg" 
-                    width="18" height="18" 
+                    width="22" height="22" 
                     viewBox="0 0 24 24" fill="none" 
-                    stroke="#1e293b" strokeWidth="2" 
+                    stroke="currentColor" strokeWidth="2" 
                     strokeLinecap="round" strokeLinejoin="round" 
-                    style={{ cursor: 'pointer', transition: 'all 0.2s' }}
                     title="Reset Stuck States"
                     className="reset-icon mx-1"
                   >

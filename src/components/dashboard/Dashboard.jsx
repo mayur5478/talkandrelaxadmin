@@ -81,13 +81,13 @@ const {
               <svg 
                 onClick={() => handleResetStateClick(session.userId, session.userName)}
                 xmlns="http://www.w3.org/2000/svg" 
-                width="18" height="18" 
+                width="22" height="22" 
                 viewBox="0 0 24 24" fill="none" 
-                stroke="#e11d48" strokeWidth="2" 
+                stroke="currentColor" strokeWidth="2" 
                 strokeLinecap="round" strokeLinejoin="round" 
-                style={{ cursor: 'pointer', transition: 'all 0.2s' }}
                 title="Reset Stuck States"
                 className="reset-icon"
+                style={{ color: '#e11d48' }} // Keep red for danger/emergency on dashboard
               >
                 <path d="M21 2v6h-6"></path>
                 <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
