@@ -12,6 +12,7 @@ import "./recentUsers.scss";
 import { useRecentUserListQuery } from "../../../services/user";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
+import ResetStateModal from "../../common/reset-state/ResetStateModal";
 
 function RecentUsers() {
   const [searchParams, setSearchParams] = useState("");
@@ -19,6 +20,13 @@ function RecentUsers() {
   const [modalShow, setModalShow] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetTarget, setResetTarget] = useState({ id: "", name: "" });
+
+  const handleResetStateClick = (id, name) => {
+    setResetTarget({ id, name });
+    setShowResetModal(true);
+  };
 
   const { data, error, isLoading } = useRecentUserListQuery({
     page,

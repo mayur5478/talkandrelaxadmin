@@ -6,7 +6,9 @@ import DashboardCards from "../common/dashboard-card/DashboardCards";
 
 import Circle from "./circle/Circle.jsx";
 import Top10Wallets from "./Top10Wallets.jsx";
-import { useDashboardQuery, useGetMeQuery } from "../../services/auth.js";
+import { useDashboardQuery, useGetMeQuery, useResetUserStateMutation } from "../../services/auth.js";
+import ResetStateModal from "../common/reset-state/ResetStateModal.jsx";
+import Swal from "sweetalert2";
 
 function Dashboard() {
   const { data, isLoading, error } = useDashboardQuery();
@@ -18,6 +20,14 @@ const {
   } = useGetMeQuery(null, {
     skip: !localStorage.getItem("token"),
   });
+  
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetTarget, setResetTarget] = useState({ id: "", name: "" });
+
+  const handleResetStateClick = (id, name) => {
+    setResetTarget({ id, name });
+    setShowResetModal(true);
+  };
 
 
   return (
@@ -48,7 +58,8 @@ const {
           <div style={{ width: '25%' }}><p className="heading-text font-weight-bold mb-0">User</p></div>
           <div style={{ width: '25%' }}><p className="heading-text font-weight-bold mb-0">Listener</p></div>
           <div style={{ width: '15%' }}><p className="heading-text font-weight-bold mb-0">Type</p></div>
-          <div style={{ width: '30%' }}><p className="heading-text font-weight-bold mb-0">Started At</p></div>
+          <div style={{ width: '25%' }}><p className="heading-text font-weight-bold mb-0">Started At</p></div>
+          <div style={{ width: '10%' }}><p className="heading-text font-weight-bold mb-0">Action</p></div>
         </div>
         
         {(!data?.activeSessions || data?.activeSessions?.length === 0) && (
@@ -61,14 +72,43 @@ const {
             <div style={{ width: '25%' }}><p className="heading-text mb-0">{session.userName}</p></div>
             <div style={{ width: '25%' }}><p className="heading-text mb-0">{session.listenerName}</p></div>
             <div style={{ width: '15%' }}><p className="heading-text mb-0" style={{ textTransform: 'capitalize' }}>{session.type}</p></div>
-            <div style={{ width: '30%' }}>
+            <div style={{ width: '25%' }}>
               <p className="heading-text mb-0 text-muted" style={{ fontSize: '13px' }}>
                 {new Date(session.start_time).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>
             </div>
+            <div style={{ width: '10%', display: 'flex', justifyContent: 'center' }}>
+              <svg 
+                onClick={() => handleResetStateClick(session.userId, session.userName)}
+                xmlns="http://www.w3.org/2000/svg" 
+                width="18" height="18" 
+                viewBox="0 0 24 24" fill="none" 
+                stroke="#e11d48" strokeWidth="2" 
+                strokeLinecap="round" strokeLinejoin="round" 
+                style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                title="Reset Stuck States"
+                className="reset-icon"
+              >
+                <path d="M21 2v6h-6"></path>
+                <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                <path d="M3 22v-6h6"></path>
+                <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+              </svg>
+            </div>
           </div>
         ))}
       </div>
+
+      <ResetStateModal 
+        show={showResetModal} 
+        handleClose={() => setShowResetModal(false)}
+        userId={resetTarget.id}
+        userName={resetTarget.name}
+        refetch={() => {
+          // Dashboard refetch
+          window.location.reload(); // Quickest way to refresh all dashboard data
+        }}
+      />
 
       {/* Top 10 User Wallet Holders Section */}
       <Row className="mt-4">
