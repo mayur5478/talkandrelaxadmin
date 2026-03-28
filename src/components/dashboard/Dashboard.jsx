@@ -38,8 +38,8 @@ const Dashboard = () => {
       <section className="mb-5">
         <h5 className="category-title mb-3">Platform Overview</h5>
         <div className="dashboard-grid">
-           {platformStats.map((ele, ind) => <DashboardCards key={ind} details={ele} />)}
-           {activeStatus.map((ele, ind) => <DashboardCards key={ind} details={ele} />)}
+           {platformStats.map((ele, ind) => <DashboardCards key={ind} {...ele} />)}
+           {activeStatus.map((ele, ind) => <DashboardCards key={ind} {...ele} />)}
         </div>
       </section>
 
@@ -48,13 +48,13 @@ const Dashboard = () => {
         <div className="col-lg-6">
            <h5 className="category-title mb-3">Today's Performance</h5>
            <div className="dashboard-grid grid-2">
-              {dailyFinancials.map((ele, ind) => <DashboardCards key={ind} details={ele} />)}
+              {dailyFinancials.map((ele, ind) => <DashboardCards key={ind} {...ele} />)}
            </div>
         </div>
         <div className="col-lg-6">
            <h5 className="category-title mb-3">Monthly Financials</h5>
            <div className="dashboard-grid grid-2">
-              {monthlyFinancials.map((ele, ind) => <DashboardCards key={ind} details={ele} />)}
+              {monthlyFinancials.map((ele, ind) => <DashboardCards key={ind} {...ele} />)}
            </div>
         </div>
       </div>
@@ -64,16 +64,17 @@ const Dashboard = () => {
          <div className="col-lg-8">
             <h5 className="category-title mb-3">Adjustments & Lifetime Volume</h5>
             <div className="dashboard-grid">
-               {adjustmentsAndVolume.map((ele, ind) => <DashboardCards key={ind} details={ele} />)}
+               {adjustmentsAndVolume.map((ele, ind) => <DashboardCards key={ind} {...ele} />)}
             </div>
          </div>
          <div className="col-lg-4">
             <h5 className="category-title mb-3">Global Wallets</h5>
             <div className="d-flex flex-column gap-3">
-               {walletAggregates.map((ele, ind) => <DashboardCards key={ind} details={ele} />)}
+               {walletAggregates.map((ele, ind) => <DashboardCards key={ind} {...ele} />)}
             </div>
          </div>
       </div>
+
 
       {/* 4. Top Accounts & Active Sessions */}
       <div className="row g-4 mb-5">
@@ -101,38 +102,77 @@ const Dashboard = () => {
          </div>
       </div>
 
-      {/* 5. Active Sessions Overlay */}
+      {/* 5. Ongoing Sessions Overlay */}
       {data?.activeSessions?.length > 0 && (
-        <section>
+        <section className="mb-5">
           <h5 className="category-title mb-3">Ongoing Sessions (Live)</h5>
-          <div className="modern-card p-0 overflow-hidden shadow-sm">
+          <div className="modern-card p-0 overflow-hidden shadow-sm border-0">
             <div className="table-responsive">
               <table className="table table-hover align-middle mb-0">
                 <thead className="bg-light">
                   <tr>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">User</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Listener</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Type</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Started</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Status</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">User Account</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Listener Agent</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Channel</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Live Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.activeSessions.map((s, i) => (
                     <tr key={i}>
-                      <td className="px-4 py-3 fw-semibold">{s.userName}</td>
-                      <td className="px-4 py-3 fw-semibold text-primary">{s.listenerName}</td>
+                      <td className="px-4 py-3 fw-bold">{s.userName}</td>
+                      <td className="px-4 py-3 fw-bold text-primary">{s.listenerName}</td>
                       <td className="px-4 py-3">
                         <span className={`badge border-0 px-3 ${s.service_type === 'chat' ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'}`}>
                           {s.service_type.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-muted">{new Date(s.createdAt).toLocaleTimeString()}</td>
                       <td className="px-4 py-3">
-                        <div className="d-flex align-items-center gap-2">
+                        <div className="d-flex align-items-center gap-2 text-success fw-bold">
                            <div className="heartbeat-dot"></div>
-                           <span className="text-secondary fw-500">In Call</span>
+                           <span>ACTIVE NOW</span>
                         </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 6. Today's Completed Sessions Overlay */}
+      {data?.todaySessions?.length > 0 && (
+        <section className="mb-4">
+          <h5 className="category-title mb-3">Today's Completed Interactions</h5>
+          <div className="modern-card p-0 overflow-hidden shadow-sm border-0 bg-white">
+            <div className="table-responsive">
+              <table className="table table-hover align-middle mb-0">
+                <thead className="" style={{ backgroundColor: '#f8fafc' }}>
+                  <tr>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">User</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Listener</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Method</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Duration</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.todaySessions.map((s, i) => (
+                    <tr key={i}>
+                      <td className="px-4 py-3 fw-semibold">{s.userName}</td>
+                      <td className="px-4 py-3 fw-semibold text-secondary">{s.listenerName}</td>
+                      <td className="px-4 py-3">
+                        <span className={`badge border-0 px-2 py-1 ${s.service_type === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-orange-subtle text-orange'}`}>
+                          {s.service_type.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-monospace small">
+                        {s.duration || '00:00'}
+                      </td>
+                      <td className="px-4 py-3 text-muted small">
+                        {new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </td>
                     </tr>
                   ))}
@@ -145,5 +185,6 @@ const Dashboard = () => {
     </div>
   );
 };
+
 
 export default Dashboard;

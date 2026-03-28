@@ -47,8 +47,16 @@ function Login() {
   return (
     <div className="login-main">
       <Row className="row-class min-vh-100 g-0">
-        <Col sm={12} md={6} lg={7} className="login-column d-none d-md-block">
+        <Col sm={12} md={6} lg={7} className="login-column d-none d-md-block position-relative">
           <img className="login-img" src={loginImage} alt="background" />
+          <div className="welcome-overlay">
+             <div className="welcome-content">
+                <h1 className="welcome-title">Welcome Back</h1>
+                <p className="welcome-text">
+                  To keep connected with us please login with your personal info
+                </p>
+             </div>
+          </div>
         </Col>
         <Col sm={12} md={6} lg={5} className="login-column">
           <div className="form-section">
