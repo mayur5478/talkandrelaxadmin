@@ -2,6 +2,7 @@ import React from "react";
 import "./dashboard.scss";
 import DashboardCards from "../common/dashboard-card/DashboardCards";
 import { useDashboardQuery } from "../../services/auth";
+import WalletList from "./WalletList";
 import WalletModal from "./WalletModal";
 
 const Dashboard = () => {
