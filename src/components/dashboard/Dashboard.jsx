@@ -144,7 +144,7 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-bold">{s.userName}</td>
                       <td className="px-4 py-3 fw-bold text-primary">{s.listenerName}</td>
                       <td className="px-4 py-3">
-                        <span className={`badge border-0 px-3 rounded-pill ${s.type?.toLowerCase() === 'chat' ? 'bg-info-subtle text-info' : 'bg-primary-subtle text-primary'}`}>
+                        <span className={`badge rounded-pill px-3 border-0 ${s.type?.toLowerCase() === 'chat' ? 'bg-info-subtle text-info-emphasis' : 'bg-primary-subtle text-primary-emphasis'}`}>
                           {s.type || s.service_type || 'AUDIO'}
                         </span>
                       </td>
@@ -185,7 +185,7 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-semibold">{s.userName}</td>
                       <td className="px-4 py-3 fw-semibold text-secondary">{s.listenerName}</td>
                       <td className="px-4 py-3">
-                        <span className={`badge border-0 px-3 rounded-pill ${(s.type || s.service_type)?.toLowerCase() === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-emerald-subtle text-emerald'}`}>
+                        <span className={`badge rounded-pill px-3 border-0 ${(s.type || s.service_type)?.toLowerCase() === 'chat' ? 'bg-primary-subtle text-primary-emphasis' : 'bg-success-subtle text-success-emphasis'}`} style={{ fontWeight: '600' }}>
                           {(s.type || s.service_type || 'AUDIO').toUpperCase()}
                         </span>
                       </td>
