@@ -3,25 +3,32 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 260px;
+  width: 280px;
   z-index: 1000;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: var(--sidebar-bg);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(180deg, #111827 0%, #030712 100%);
   color: var(--text-inverse);
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.25);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 
   .logo-container {
-    padding: 2rem 1.5rem;
+    padding: 2.5rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    margin-bottom: 1rem;
 
     .logo {
-      max-width: 140px;
+      max-width: 160px;
       height: auto;
-      filter: brightness(0) invert(1); /* Make logo white if it's dark */
+      filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+      transition: transform 0.3s ease;
+      &:hover {
+        transform: scale(1.05);
+      }
     }
   }
 
@@ -47,22 +54,24 @@
     .nav-link {
       display: flex;
       align-items: center;
-      padding: 0.75rem 1rem;
-      color: rgba(255, 255, 255, 0.7);
+      padding: 0.85rem 1.25rem;
+      color: rgba(255, 255, 255, 0.65);
       text-decoration: none;
-      border-radius: var(--radius-md);
-      transition: all 0.2s ease;
-      font-size: 0.9375rem;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.95rem;
       font-weight: 500;
       cursor: pointer;
+      position: relative;
+      margin: 0.2rem 0;
 
       img {
-        width: 20px;
-        height: 20px;
-        margin-right: 12px;
-        opacity: 0.7;
-        transition: opacity 0.2s ease;
-        filter: brightness(0) invert(1);
+        width: 22px;
+        height: 22px;
+        margin-right: 14px;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+        filter: brightness(0) invert(0.95);
       }
 
       .overflow-ellipsis {
@@ -82,15 +91,22 @@
       }
 
       &:hover {
-        background-color: var(--sidebar-hover);
-        color: var(--white);
-        img { opacity: 1; }
+        background-color: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        img { opacity: 1; filter: brightness(0) invert(1); }
       }
 
       &.active:not(.drop-background) {
-        background-color: var(--primary);
+        background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%);
         color: var(--white);
-        img { opacity: 1; }
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);
+        img { opacity: 1; filter: brightness(0) invert(1); }
+      }
+
+      &.active.drop-background {
+        background-color: rgba(99, 102, 241, 0.1);
+        color: #6366f1;
+        img { opacity: 1; filter: none; }
       }
 
       .rotate {
@@ -100,42 +116,39 @@
 
     .nav-content {
       list-style: none;
-      padding: 0.25rem 0 0.5rem 2.5rem;
+      padding: 0.5rem 0 1rem 3.25rem;
       margin: 0;
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      margin-left: 1.75rem;
 
       .drop-tab {
-        margin-bottom: 2px;
-        border-radius: var(--radius-sm);
+        margin-bottom: 4px;
+        border-radius: 8px;
         transition: all 0.2s ease;
         display: flex;
         align-items: center;
 
-        img {
-          width: 6px;
-          height: 6px;
-          margin-right: 10px;
-          opacity: 0.4;
-          filter: brightness(0) invert(1);
-        }
-
         a {
           padding: 0.5rem 0.75rem;
           display: block;
-          color: rgba(255, 255, 255, 0.5);
+          color: rgba(255, 255, 255, 0.45);
           text-decoration: none;
           font-size: 0.875rem;
-          transition: color 0.2s ease;
+          transition: all 0.3s ease;
           width: 100%;
 
           &:hover, &.active {
-            color: var(--white);
+            color: #fff;
+            transform: translateX(4px);
           }
         }
 
         &.active {
-          background-color: rgba(255, 255, 255, 0.05);
-          a { color: var(--white); }
-          img { opacity: 0.8; }
+          background-color: rgba(99, 102, 241, 0.08);
+          a { 
+            color: #fff;
+            font-weight: 600;
+          }
         }
       }
     }

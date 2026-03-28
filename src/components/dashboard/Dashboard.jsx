@@ -2,10 +2,12 @@ import React from "react";
 import "./dashboard.scss";
 import DashboardCards from "../common/dashboard-card/DashboardCards";
 import { useDashboardQuery } from "../../services/auth";
-import WalletList from "./WalletList";
+import WalletModal from "./WalletModal";
 
 const Dashboard = () => {
   const { data, isLoading, error } = useDashboardQuery();
+  const [showUserModal, setShowUserModal] = React.useState(false);
+  const [showListenerModal, setShowListenerModal] = React.useState(false);
 
   if (isLoading) return <div className="p-4">Loading dashboard...</div>;
   if (error) return <div className="p-4 text-danger">Error loading dashboard data</div>;
@@ -78,10 +80,19 @@ const Dashboard = () => {
 
       {/* 4. Top Accounts & Active Sessions */}
       <div className="row g-4 mb-5">
-         <div className="col-lg-6">
+          <div className="col-lg-6">
             <div className="category-header d-flex justify-content-between align-items-center mb-3">
                <h5 className="category-title mb-0">High-Value Users</h5>
-               <span className="badge bg-primary-subtle text-primary border-0 px-3">Top 10 Wallets</span>
+               <div className="d-flex align-items-center gap-2">
+                 <span className="badge bg-primary-subtle text-primary border-0 px-3">Top 10</span>
+                 <button 
+                  className="btn btn-sm btn-link text-decoration-none fw-bold p-0 ps-2" 
+                  style={{ color: '#6366f1', fontSize: '13px' }}
+                  onClick={() => setShowUserModal(true)}
+                 >
+                   View All →
+                 </button>
+               </div>
             </div>
             <WalletList 
                title="Top User Wallets" 
@@ -92,7 +103,16 @@ const Dashboard = () => {
          <div className="col-lg-6">
             <div className="category-header d-flex justify-content-between align-items-center mb-3">
                <h5 className="category-title mb-0">Top Earners (Listeners)</h5>
-               <span className="badge bg-success-subtle text-success border-0 px-3">Top 10 Wallets</span>
+               <div className="d-flex align-items-center gap-2">
+                 <span className="badge bg-success-subtle text-success border-0 px-3">Top 10</span>
+                 <button 
+                  className="btn btn-sm btn-link text-decoration-none fw-bold p-0 ps-2" 
+                  style={{ color: '#10b981', fontSize: '13px' }}
+                  onClick={() => setShowListenerModal(true)}
+                 >
+                   View All →
+                 </button>
+               </div>
             </div>
             <WalletList 
                title="Top Listener Wallets" 
@@ -123,8 +143,8 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-bold">{s.userName}</td>
                       <td className="px-4 py-3 fw-bold text-primary">{s.listenerName}</td>
                       <td className="px-4 py-3">
-                        <span className={`badge border-0 px-3 ${s.service_type === 'chat' ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'}`}>
-                          {s.service_type?.toUpperCase() || 'N/A'}
+                        <span className={`badge border-0 px-3 ${s.type === 'chat' ? 'bg-info-subtle text-info' : 'bg-warning-subtle text-warning'}`}>
+                          {s.type?.toUpperCase() || 'N/A'}
                         </span>
                       </td>
                       <td className="px-4 py-3">
@@ -164,12 +184,12 @@ const Dashboard = () => {
                       <td className="px-4 py-3 fw-semibold">{s.userName}</td>
                       <td className="px-4 py-3 fw-semibold text-secondary">{s.listenerName}</td>
                       <td className="px-4 py-3">
-                        <span className={`badge border-0 px-2 py-1 ${s.service_type === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-orange-subtle text-orange'}`}>
-                          {s.service_type?.toUpperCase() || 'N/A'}
+                        <span className={`badge border-0 px-2 py-1 ${s.type === 'chat' ? 'bg-indigo-subtle text-indigo' : 'bg-orange-subtle text-orange'}`}>
+                          {s.type?.toUpperCase() || 'N/A'}
                         </span>
                       </td>
                       <td className="px-4 py-3 font-monospace small">
-                        {s.duration || '00:00'}
+                        {s.total_duration ? `${Math.round(s.total_duration)}m` : '00:00'}
                       </td>
                       <td className="px-4 py-3 text-muted small">
                         {new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -182,6 +202,21 @@ const Dashboard = () => {
           </div>
         </section>
       )}
+
+      {/* Wallet Detail Modals */}
+      <WalletModal 
+        show={showUserModal} 
+        handleClose={() => setShowUserModal(false)} 
+        title="High-Value Users (Full List)" 
+        type="user"
+      />
+      
+      <WalletModal 
+        show={showListenerModal} 
+        handleClose={() => setShowListenerModal(false)} 
+        title="Top Earners (Full List)" 
+        type="listener"
+      />
     </div>
   );
 };

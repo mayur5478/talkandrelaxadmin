@@ -145,6 +145,13 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    allWallets: builder.query({
+      query: ({ type = 'user', limit = 100 }) => ({
+        url: `admin/all-wallets`,
+        method: "GET",
+        params: { type, limit },
+      }),
+    }),
   }),
 });
 
@@ -167,4 +174,5 @@ export const {
 
   useGetSessionRejectionsQuery,
   useWalletReportQuery,
+  useAllWalletsQuery,
 } = authApi;

@@ -72,9 +72,13 @@ function Navbars({ toggleSidebar }) {
     <div className="navbar-main">
       <Navbar bg="light" data-bs-theme="light">
         <Container>
-          <Navbar.Brand href="#home">
-            <img src={drawer} alt={drawer} onClick={toggleSidebar} />
-            <p>Dashboard</p>
+          <Navbar.Brand className="ms-0 ps-0">
+            <div className="menu-toggle-btn me-3" onClick={toggleSidebar}>
+              <img src={drawer} alt="toggle" />
+            </div>
+            <span className="page-breadcrumb d-none d-md-inline-block">
+              Admin <span className="text-muted mx-2">/</span> <span className="text-dark fw-bold">{location.pathname.split('/').pop().replace(/-/g, ' ').toUpperCase()}</span>
+            </span>
           </Navbar.Brand>
 
           <Nav className="right-section">
