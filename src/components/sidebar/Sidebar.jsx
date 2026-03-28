@@ -4,11 +4,11 @@ import { Link, useLocation } from "react-router-dom";
 import { links } from "./sidebarLink";
 import logo from "../assets/logo.png";
 import downArrow from "../assets/down-arr.png";
+
 function Sidebar({ isSidebarOpen, closeSidebar }) {
   const location = useLocation();
   const [openDropdowns, setOpenDropdowns] = useState({});
 
-  // Function to toggle dropdown visibility
   const toggleDropdown = (index) => {
     setOpenDropdowns((prevState) => ({
       ...prevState,
@@ -17,75 +17,70 @@ function Sidebar({ isSidebarOpen, closeSidebar }) {
   };
 
   return (
-    <div className="sidebar">
-      {isSidebarOpen && (
-        <div className="sidebar-overlay" onClick={closeSidebar}></div>
-      )}
+    <>
+      <div 
+        className={`sidebar-overlay ${isSidebarOpen ? "show" : ""}`} 
+        onClick={closeSidebar}
+      ></div>
       <aside
         id="sidebar"
         className={`sidebar ${isSidebarOpen ? "toggle-sidebar" : ""}`}
       >
-        <img className="logo" src={logo} alt="logo" />
-        <ul className="sidebar-nav" id="sidebar-nav">
+        <div className="logo-container">
+          <img className="logo" src={logo} alt="logo" />
+        </div>
+        <ul className="sidebar-nav">
           {links.map(({ title, path, icon, type, children }, index) => {
             const isActive = location.pathname.startsWith(path);
+            const isDropdownOpen = !!openDropdowns[index];
 
             if (type === "button") {
               return (
                 <li className="nav-item" key={index}>
                   <Link
-                    className={`nav-link ${!isActive ? "collapsed" : ""}`}
+                    className={`nav-link ${isActive ? "active" : ""}`}
                     to={path}
                   >
-                    <img src={icon} alt="icon" />
+                    <img src={icon} alt={title} />
                     <span className="overflow-ellipsis">{title}</span>
                   </Link>
                 </li>
               );
             } else if (type === "dropdown") {
-              // Dropdown Link
               return (
                 <li className="nav-item" key={index}>
                   <div
                     className={`nav-link drop-background ${
-                      openDropdowns[index] ? "" : "collapsed"
+                      isDropdownOpen ? "" : "collapsed"
                     }`}
                     onClick={() => toggleDropdown(index)}
                   >
-                    <img src={icon} alt="icon" />
+                    <img src={icon} alt={title} />
                     <span className="overflow-ellipsis">{title}</span>
                     <img
                       src={downArrow}
-                      alt={downArrow}
-                      className={`${
-                        openDropdowns[index] ? "rotate arr-image" : "arr-image"
-                      }  `}
+                      alt="Toggle"
+                      className={`arr-image ${isDropdownOpen ? "rotate" : ""}`}
                     />
                   </div>
-                  {openDropdowns[index] && (
+                  {isDropdownOpen && (
                     <ul className="nav-content">
-                      {children.map((child, childIndex) => (
-                        <li
-                          className={`${
-                            location.pathname.includes(child.path)
-                              ? "active drop-tab"
-                              : "drop-tab"
-                          }`}
-                          key={childIndex}
-                        >
-                          <img src={child.icon} alt={child.icon} />
-                          <Link
-                            to={child.path}
-                            className={`${
-                              location.pathname.includes(child.path)
-                                ? "active"
-                                : ""
-                            }`}
+                      {children.map((child, childIndex) => {
+                        const isChildActive = location.pathname.includes(child.path);
+                        return (
+                          <li
+                            className={`drop-tab ${isChildActive ? "active" : ""}`}
+                            key={childIndex}
                           >
-                            {child.title}
-                          </Link>
-                        </li>
-                      ))}
+                            <Link
+                              to={child.path}
+                              className={isChildActive ? "active" : ""}
+                            >
+                              {child.title}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </li>
@@ -95,7 +90,7 @@ function Sidebar({ isSidebarOpen, closeSidebar }) {
           })}
         </ul>
       </aside>
-    </div>
+    </>
   );
 }
 

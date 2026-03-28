@@ -1,79 +1,150 @@
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&family=Geist:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&display=swap');
 
 :root {
+  /* Core Colors - Premium Palette */
+  --primary: #6366f1;         /* Indigo */
+  --primary-hover: #4f46e5;
+  --secondary: #8b5cf6;       /* Violet */
+  --accent: #06b6d4;          /* Cyan */
+  
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --sidebar-bg: #0f172a;      /* Slate 900 */
+  --sidebar-hover: #1e293b;
+  
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+  
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  /* Specific Backgrounds for Dashboard Cards */
+  --bg-blue: rgba(59, 130, 246, 0.1);
+  --bg-purple: rgba(139, 92, 246, 0.1);
+  --bg-yellow: rgba(245, 158, 11, 0.1);
+  --bg-green: rgba(16, 185, 129, 0.1);
+  --bg-indigo: rgba(99, 102, 241, 0.1);
+  --bg-rose: rgba(244, 63, 94, 0.1);
+  --bg-cyan: rgba(6, 182, 212, 0.1);
+  --bg-slate: rgba(100, 116, 139, 0.1);
+
+  /* Shadows & Borders */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  
+  /* Inherited compatibility */
   --white: #fff;
   --black: #000;
-  --main-color: #2a3650;
-  --main-hover-color: #202c46;
-  --background-color: hsl(225, 100%, 98%);
-  --green-background: #26bf9433;
-  --pink-background: #843c9633;
-  --yellow-background: #f5b84933;
-  --soil-green-background: #8a8c2933;
-  --purple-background: #535fff33;
-  --light-brown-background: #b9424233;
-  --blue-background: #00a3ff33;
-  --dark-blue-background:#0038FF33;
-  --orange-background: #ff6b0033;
-  --table-border: #0000001a;
-  --table-text: #000000b2;
-  --grey-background: #282d5933;
-  --ups-text: #2aa33d;
-  --down-text: #ff0000;
-  --light-border: #0000004d;
-  --red-text: #ff0000;
-  --green-text: #009c35;
-  --toggle-color: #b2b2b2;
-  --toggle-background: #e4e4e4;
-  --yellow:#F0C24E;
-  --calendar-border:#0000001A;
-  --blue:blue;
-  --graph-tex:#00000099;
-  --profile-card-background:#C2CBDD;
-  --border-docs:#00000033;
-  --audio-player:#2A3650;
-  --login-sub-title:#525252;
-  --slip-grey:#2A36501A;
-  --slip-dark-grey:#2A365080;
+  --main-color: var(--primary);
+  --main-hover-color: var(--primary-hover);
+  --background-color: var(--background);
+  --table-border: #e2e8f0;
+  --table-text: var(--text-main);
+  --ups-text: var(--success);
+  --down-text: var(--danger);
+  --green-text: var(--success);
+  --red-text: var(--danger);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-    font-family: manrope !important;
+  font-family: 'Outfit', 'Inter', -apple-system, sans-serif !important;
+  background-color: var(--background);
+  color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
 }
 
-.flatpickr-calendar {
-  top: 18% !important;
-  left: auto !important;
-  right: 2.5% !important;
+::-webkit-scrollbar-track {
+  background: var(--background);
 }
 
-/* Global Action Icon Enhancement */
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Global Table & Card styles for reuse */
+.modern-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: 1.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid rgba(0,0,0,0.02);
+}
+
+.modern-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.modern-table-container {
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--table-border);
+  background: var(--surface);
+}
+
+.modern-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modern-table th {
+  background: #f1f5f9;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.modern-table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--table-border);
+  font-size: 0.9375rem;
+}
+
+/* Utility Classes */
+.text-gradient {
+  background: linear-gradient(to right, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 .reset-icon {
   margin: 0 4px;
   cursor: pointer;
-  color: #0ea5e9; /* Vibrant blue/cyan */
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.85;
+  color: var(--danger);
+  transition: all 0.2s ease;
+  opacity: 0.8;
 
   &:hover {
-    color: #0284c7;
-    transform: rotate(180deg) scale(1.15);
     opacity: 1;
-    filter: drop-shadow(0 0 2px rgba(14, 165, 233, 0.4));
-  }
-
-  &:active {
-    transform: rotate(180deg) scale(0.95);
+    transform: rotate(90deg) scale(1.1);
   }
 }

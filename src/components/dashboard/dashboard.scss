@@ -1,63 +1,70 @@
 .dashboard-main {
-  padding: 40px 30px;
+  padding: 2rem;
+  background-color: var(--background);
   text-align: start;
-  .table {
-    display: block;
-    padding: 20px;
-    background-color: var(--white);
-    box-shadow: 0px 5px 20px 2px #00000014;
-    border-radius: 12px;
-    margin-top: 20px;
-    overflow-x: auto;
-    max-width: 100%;
-    .circle-graph {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: 20px;
 
-        p {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 0;
-            width: 50%;
-            color: var( --graph-tex);
-        }
-    }
-    .space {
-        padding: 0 !important;
-    }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      margin-bottom: 10px;
-      p {
-        font-size: 18px;
-        font-weight: 600;
-        margin-bottom: 0;
-        width: 100%;
-      }
-      .traffic-dropdown {
-        width: 20% !important;
-      }
-      .form-select {
-        width: 10%;
-        color: var(--toggle-color);
-        border-radius: 8px;
-      }
-    }
-    &::-webkit-scrollbar {
-      height: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: var(--main-color);
-      border-radius: 4px;
+  .welcome-banner {
+    border: none;
+    border-radius: var(--radius-xl);
+    h2 {
+       color: var(--text-main);
+       font-weight: 800;
+       letter-spacing: -0.025em;
     }
   }
-  .rows-class {
-    --bs-gutter-y: 20px;
-    margin-top: 20px;
+
+  .heartbeat-badge {
+    animation: heartbeat 2s infinite ease-in-out;
+    background-color: var(--success) !important;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .reset-icon-bg {
+    background-color: rgba(239, 68, 68, 0.1);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(239, 68, 68, 0.2);
+      transform: scale(1.1);
+    }
+  }
+
+  /* Table Customizations for Dashboard */
+  .modern-table-container {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Custom badge styles */
+  .badge {
+     &.bg-light {
+       background-color: #f8fafc !important;
+       color: #64748b !important;
+       border: 1px solid #e2e8f0 !important;
+     }
+  }
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.05); filter: brightness(1.2); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: 1rem;
+    
+    .welcome-banner {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
   }
 }

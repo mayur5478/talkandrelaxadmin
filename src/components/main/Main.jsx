@@ -30,6 +30,8 @@ import SalarySlip from "../payment-management/payment-list/salary-slip/SalarySli
 import { useGetMeQuery } from "../../services/auth";
 import { getCookie } from "../../cookie_helper/cookie";
 import Status from "../status/Status";
+import ServiceHistory from "../analytics/ServiceHistory";
+import CallRejections from "../analytics/CallRejections";
 
 const Main = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,21 +43,19 @@ const Main = () => {
   };
   const {
     data: user,
-    refetch,
     isLoading: isUserLoading,
     error: userError,
   } = useGetMeQuery(null, {
     skip: !getCookie("token") && !localStorage.getItem("token"),
-
   });
-  console.log("user", user);
+
   const navigate = useNavigate();
   useEffect(() => {
     if (!user && !isUserLoading && userError) {
-      console.log("User logged in: ", user);
       navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, navigate, isUserLoading, userError]);
+
   return (
     <>
       <div className="main-section ">
@@ -91,6 +91,7 @@ const Main = () => {
               path="/listener-management/listeners-profile-approvals-docs"
               element={<Docs />}
             />
+            
             <Route
               path="/payment-management/payment-list"
               element={<PaymentList />}
@@ -134,6 +135,10 @@ const Main = () => {
               path="/recharge-charges/penalty-manage"
               element={<PenaltyManage />}
             />
+
+            <Route path="/service-history" element={<ServiceHistory />} />
+            <Route path="/rejections" element={<CallRejections />} />
+            
             <Route path="/status" element={<Status />} />
             <Route
               path="/contact-queries/report-block"
