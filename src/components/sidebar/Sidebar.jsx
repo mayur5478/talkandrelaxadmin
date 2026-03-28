@@ -40,6 +40,7 @@ function Sidebar({ isSidebarOpen, closeSidebar }) {
                   <Link
                     className={`nav-link ${isActive ? "active" : ""}`}
                     to={path}
+                    onClick={closeSidebar}
                   >
                     <img src={icon} alt={title} />
                     <span className="overflow-ellipsis">{title}</span>
@@ -75,6 +76,7 @@ function Sidebar({ isSidebarOpen, closeSidebar }) {
                             <Link
                               to={child.path}
                               className={isChildActive ? "active" : ""}
+                              onClick={closeSidebar}
                             >
                               {child.title}
                             </Link>
@@ -86,6 +88,7 @@ function Sidebar({ isSidebarOpen, closeSidebar }) {
                 </li>
               );
             }
+
             return null;
           })}
         </ul>
