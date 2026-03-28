@@ -30,7 +30,10 @@ import { useAccountFreezeMutation } from "../../../services/auth.js";
 import AccountFreeze from "../../common/account-freeze/AccountFreeze.jsx";
 import LinkShare from "../../common/link-share/LinkShare.jsx";
 import Delete from "../../common/delete/Delete.jsx";
+import { useResetAllStuckStatesMutation } from "../../../services/auth.js";
+import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
 import EditUser from "../../common/edit-user/EditUser";
 import MultiDatePicker from "./date-picker/MultiDatePicker";
 import AdjustWalletModal from "../../common/adjust-wallet/AdjustWalletModal.jsx";
@@ -64,7 +67,9 @@ function Users() {
   const [pageSize, setPageSize] = useState(10);
   const [dateRange, setDateRange] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
+  const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
   const [
+
     sendFormLink,
     { data: mutationData, error: mutationError, isLoading: isMutationLoading },
   ] = useListenerFormLinkMutation();
@@ -325,6 +330,29 @@ function Users() {
     setAdjustTarget({ id, name }); // Reuse state for name display
     setShowResetModal(true);
   };
+
+  const handleGlobalReset = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "This will force-end ALL active sessions and clear busy flags for ALL users/listeners on the platform!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reset everything!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await resetAllStuckStates().unwrap();
+        Swal.fire('Reset!', 'All stuck states have been cleared.', 'success');
+        refetch();
+      } catch (err) {
+        Swal.fire('Error', err?.data?.message || 'Global reset failed', 'error');
+      }
+    }
+  };
+
   return (
     <div className="users-main">
       <div className="top-section">
@@ -361,10 +389,19 @@ function Users() {
           </div>
         </div>
         <div className="right-section">
+          <Button 
+            className="me-2 text-white border-0" 
+            style={{ backgroundColor: '#e11d48' }} // Red for danger/reset
+            onClick={handleGlobalReset}
+            disabled={isResetAllLoading}
+          >
+            {isResetAllLoading ? 'Resetting...' : '⚠️ Clear All Stuck States'}
+          </Button>
           <MultiDatePicker onChange={setDateRange} />
           {/* <Button className="add-user-btn">+ Add New User</Button> */}
           <Button className="add-user-btn-plus">+</Button>
         </div>
+
       </div>
       <div
         className="table table-container "

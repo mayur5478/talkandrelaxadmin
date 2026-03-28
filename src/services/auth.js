@@ -126,6 +126,13 @@ export const authApi = createApi({
         body: { userId },
       }),
     }),
+    resetAllStuckStates: builder.mutation({
+      query: () => ({
+        url: `admin/reset-all-stuck-states`,
+        method: "POST",
+      }),
+    }),
+
     getSessionRejections: builder.query({
       query: ({ page, limit, fromDate, toDate }) => ({
         url: `admin/get-session-rejections?page=${page}&limit=${limit}${fromDate ? `&fromDate=${fromDate}` : ''}${toDate ? `&toDate=${toDate}` : ''}`,
@@ -156,6 +163,8 @@ export const {
   useAdjustWalletMutation,
   useForceEndSessionMutation,
   useResetUserStateMutation,
+  useResetAllStuckStatesMutation,
+
   useGetSessionRejectionsQuery,
   useWalletReportQuery,
 } = authApi;

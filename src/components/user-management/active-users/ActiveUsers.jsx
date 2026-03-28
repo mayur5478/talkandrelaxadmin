@@ -15,22 +15,33 @@ import { useNavigate } from "react-router-dom";
 import MultiDatePicker from "../user-list/date-picker/MultiDatePicker";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import { useResetUserStateMutation, useResetAllStuckStatesMutation } from "../../../services/auth";
+import ResetStateModal from "../../common/reset-state/ResetStateModal";
+import Swal from "sweetalert2";
+
 function ActiveUsers() {
   const [page, setPage] = useState(1); // Current page
   const [pageSize, setPageSize] = useState(10); // Items per page
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [selectedDate, setSelectedDate] = useState(null); // Selected date range
   const [dateRange, setDateRange] = useState([]);
-  // Fetch data using the query hook
-  const { data, error, isLoading } = useActiveUserListQuery({
+  
+  const [showArchived, setShowArchived] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetTarget, setResetTarget] = useState({ id: "", name: "" });
+
+  const { data, error, isLoading, refetch } = useActiveUserListQuery({
     page,
     pageSize,
     searchParams: searchQuery ? searchQuery : "",
     fromDate: dateRange[0]?.toISOString(),
     toDate: dateRange[1]?.toISOString(),
   });
-  console.log("data", data);
+
+  const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
   const navigate = useNavigate();
+
+
   // Handle page change
   const handlePageChange = (direction) => {
     if (pageSize === "all") return;
@@ -135,6 +146,34 @@ function ActiveUsers() {
     saveAs(blob, "users.xlsx");
   };
 
+  const handleResetStateClick = (id, name) => {
+    setResetTarget({ id, name });
+    setShowResetModal(true);
+  };
+
+  const handleGlobalReset = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "This will force-end ALL active sessions and clear busy flags for ALL users/listeners on the platform!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, reset everything!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await resetAllStuckStates().unwrap();
+        Swal.fire('Reset!', 'All stuck states have been cleared.', 'success');
+        // ActiveUsers list should refresh automatically if data changes, but we refetch as a safety
+      } catch (err) {
+        Swal.fire('Error', err?.data?.message || 'Global reset failed', 'error');
+      }
+    }
+  };
+
+
   return (
     <div className="active-users">
       <div className="top-section">
@@ -162,8 +201,17 @@ function ActiveUsers() {
           </div>
         </div>
         <div className="right-section">
+          <Button 
+            className="me-2 text-white border-0" 
+            style={{ backgroundColor: '#e11d48' }} // Red for danger/reset
+            onClick={handleGlobalReset}
+            disabled={isResetAllLoading}
+          >
+            {isResetAllLoading ? 'Resetting...' : '⚠️ Clear All Stuck States'}
+          </Button>
           <MultiDatePicker onChange={setDateRange} />
         </div>
+
       </div>
 
       <div className="table">
@@ -239,6 +287,23 @@ function ActiveUsers() {
                     onClick={() => handleView(user?.id)}
                     alt="View"
                   />
+                  <svg 
+                    onClick={() => handleResetStateClick(user.id, user.fullName)}
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="18" height="18" 
+                    viewBox="0 0 24 24" fill="none" 
+                    stroke="#1e293b" strokeWidth="2" 
+                    strokeLinecap="round" strokeLinejoin="round" 
+                    style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                    title="Reset Stuck States"
+                    className="reset-icon mx-1"
+                  >
+                    <path d="M21 2v6h-6"></path>
+                    <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+                    <path d="M3 22v-6h6"></path>
+                    <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+                  </svg>
+
                 </div>
               </div>
             </div>
@@ -316,7 +381,16 @@ function ActiveUsers() {
           </div>
         </div>
       </div>
+      <ResetStateModal 
+        show={showResetModal} 
+        handleClose={() => setShowResetModal(false)}
+        userId={resetTarget.id}
+        userName={resetTarget.name}
+        refetch={refetch}
+      />
+
     </div>
+
   );
 }
 
