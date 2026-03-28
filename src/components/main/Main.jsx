@@ -57,10 +57,9 @@ const Main = () => {
   }, [user, navigate, isUserLoading, userError]);
 
   return (
-    <>
-      <div className="main-section ">
-        <Sidebar isSidebarOpen={isSidebarOpen} closeSidebar={closeSidebar} />
-        <div id="main" className="main">
+    <div className={`main-section ${!isSidebarOpen ? "menu-closed" : ""}`}>
+      <Sidebar isSidebarOpen={isSidebarOpen} closeSidebar={closeSidebar} />
+      <div id="main" className="main">
           <Navbars toggleSidebar={toggleSidebar} />
           <Routes>
             <Route path="/analytics" element={<Dashboard />} />
@@ -160,7 +159,7 @@ const Main = () => {
           </Routes>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

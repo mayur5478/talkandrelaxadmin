@@ -71,7 +71,7 @@ function Navbars({ toggleSidebar }) {
   return (
     <div className="navbar-main">
       <Navbar bg="light" data-bs-theme="light">
-        <Container>
+        <Container fluid>
           <Navbar.Brand className="ms-0 ps-0">
             <div className="menu-toggle-btn me-3" onClick={toggleSidebar}>
               <img src={drawer} alt="toggle" />
