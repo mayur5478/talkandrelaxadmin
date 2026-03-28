@@ -529,7 +529,6 @@ function Listeners() {
                     title="Reset Stuck States"
                     alt="Reset"
                     className="reset-icon mx-1"
-                    style={{ width: '22px', height: '22px', cursor: 'pointer' }}
                   />
 
                   {/* <img

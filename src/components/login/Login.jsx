@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-// Import the mutation hook
 import "./login.scss";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import loginImage from "../assets/login.png";
@@ -8,25 +7,26 @@ import emailImage from "../assets/email.png";
 import { useGetMeQuery, useLoginMutation } from "../../services/auth";
 import { useNavigate } from "react-router-dom";
 import { setCookie, getCookie } from "../../cookie_helper/cookie";
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [login, { isLoading, error }] = useLoginMutation();
+  const navigate = useNavigate();
+
   const {
     data: user,
     refetch,
-    isLoading: isUserLoading,
-    error: userError,
   } = useGetMeQuery(null, {
     skip: !getCookie("token") && !localStorage.getItem("token"),
   });
-  console.log("user", user);
-  const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email || !password) return;
+
     try {
       const response = await login({ email, password }).unwrap();
-      console.log("Login successful:", response);
       localStorage.setItem("token", response.token);
       localStorage.setItem("role", response.admin.role);
       setCookie("token", response.token, 1);
@@ -37,53 +37,73 @@ function Login() {
       console.error("Login failed:", err);
     }
   };
+
   useEffect(() => {
     if (user) {
-      console.log("User logged in: ", user);
       navigate("/dashboard/analytics");
     }
   }, [user, navigate]);
+
   return (
     <div className="login-main">
-      <Row className="row-class">
-        <Col sm={12} md={6} lg={6}>
-          <img className="login-img" src={loginImage} alt="login" />
+      <Row className="row-class min-vh-100 g-0">
+        <Col sm={12} md={6} lg={7} className="login-column d-none d-md-block">
+          <img className="login-img" src={loginImage} alt="background" />
         </Col>
-        <Col sm={12} md={6} lg={6}>
+        <Col sm={12} md={6} lg={5} className="login-column">
           <div className="form-section">
-            <p className="title">Login</p>
-            <p className="sub-title">Please enter your email and password</p>
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-1" controlId="formBasicEmail">
-                <img className="input-img" src={emailImage} alt="email" />
-                <Form.Control
-                  type="email"
-                  placeholder="Enter email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Form.Group>
+            <div className="form-container">
+              <h1 className="title">Login</h1>
+              <p className="sub-title text-muted mb-4">Secure Administrator Access</p>
+              
+              <Form onSubmit={handleSubmit} className="custom-form">
+                <div className="form-group-custom mb-3">
+                  <img className="input-img" src={emailImage} alt="email" />
+                  <Form.Control
+                    type="email"
+                    placeholder="Enter email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="form-control-lg border-0 shadow-sm"
+                  />
+                </div>
 
-              <Form.Group className="mb-3" controlId="formBasicPassword">
-                <img className="input-img" src={passwordImage} alt="password" />
-                <Form.Control
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </Form.Group>
+                <div className="form-group-custom mb-4">
+                  <img className="input-img" src={passwordImage} alt="password" />
+                  <Form.Control
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="form-control-lg border-0 shadow-sm"
+                  />
+                </div>
 
-              {error && <p className="error-message">{error.message}</p>}
-              <Button
-                className="login-btn mt-3"
-                variant="primary"
-                type="submit"
-                disabled={isLoading}
-              >
-                {isLoading ? "Logging in..." : "Login Now"}
-              </Button>
-            </Form>
+                {error && <p className="error-message">{error.data?.message || "Invalid credentials"}</p>}
+
+                <Button
+                  className="login-btn w-100 py-3 border-0"
+                  variant="primary"
+                  type="submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <div className="d-flex align-items-center justify-content-center gap-2">
+                      <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                      <span>Authenticating...</span>
+                    </div>
+                  ) : (
+                    "Login Now"
+                  )}
+                </Button>
+                
+                <p className="text-center mt-4 small text-muted">
+                    Protect your credentials. Never share admin access.
+                </p>
+              </Form>
+            </div>
           </div>
         </Col>
       </Row>
