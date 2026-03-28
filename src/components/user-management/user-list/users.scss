@@ -110,10 +110,18 @@
     .table-headings {
       display: flex;
       align-items: center;
-      min-width: 1400px; /* Reduced from 2500px for better fit */
+      min-width: 1400px;
       padding: 1rem;
-      background-color: #f1f5f9;
+      background-color: #f8fafc;
       border-bottom: 2px solid var(--table-border);
+      border-top-left-radius: var(--radius-lg);
+      border-top-right-radius: var(--radius-lg);
+
+      div {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
 
       p {
         margin: 0;
@@ -122,28 +130,33 @@
         color: var(--text-muted);
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        background: transparent !important; /* Ensure no individual background boxes */
       }
 
       .sort {
         width: 12px;
         height: 12px;
-        margin-left: 4px;
+        margin-left: 6px;
         opacity: 0.5;
+        cursor: pointer;
+        transition: opacity 0.2s ease;
+        &:hover { opacity: 1; }
       }
 
-      /* Adjust column widths for better fit */
+      /* Consistent column widths (11 columns) */
       div:nth-child(1) { width: 4%; }
       div:nth-child(2) { width: 12%; }
       div:nth-child(3) { width: 15%; }
       div:nth-child(4) { width: 10%; }
       div:nth-child(5) { width: 8%; }
       div:nth-child(6) { width: 12%; }
-      div:nth-child(7) { width: 8%; }
-      div:nth-child(8) { width: 8%; }
+      div:nth-child(7) { width: 7%; }
+      div:nth-child(8) { width: 7%; }
       div:nth-child(9) { width: 8%; }
       div:nth-child(10) { width: 7%; }
-      div:nth-child(11) { width: 15%; }
+      div:nth-child(11) { width: 10%; }
     }
+
 
     .table-body {
       display: flex;

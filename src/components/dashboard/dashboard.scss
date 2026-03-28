@@ -1,70 +1,116 @@
-.dashboard-main {
-  padding: 2rem;
+.dashboard-wrapper {
   background-color: var(--background);
-  text-align: start;
+  min-height: 100vh;
+
+  .category-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1.25rem !important;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+
+    &.grid-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .modern-card {
+    background-color: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: var(--shadow-md);
+    }
+  }
 
   .welcome-banner {
-    border: none;
-    border-radius: var(--radius-xl);
-    h2 {
-       color: var(--text-main);
-       font-weight: 800;
-       letter-spacing: -0.025em;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--white), #f8fafc);
+  }
+
+  .live-badge {
+    background-color: #f0fdf4;
+    border: 1px solid #dcfce7;
+  }
+
+  /* Heartbeat Animation for Live Monitoring */
+  .heartbeat-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+    animation: pulse 2s infinite;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #10b981;
+      border-radius: 50%;
+      animation: ripple 2s infinite;
     }
   }
 
-  .heartbeat-badge {
-    animation: heartbeat 2s infinite ease-in-out;
-    background-color: var(--success) !important;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
   }
 
-  .cursor-pointer {
-    cursor: pointer;
+  @keyframes ripple {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
   }
 
-  .reset-icon-bg {
-    background-color: rgba(239, 68, 68, 0.1);
-    transition: all 0.2s ease;
-    
-    &:hover {
-      background-color: rgba(239, 68, 68, 0.2);
-      transform: scale(1.1);
+  @media (max-width: 768px) {
+    .dashboard-grid.grid-2 {
+      grid-template-columns: 1fr;
     }
-  }
-
-  /* Table Customizations for Dashboard */
-  .modern-table-container {
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Custom badge styles */
-  .badge {
-     &.bg-light {
-       background-color: #f8fafc !important;
-       color: #64748b !important;
-       border: 1px solid #e2e8f0 !important;
-     }
   }
 }
 
-@keyframes heartbeat {
-  0% { transform: scale(1); filter: brightness(1); }
-  50% { transform: scale(1.05); filter: brightness(1.2); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
+/* Specific styling for the Top 10 lists if they are in Dashboard */
+.top-wallets-card {
+    border-radius: var(--radius-lg);
+    background-color: var(--white);
+    box-shadow: var(--shadow-sm);
+    padding: 1.5rem;
 
-@media (max-width: 768px) {
-  .dashboard-main {
-    padding: 1rem;
-    
-    .welcome-banner {
-      flex-direction: column;
-      text-align: center;
-      gap: 1rem;
+    .wallet-item {
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid rgba(0,0,0,0.02);
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: #f8fafc;
+        }
+
+        .user-info {
+            .name { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
+            .email { font-size: 0.75rem; color: #64748b; }
+        }
+
+        .balance {
+            font-weight: 700;
+            color: #10b981;
+            font-size: 1rem;
+        }
     }
-  }
 }
