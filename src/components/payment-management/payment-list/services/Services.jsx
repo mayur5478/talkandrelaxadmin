@@ -143,8 +143,12 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
             </p>
           </div>
           <div style={columnStyles[2]}>
-            <p className="heading-text green-text">
-              {session.transaction_status}
+            <p className={`heading-text ${session.transaction_status === 'active' ? 'text-primary fw-bold' : 'green-text'}`}>
+              {session.transaction_status === 'active' ? (
+                <span className="d-flex align-items-center gap-1">
+                  <span className="blinking-dot"></span> LIVE
+                </span>
+              ) : session.transaction_status}
             </p>
           </div>
           <div style={columnStyles[3]}>
