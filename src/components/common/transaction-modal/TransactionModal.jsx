@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
 function TransactionModal({ show, onClose, onSave, id }) {
-  const [type, setType] = useState("credit");
+  const [type, setType] = useState("debit");
   const [amount, setAmount] = useState(null);
 
   const handleSave = () => {
     if (!amount || amount <= 0) return;
     onSave({ type, amount: Number(amount) });
     setAmount(null);
-    setType("credit");
+    setType("debit");
     onClose();
   };
 
