@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
 function TransactionModal({ show, onClose, onSave, id }) {
-  const [type, setType] = useState("debit");
+  const [type, setType] = useState("credit");
   const [amount, setAmount] = useState(null);
 
   const handleSave = () => {
     if (!amount || amount <= 0) return;
     onSave({ type, amount: Number(amount) });
     setAmount(null);
-    setType("debit");
+    setType("credit");
     onClose();
   };
 
@@ -32,7 +32,7 @@ function TransactionModal({ show, onClose, onSave, id }) {
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              <option selected value="debit">Debit</option>
+              <option value="debit">Debit</option>
               <option value="credit">Credit</option>
             </Form.Select>
           </Form.Group>
