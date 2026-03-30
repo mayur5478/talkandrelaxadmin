@@ -1,4 +1,6 @@
 .payout-main {
+  overflow-x: auto;
+  max-width: 100%;
   .name {
     text-decoration:underline;
     cursor: pointer;

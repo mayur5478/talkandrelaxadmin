@@ -80,7 +80,7 @@ function PaymentList() {
         </div>
       </div>
 
-      <div className="modern-card p-0 overflow-hidden shadow-sm">
+      <div className="modern-card p-0 overflow-auto shadow-sm">
         <div className="px-4 pt-3 border-bottom bg-light">
           <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
             <Tabs
