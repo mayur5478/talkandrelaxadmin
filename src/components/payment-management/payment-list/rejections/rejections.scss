@@ -1,6 +1,8 @@
 @import "../services/service.scss";
 
 .rejections-main {
+  overflow-x: auto;
+  max-width: 100%;
   @extend .services-main;
   
   .table-headings, .table-body {

@@ -20,7 +20,7 @@ function CallRejections() {
         </div>
       </div>
 
-      <div className="modern-card p-0 overflow-hidden shadow-sm">
+      <div className="modern-card p-0 overflow-auto shadow-sm">
         <div className="p-4" style={{ minHeight: '60vh' }}>
           <Rejections
             fromDate={dateRange[0]}
