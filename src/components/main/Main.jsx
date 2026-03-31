@@ -32,6 +32,7 @@ import { getCookie } from "../../cookie_helper/cookie";
 import Status from "../status/Status";
 import ServiceHistory from "../analytics/ServiceHistory";
 import CallRejections from "../analytics/CallRejections";
+import ManualRecharges from "../payment-management/manual-recharges/ManualRecharges";
 
 const Main = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -77,6 +78,7 @@ const Main = () => {
           <Route path="/payment-management/Gst-list" element={<Gst />} />
           <Route path="/payment-management/commission-list" element={<CommisionLiat />} />
           <Route path="/payment-management/revenue-info" element={<RevenueInfo />} />
+          <Route path="/payment-management/manual-recharges" element={<ManualRecharges />} />
           <Route path="/recharge-charges/plans" element={<Recharge />} />
           <Route path="/recharge-charges/gift-manage" element={<GiftManagement />} />
           <Route path="/recharge-charges/coupen-manage" element={<CoupenManagement />} />

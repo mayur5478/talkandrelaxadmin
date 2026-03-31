@@ -143,6 +143,14 @@ export const rechargeApi = createApi({
         body: { listenerId, amount, type },
       }),
     }),
+    getManualAdjustments: builder.query({
+      query: ({ page = 1, pageSize = 10 }) => ({
+        url: `/user/payment/manual-adjustments`,
+        method: "GET",
+        params: { page, pageSize },
+      }),
+      providesTags: ["recharge"],
+    }),
   }),
 });
 
@@ -165,4 +173,5 @@ export const {
   useDeleteCoupenMutation,
   useUserManualRefundMutation,
   useListenerManualRefundMutation,
+  useGetManualAdjustmentsQuery,
 } = rechargeApi;

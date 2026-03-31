@@ -88,6 +88,11 @@ export const links = [
         path: "/dashboard/payment-management/revenue-info",
         icon: dropdown,
       },
+      {
+        title: "Manual Recharges",
+        path: "/dashboard/payment-management/manual-recharges",
+        icon: dropdown,
+      },
     ],
   },
   {
