@@ -35,7 +35,9 @@ function PaymentList() {
     const headers = [
       { header: "Transaction ID", key: "transactionId" },
       { header: "Name", key: "name" },
-      { header: "Amount", key: "rechargeAmount" },
+      { header: "Total Amount", key: "rechargeAmount" },
+      { header: "Net Amount", key: "netAmount" },
+      { header: "GST (18%)", key: "gst" },
       { header: "Status", key: "status" },
       { header: "Date", key: "transactionDate" },
     ];
@@ -47,10 +49,16 @@ function PaymentList() {
     }));
 
     dataArray.forEach((item) => {
+      const total = parseFloat(item?.recharge_amount || item?.net_gift_amount || item?.amount || 0);
+      const net = parseFloat((total / 1.18).toFixed(2));
+      const gst = parseFloat((total - net).toFixed(2));
+
       worksheet.addRow({
         transactionId: item?.transaction_id || item?.id || "",
         name: item?.name || item?.userData?.fullName || "N/A",
-        rechargeAmount: item?.recharge_amount || item?.net_gift_amount || item?.amount || 0,
+        rechargeAmount: total,
+        netAmount: net,
+        gst: gst,
         status: item?.status || "Success",
         transactionDate: item?.transaction_date || item?.createdAt ? new Date(item.transaction_date || item.createdAt).toLocaleString() : "",
       });
