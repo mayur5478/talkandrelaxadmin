@@ -55,17 +55,18 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   // Custom column width configuration—percentages must add up to 100 or less
   // Improved for clarity, readability, and more balanced distribution (while ensuring total < 100%)
   const columnStyles = [
-    { width: "5%" },   // Sr. No
-    { width: "15%" },  // Date
-    { width: "8%" },   // Status
-    { width: "8%" },   // Type
-    { width: "13%" },  // User
+    { width: "4%" },   // Sr. No
+    { width: "13%" },  // Date
+    { width: "6%" },   // Status
+    { width: "6%" },   // Type
+    { width: "10%" },  // User
     { width: "10%" },  // Listener
-    { width: "5%" },   // Minute
-    { width: "10%" },  // Total Amount
-    { width: "10%" },  // Net Amount
+    { width: "4%" },   // Minute
+    { width: "9%" },   // Total Amount
+    { width: "9%" },   // Net Amount
     { width: "9%" },   // Admin %
-    { width: "5%" },   // Action
+    { width: "10%" },  // L. Wallet (NEW)
+    { width: "10%" },  // Action
   ];
 
 
@@ -117,13 +118,12 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
             Net Amt <img className="sort" src={sort} alt={sort} />
           </p>
         </div>
-        <div style={columnStyles[9]}>
+        <div style={columnStyles[10]}>
           <p className="heading-text text-end">
-            Admin Amt <img className="sort" src={sort} alt={sort} />
+            L. Wallet <img className="sort" src={sort} alt={sort} />
           </p>
         </div>
-        
-        <div style={columnStyles[10]}>
+        <div style={columnStyles[11]}>
           <p className="heading-text text-center">Action</p>
         </div>
       </div>
@@ -182,7 +182,10 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
           <div style={columnStyles[9]}>
             <p className="heading-text text-end">{session.admin_credit}</p>
           </div>
-          <div style={columnStyles[10]} className="text-center actions d-flex justify-content-center gap-2">
+          <div style={columnStyles[10]}>
+            <p className="heading-text text-end fw-bold text-dark">₹{session.listener_wallet_balance || '0.00'}</p>
+          </div>
+          <div style={columnStyles[11]} className="text-center actions d-flex justify-content-center gap-2">
             <img src={deleteIcon} alt={deleteIcon} />
             {session.transaction_status === 'active' && (
               <img 
