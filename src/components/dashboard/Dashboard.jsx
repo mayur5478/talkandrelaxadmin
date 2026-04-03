@@ -163,47 +163,6 @@ const Dashboard = () => {
         </section>
       )}
 
-      {/* 6. Today's Completed Sessions Overlay */}
-      {data?.todaySessions?.length > 0 && (
-        <section className="mb-4">
-          <h5 className="category-title mb-3">Today's Completed Interactions</h5>
-          <div className="modern-card p-0 overflow-hidden shadow-sm border-0 bg-white">
-            <div className="table-responsive">
-              <table className="table table-hover align-middle mb-0">
-                <thead className="" style={{ backgroundColor: '#f8fafc' }}>
-                  <tr>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">User</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Listener</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Method</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Duration</th>
-                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.todaySessions.map((s, i) => (
-                    <tr key={i}>
-                      <td className="px-4 py-3 fw-semibold">{s.userName}</td>
-                      <td className="px-4 py-3 fw-semibold text-secondary">{s.listenerName}</td>
-                      <td className="px-4 py-3">
-                        <span className={`badge rounded-pill px-3 border-0 ${(s.type || s.service_type)?.toLowerCase() === 'chat' ? 'bg-primary-subtle text-primary-emphasis' : 'bg-success-subtle text-success-emphasis'}`} style={{ fontWeight: '600' }}>
-                          {(s.type || s.service_type || 'AUDIO').toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 fw-bold text-dark">
-                        {Math.round(s.total_duration || s.totalDuration || 0)}m
-                      </td>
-                      <td className="px-4 py-3 text-muted small">
-                        {new Date(s.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-      )}
-
       {/* Wallet Detail Modals */}
       <WalletModal 
         show={showUserModal} 
