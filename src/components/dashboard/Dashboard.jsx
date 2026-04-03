@@ -15,11 +15,11 @@ const Dashboard = () => {
 
   // Categorize metrics
   const platformStats = data?.dashboardDetails?.slice(0, 3) || [];
-  const monthlyFinancials = data?.dashboardDetails?.slice(3, 6) || [];
-  const dailyFinancials = data?.dashboardDetails?.slice(6, 9) || [];
-  const adjustmentsAndVolume = data?.dashboardDetails?.slice(9, 12) || [];
-  const walletAggregates = data?.dashboardDetails?.slice(12, 14) || [];
-  const activeStatus = data?.dashboardDetails?.slice(14, 16) || [];
+  const monthlyFinancials = data?.dashboardDetails?.slice(3, 7) || [];
+  const dailyFinancials = data?.dashboardDetails?.slice(7, 11) || [];
+  const adjustmentsAndVolume = data?.dashboardDetails?.slice(11, 14) || [];
+  const walletAggregates = data?.dashboardDetails?.slice(14, 16) || [];
+  const activeStatus = data?.dashboardDetails?.slice(16, 18) || [];
 
   return (
     <div className="dashboard-wrapper px-4 py-4">

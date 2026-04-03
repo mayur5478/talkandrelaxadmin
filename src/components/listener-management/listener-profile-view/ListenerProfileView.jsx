@@ -9,11 +9,13 @@ import setting from "../../assets/green-setting.png";
 import watch from "../../assets/watch.png";
 import aadhar from "../../assets/adhar.png";
 import display from "../../assets/display-image.png";
-import { useListenerProfileQuery } from "../../../services/listener";
+import { useListenerProfileQuery, useListenerSoftDeleteMutation } from "../../../services/listener";
 import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 import TransactionModal from "../../common/transaction-modal/TransactionModal";
 import { useListenerManualRefundMutation } from "../../../services/recharge";
+import ExportExcel from "../../common/export-modal/ExportExcel";
+import Swal from "sweetalert2";
 function ListenerProfileView() {
   const [show, setShow] = useState(false);
   const location = useLocation();
@@ -21,9 +23,37 @@ function ListenerProfileView() {
   const id = searchParams.get("id");
   const navigate = useNavigate();
   const { data, error, isLoading,refetch } = useListenerProfileQuery(id);
+  const [softDeleteModalShow, setSoftDeleteModalShow] = useState(false);
+  const [softdeleteListener, { isLoading: isSoftDeleteLoading }] = useListenerSoftDeleteMutation();
+
   const handleView = (id) => {
     navigate(`/dashboard/listener-management/profile-form?id=${id}`);
   };
+
+  const confirmSoftDelete = async () => {
+    try {
+      await softdeleteListener({
+        id: id,
+        status: !profileData?.is_soft_delete,
+        mobile_number: profileData?.mobile_number,
+      }).unwrap();
+      setSoftDeleteModalShow(false);
+      Swal.fire({
+        icon: 'success',
+        title: profileData?.is_soft_delete ? 'Restored!' : 'Soft Deleted!',
+        text: `Listener has been ${profileData?.is_soft_delete ? 'restored' : 'soft deleted'} successfully.`,
+      });
+      navigate('/dashboard/listener-management');
+    } catch (err) {
+      console.error("Error soft deleting listener:", err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err?.data?.message || 'Soft delete failed',
+      });
+    }
+  };
+
   const [listenerManualRefund, { isLoading: isRefunding }] =
       useListenerManualRefundMutation();
   
@@ -87,6 +117,15 @@ function ListenerProfileView() {
                     <p className="email">{profileData?.email}</p>
                   </div>
                   <Button onClick={() => setShow(true)} className="profile-btn">Money Refund</Button>
+                </div>
+                <div className="text-center mt-3 mx-4">
+                  <Button 
+                    className={`profile-btn ${profileData?.is_soft_delete ? 'btn-success' : 'btn-danger'} border-0 w-100`}
+                    style={{ backgroundColor: profileData?.is_soft_delete ? '#10b981' : '#ef4444' }}
+                    onClick={() => setSoftDeleteModalShow(true)}
+                  >
+                    {profileData?.is_soft_delete ? 'Restore Listener' : 'Soft Delete Listener'}
+                  </Button>
                 </div>
                 <div className="user-details">
                   <div>
@@ -248,6 +287,13 @@ function ListenerProfileView() {
               onClose={() => setShow(false)}
               onSave={handleRefund}
               id={id}
+            />
+            <ExportExcel
+              show={softDeleteModalShow}
+              onHide={() => setSoftDeleteModalShow(false)}
+              onConfirm={confirmSoftDelete}
+              userName={profileData?.display_name || profileData?.fullName}
+              isDeleteUserLoading={isSoftDeleteLoading}
             />
           </div>
         </>

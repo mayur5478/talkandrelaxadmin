@@ -171,7 +171,13 @@ function ApplicationRequests() {
                 >
                   {request?.listener_request_status === "confirmation request"
                     ? "Pending"
-                    : "Success"}
+                    : request?.listener_request_status === "application rejected"
+                    ? "Rejected"
+                    : request?.listener_request_status === "processing"
+                    ? "Filling Form"
+                    : request?.listener_request_status === "documents in review"
+                    ? "In Review"
+                    : request?.listener_request_status || "Pending"}
                 </p>
               </div>
 

@@ -4,6 +4,7 @@ import MultiDatePicker from "../user-management/user-list/date-picker/MultiDateP
 import { Button } from "react-bootstrap";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import moment from "moment";
 
 function ServiceHistory() {
   const [searchUser, setSearchUser] = useState("");
@@ -28,22 +29,32 @@ function ServiceHistory() {
       { header: "Type", key: "type", width: 15 },
       { header: "User", key: "user", width: 25 },
       { header: "Listener", key: "listener", width: 25 },
+      { header: "State", key: "state", width: 20 },
       { header: "Duration (Min)", key: "duration", width: 15 },
+      { header: "Net Amount", key: "net_amount", width: 15 },
+      { header: "GST (18%)", key: "gst", width: 15 },
       { header: "Total Amount", key: "total", width: 15 },
       { header: "Listener Credit", key: "listener_credit", width: 15 },
       { header: "Admin Credit", key: "admin_credit", width: 15 },
     ];
 
     excelSessionData.forEach((s, index) => {
+      const totalAmount = parseFloat(s.total_amount) || 0;
+      const netAmount = totalAmount / 1.18;
+      const gstAmount = totalAmount - netAmount;
+
       worksheet.addRow({
         srNo: index + 1,
-        date: new Date(s.createdAt).toLocaleString(),
+        date: moment(s.createdAt).format("DD/MM/YYYY, hh:mm A"),
         status: s.transaction_status,
         type: s.service_type,
         user: s.username,
         listener: s.listenerName,
+        state: s.user_state || "N/A",
         duration: s.totalDuration,
-        total: s.total_amount,
+        net_amount: netAmount.toFixed(2),
+        gst: gstAmount.toFixed(2),
+        total: totalAmount.toFixed(2),
         listener_credit: s.listener_credit,
         admin_credit: s.admin_credit,
       });
