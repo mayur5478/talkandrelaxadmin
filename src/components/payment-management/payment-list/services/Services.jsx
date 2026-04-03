@@ -118,6 +118,11 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
             Net Amt <img className="sort" src={sort} alt={sort} />
           </p>
         </div>
+        <div style={columnStyles[9]}>
+          <p className="heading-text text-end">
+             Admin Amt <img className="sort" src={sort} alt={sort} />
+          </p>
+        </div>
         <div style={columnStyles[10]}>
           <p className="heading-text text-end">
             U. Wallet <img className="sort" src={sort} alt={sort} />
