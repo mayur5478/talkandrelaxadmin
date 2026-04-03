@@ -35,6 +35,7 @@ function PaymentList() {
     const headers = [
       { header: "Transaction ID", key: "transactionId" },
       { header: "Name", key: "name" },
+      { header: "User State", key: "state" },
       { header: "Total Amount", key: "rechargeAmount" },
       { header: "Net Amount", key: "netAmount" },
       { header: "GST (18%)", key: "gst" },
@@ -56,6 +57,7 @@ function PaymentList() {
       worksheet.addRow({
         transactionId: item?.transaction_id || item?.id || "",
         name: item?.name || item?.userData?.fullName || "N/A",
+        state: item?.state || "N/A",
         rechargeAmount: total,
         netAmount: net,
         gst: gst,
