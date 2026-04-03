@@ -65,7 +65,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
     { width: "9%" },   // Total Amount
     { width: "9%" },   // Net Amount
     { width: "9%" },   // Admin %
-    { width: "10%" },  // L. Wallet (NEW)
+    { width: "10%" },  // U. Wallet (REPLACED)
     { width: "10%" },  // Action
   ];
 
@@ -120,7 +120,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
         </div>
         <div style={columnStyles[10]}>
           <p className="heading-text text-end">
-            L. Wallet <img className="sort" src={sort} alt={sort} />
+            U. Wallet <img className="sort" src={sort} alt={sort} />
           </p>
         </div>
         <div style={columnStyles[11]}>
@@ -183,7 +183,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
             <p className="heading-text text-end">{session.admin_credit}</p>
           </div>
           <div style={columnStyles[10]}>
-            <p className="heading-text text-end fw-bold text-dark">₹{session.listener_wallet_balance || '0.00'}</p>
+            <p className="heading-text text-end fw-bold text-dark">₹{session.user_wallet_balance || '0.00'}</p>
           </div>
           <div style={columnStyles[11]} className="text-center actions d-flex justify-content-center gap-2">
             <img src={deleteIcon} alt={deleteIcon} />

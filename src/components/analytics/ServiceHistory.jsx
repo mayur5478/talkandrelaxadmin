@@ -36,6 +36,7 @@ function ServiceHistory() {
       { header: "Total Amount", key: "total", width: 15 },
       { header: "Listener Credit", key: "listener_credit", width: 15 },
       { header: "Admin Credit", key: "admin_credit", width: 15 },
+      { header: "User Wallet Balance", key: "wallet_balance", width: 18 },
     ];
 
     excelSessionData.forEach((s, index) => {
@@ -57,6 +58,7 @@ function ServiceHistory() {
         total: totalAmount.toFixed(2),
         listener_credit: s.listener_credit,
         admin_credit: s.admin_credit,
+        wallet_balance: s.user_wallet_balance || '0.00'
       });
     });
 
