@@ -33,6 +33,7 @@ import Status from "../status/Status";
 import ServiceHistory from "../analytics/ServiceHistory";
 import CallRejections from "../analytics/CallRejections";
 import ManualRecharges from "../payment-management/manual-recharges/ManualRecharges";
+import SoftDeletedUsers from "../user-management/soft-deleted-users/SoftDeletedUsers";
 
 const Main = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -67,6 +68,7 @@ const Main = () => {
           <Route path="/user-management/users-list" element={<Users />} />
           <Route path="/user-management/active-users" element={<ActiveUsers />} />
           <Route path="/user-management/recent-users" element={<RecentUsers />} />
+          <Route path="/user-management/soft-deleted-users" element={<SoftDeletedUsers />} />
           <Route path="/listener-management/listeners-list" element={<Listeners />} />
           <Route path="/listener-management/listener-application-request" element={<ApplicationRequests />} />
           <Route path="/listener-management/listeners-profile-approvals" element={<ProfileApproval />} />

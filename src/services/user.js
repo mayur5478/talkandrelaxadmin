@@ -64,6 +64,12 @@ export const userApi = createApi({
         body: formDataToSubmit,
       }),
     }),
+    softDeletedUsers: builder.query({
+      query: () => ({
+        url: `user/soft-deleted-users`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -74,5 +80,6 @@ export const {
   useFormDataQuery,
   useUserDeleteMutation,
   useUserProfileQuery,
-  useUpdateUserMutation
+  useUpdateUserMutation,
+  useSoftDeletedUsersQuery
 } = userApi;

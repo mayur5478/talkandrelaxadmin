@@ -34,6 +34,11 @@ export const links = [
         path: "/dashboard/user-management/recent-users",
         icon: dropdown,
       },
+      {
+        title: "Soft Deleted Users",
+        path: "/dashboard/user-management/soft-deleted-users",
+        icon: dropdown,
+      },
     ],
   },
   {
