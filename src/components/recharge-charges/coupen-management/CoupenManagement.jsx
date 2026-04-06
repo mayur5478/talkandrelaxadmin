@@ -132,6 +132,9 @@ function CoupenManagement() {
             </p>
           </div>
           <div>
+            <p className="heading-text">Usage</p>
+          </div>
+          <div>
             <p className="heading-text">Action</p>
           </div>
         </div>
@@ -160,6 +163,11 @@ function CoupenManagement() {
               <div>
                 <p className="heading-text">
                   {new Date(coupen.expire_date).toLocaleDateString()}
+                </p>
+              </div>
+              <div>
+                <p className="heading-text">
+                  {coupen.user_count} / {coupen.user_limit}
                 </p>
               </div>
               <div>

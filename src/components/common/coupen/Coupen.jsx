@@ -90,7 +90,7 @@ function Coupen({
 
           <div className="row-class mb-3">
             <Form.Group className="text-start">
-              <Form.Label>User Limit:</Form.Label>
+              <Form.Label>Total Usage Limit:</Form.Label>
               <Form.Control
                 type="number"
                 value={userLimit}
