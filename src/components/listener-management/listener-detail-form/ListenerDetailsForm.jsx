@@ -153,26 +153,14 @@ function ListenerDetailsForm() {
     if (panCard) formDataToSubmit.append("pancard", panCard);
 
     try {
-      const response = await updateListenerProfile(formDataToSubmit).unwrap();
-
-      setFormData((prev) => ({
-        ...prev,
-        fullName: response.fullName,
-        email: response.email,
-        mobile_number: response.mobile_number,
-      }));
-
-      if (response.newDisplayImage) {
-        setSelectedImage(response.newDisplayImage);
-      }
-
+      await updateListenerProfile(formDataToSubmit).unwrap();
+      refetch();
       window.location.reload();
     } catch (error) {
       console.error("Error updating profile:", error);
+      alert("Error updating profile: " + (error?.data?.message || "Please check your inputs"));
     } finally {
       setIsUpdateLoad(false);
-      refetch();
-      window.location.reload();
     }
   };
 

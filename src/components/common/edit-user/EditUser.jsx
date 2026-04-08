@@ -67,7 +67,7 @@ function EditUser({ show, onHide, id }) {
 
   const [isIndian, setIsIndian] = useState(null);
   const toTitleCase = (str) =>
-    str.replace(
+    (str || "").replace(
       /\w\S*/g,
       (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
     );
@@ -75,14 +75,17 @@ function EditUser({ show, onHide, id }) {
   // Prefill on data load
   useEffect(() => {
     if (show && user) {
-      const [firstName, ...rest] = user.fullName.split(" ");
+      const nameParts = (user.fullName || "").split(" ");
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      
       setForm({
         firstName,
-        lastName: rest.join(" "),
-        email: user.email,
-        mobile_number: user.mobile_number,
-        nationality: user.nationality,
-        state: toTitleCase(user.state),
+        lastName,
+        email: user.email || "",
+        mobile_number: user.mobile_number || "",
+        nationality: user.nationality || "",
+        state: toTitleCase(user.state || ""),
       });
       setIsIndian(user.nationality?.toLowerCase() === "indian");
     }
