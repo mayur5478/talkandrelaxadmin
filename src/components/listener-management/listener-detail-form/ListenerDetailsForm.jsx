@@ -9,6 +9,7 @@ import { useUpdateListenerProfileMutation } from "../../../services/auth";
 
 function ListenerDetailsForm() {
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImageFile, setSelectedImageFile] = useState(null); // Actual File object for upload
   const [adharFront, setAdharFront] = useState(null);
   const [adharBack, setAdharBack] = useState(null);
   const [panCard, setPanCard] = useState(null);
@@ -116,6 +117,7 @@ function ListenerDetailsForm() {
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
+      setSelectedImageFile(file); // Store actual File object for FormData upload
     }
   };
 
@@ -138,14 +140,10 @@ function ListenerDetailsForm() {
     formDataToSubmit.append("topics", JSON.stringify(formDatas.topics));
     formDataToSubmit.append("languages", JSON.stringify(formDatas.languages));
 
-    if (
-      selectedImage &&
-      typeof selectedImage === "string" &&
-      selectedImage.startsWith("blob:")
-    ) {
-      const file = await fetch(selectedImage).then((res) => res.blob());
-      formDataToSubmit.append("displayImage", file);
-      URL.revokeObjectURL(selectedImage);
+    // Append the actual File object (not a re-fetched blob) so multer
+    // receives it with a proper filename and content-type.
+    if (selectedImageFile) {
+      formDataToSubmit.append("displayImage", selectedImageFile, selectedImageFile.name);
     }
 
     if (adharFront) formDataToSubmit.append("adharFront", adharFront);
