@@ -44,7 +44,7 @@ function ListenerDetailsForm() {
         fullName: profileData.display_name || "",
         email: profile.email || "",
         mobile_number: profile.mobile_number || "",
-        dob: profileData.dob ? profileData.dob.split("T")[0] : "",
+        dob: profileData.dob ? profileData.dob.toString().split(/[T ]/)[0].substring(0, 10) : "",
         gender: profileData.gender || "",
         age: profileData.age || "",
         availability: profileData.call_availability_duration || "",
