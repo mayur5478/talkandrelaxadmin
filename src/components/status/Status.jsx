@@ -128,7 +128,7 @@ function Status() {
               </div>
               <div>
                 <p className="heading-text">
-                  {story?.listenerStoryData?.display_name || "Unknown"}
+                  {story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown"}
                 </p>
               </div>
               <div>
@@ -164,7 +164,7 @@ function Status() {
                       setSelectedStory({
                         listenerId: story.listenerId,
                         name:
-                          story?.listenerStoryData?.display_name || "Unknown",
+                          story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown",
                       });
                       setShowModal(true);
                     }}
@@ -179,7 +179,7 @@ function Status() {
                       setSelectedDeleteStory({
                         id: story.id,
                         name:
-                          story?.listenerStoryData?.display_name || "Unknown",
+                          story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown",
                       });
                       setShowDeleteModal(true);
                     }}
