@@ -39,35 +39,35 @@ function ListenerDetailsForm() {
   useEffect(() => {
     if (data) {
       const profile = data.profile;
-      const profileData = data.profile.listenerProfileData[0];
+      const profileData = profile?.listenerProfileData?.[0];
       setFormData({
-        fullName: profileData.display_name || "",
-        email: profile.email || "",
-        mobile_number: profile.mobile_number || "",
-        dob: profileData.dob ? profileData.dob.toString().split(/[T ]/)[0].substring(0, 10) : "",
-        gender: profileData.gender || "",
-        age: profileData.age || "",
-        availability: profileData.call_availability_duration || "",
-        bank_name: profileData.bank_name || "",
-        account_number: profileData.account_number || "",
-        ifsc_code: profileData.ifsc_code || "",
-        upi_id: profileData.upi_id || "",
-        about: profileData.about || "",
+        fullName: profileData?.display_name || profile?.fullName || "",
+        email: profile?.email || "",
+        mobile_number: profile?.mobile_number || "",
+        dob: profileData?.dob ? profileData.dob.toString().split(/[T ]/)[0].substring(0, 10) : "",
+        gender: profileData?.gender || "",
+        age: profileData?.age || "",
+        availability: profileData?.call_availability_duration || "",
+        bank_name: profileData?.bank_name || "",
+        account_number: profileData?.account_number || "",
+        ifsc_code: profileData?.ifsc_code || "",
+        upi_id: profileData?.upi_id || "",
+        about: profileData?.about || "",
       });
-      setSelectedImage(profileData.display_image || display);
+      setSelectedImage(profileData?.display_image || profile?.user_image || display);
       setFormDatas({
-        services: profileData.service || [],
-        topics: profileData.topic || [],
-        languages: profileData.languages || [],
+        services: profileData?.service || [],
+        topics: profileData?.topic || [],
+        languages: profileData?.languages || [],
       });
       // Set initial document images
       setAdharFront(
-        profileData.adhar_front ? { preview: profileData.adhar_front } : null
+        profileData?.adhar_front ? { preview: profileData.adhar_front } : null
       );
       setAdharBack(
-        profileData.adhar_back ? { preview: profileData.adhar_back } : null
+        profileData?.adhar_back ? { preview: profileData.adhar_back } : null
       );
-      setPanCard(profileData.pancard ? { preview: profileData.pancard } : null);
+      setPanCard(profileData?.pancard ? { preview: profileData.pancard } : null);
     }
   }, [data]);
 
@@ -219,7 +219,7 @@ function ListenerDetailsForm() {
     }));
   };
 
-  const profileDatas = data?.profile?.listenerProfileData[0];
+  const profileDatas = data?.profile?.listenerProfileData?.[0];
   const finalImageUrl = profileDatas?.display_image
     ? `${profileDatas?.display_image}?v=${new Date().getTime()}`
     : display;
