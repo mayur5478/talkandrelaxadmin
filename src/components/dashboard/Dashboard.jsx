@@ -123,7 +123,59 @@ const Dashboard = () => {
          </div>
       </div>
 
-      {/* 5. Ongoing Sessions Overlay */}
+      {/* 5. Active Users List */}
+      {data?.activeUsersList?.length > 0 && (
+        <section className="mb-5">
+          <div className="category-header d-flex justify-content-between align-items-center mb-3">
+            <h5 className="category-title mb-0">Active Users</h5>
+            <span className="text-muted small">Recharged users first · Newest registrations</span>
+          </div>
+          <div className="modern-card p-0 overflow-hidden shadow-sm border-0">
+            <div className="table-responsive">
+              <table className="table table-hover align-middle mb-0">
+                <thead className="bg-light">
+                  <tr>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">#</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Name</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Mobile</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Registered</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Recharges</th>
+                    <th className="px-4 py-3 text-uppercase fw-bold text-muted small border-0">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.activeUsersList.map((u, i) => (
+                    <tr key={u.id}>
+                      <td className="px-4 py-3 text-muted">{i + 1}</td>
+                      <td className="px-4 py-3 fw-bold">{u.fullName}</td>
+                      <td className="px-4 py-3">{u.mobile_number}</td>
+                      <td className="px-4 py-3 text-muted small">{new Date(u.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        {u.has_recharged ? (
+                          <span className="badge bg-success-subtle text-success-emphasis border-0 px-3">{u.recharge_count} recharge{u.recharge_count !== 1 ? 's' : ''}</span>
+                        ) : (
+                          <span className="badge bg-secondary-subtle text-secondary border-0 px-3">No recharge</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {u.is_online ? (
+                          <div className="d-flex align-items-center gap-2 text-success fw-semibold small">
+                            <div className="heartbeat-dot"></div>Online
+                          </div>
+                        ) : (
+                          <span className="text-muted small">Offline</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* 7. Ongoing Sessions Overlay */}
       {data?.activeSessions?.length > 0 && (
         <section className="mb-5">
           <h5 className="category-title mb-3">Ongoing Sessions (Live)</h5>
