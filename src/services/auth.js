@@ -168,6 +168,13 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    backfillLeaves: builder.mutation({
+      query: ({ fromDate, toDate } = {}) => ({
+        url: `admin/backfill-leaves`,
+        method: "POST",
+        body: { fromDate, toDate },
+      }),
+    }),
   }),
 });
 
@@ -188,6 +195,7 @@ export const {
   useResetUserStateMutation,
   useResetAllStuckStatesMutation,
   useCleanupLeakedUserImagesMutation,
+  useBackfillLeavesMutation,
 
   useGetSessionRejectionsQuery,
   useWalletReportQuery,

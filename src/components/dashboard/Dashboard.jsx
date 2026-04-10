@@ -1,7 +1,7 @@
 import React from "react";
 import "./dashboard.scss";
 import DashboardCards from "../common/dashboard-card/DashboardCards";
-import { useDashboardQuery, useCleanupLeakedUserImagesMutation } from "../../services/auth";
+import { useDashboardQuery, useCleanupLeakedUserImagesMutation, useBackfillLeavesMutation } from "../../services/auth";
 import WalletList from "./WalletList";
 import WalletModal from "./WalletModal";
 import DiagnoseModal from "../common/diagnose-connection/DiagnoseModal";
@@ -13,6 +13,40 @@ const Dashboard = () => {
   const [showListenerModal, setShowListenerModal] = React.useState(false);
   const [showDiagnose, setShowDiagnose] = React.useState(false);
   const [cleanupImages, { isLoading: isCleaning }] = useCleanupLeakedUserImagesMutation();
+  const [backfillLeaves, { isLoading: isBackfilling }] = useBackfillLeavesMutation();
+
+  const handleBackfillLeaves = async () => {
+    const { value: formValues } = await Swal.fire({
+      title: "Backfill Listener Leaves",
+      html: `
+        <div style="text-align:left;font-size:14px;margin-bottom:8px">
+          Generate leave records for listeners who worked less than 3 hours on each day in the selected range.
+        </div>
+        <label style="font-size:13px;font-weight:600">From date</label>
+        <input id="swal-from" type="date" class="swal2-input" style="margin:4px 0 10px">
+        <label style="font-size:13px;font-weight:600">To date</label>
+        <input id="swal-to" type="date" class="swal2-input" style="margin:4px 0">
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Run Backfill",
+      preConfirm: () => ({
+        fromDate: document.getElementById("swal-from").value,
+        toDate: document.getElementById("swal-to").value,
+      }),
+    });
+    if (!formValues) return;
+    try {
+      const res = await backfillLeaves(formValues).unwrap();
+      const rows = (res.results || []).map(r => `<tr><td>${r.date}</td><td>${r.leavesCreated}</td></tr>`).join("");
+      Swal.fire({
+        title: "Backfill Complete",
+        html: `<table class="table table-sm"><thead><tr><th>Date</th><th>Leaves Created</th></tr></thead><tbody>${rows}</tbody></table>`,
+        icon: "success",
+      });
+    } catch (err) {
+      Swal.fire("Error", err?.data?.message || "Backfill failed", "error");
+    }
+  };
 
   const handleCleanupImages = async () => {
     const confirm = await Swal.fire({
@@ -52,6 +86,9 @@ const Dashboard = () => {
             <p className="text-muted mb-0">Monitor platform health, financials, and user engagement at a glance.</p>
           </div>
           <div className="d-flex align-items-center gap-3">
+            <button className="btn btn-sm btn-outline-secondary rounded-pill px-3" onClick={handleBackfillLeaves} disabled={isBackfilling}>
+              {isBackfilling ? "Processing..." : "Backfill Leaves"}
+            </button>
             <button className="btn btn-sm btn-outline-warning rounded-pill px-3" onClick={handleCleanupImages} disabled={isCleaning}>
               {isCleaning ? "Cleaning..." : "Clean User Images"}
             </button>
