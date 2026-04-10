@@ -135,6 +135,9 @@ function CoupenManagement() {
             <p className="heading-text">Usage</p>
           </div>
           <div>
+            <p className="heading-text">Status</p>
+          </div>
+          <div>
             <p className="heading-text">Action</p>
           </div>
         </div>
@@ -171,6 +174,21 @@ function CoupenManagement() {
                 </p>
               </div>
               <div>
+                {(() => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const expireDay = coupen.expire_date ? coupen.expire_date.split('T')[0] : '';
+                  if (!coupen.isActive) {
+                    return <span className="coupen-status inactive">Inactive</span>;
+                  } else if (expireDay && expireDay < today) {
+                    return <span className="coupen-status expired">Expired</span>;
+                  } else if (coupen.user_count >= coupen.user_limit) {
+                    return <span className="coupen-status limit-reached">Limit Reached</span>;
+                  } else {
+                    return <span className="coupen-status active">Active</span>;
+                  }
+                })()}
+              </div>
+              <div>
                 <div className="actions">
                   <img
                     onClick={() => {
@@ -204,12 +222,12 @@ function CoupenManagement() {
               value={limit}
               onChange={(e) => setLimit(e.target.value)}
             >
-              <option value="1">5</option>
-              <option value="2">10</option>
-              <option value="3">15</option>
-              <option value="4">20</option>
-              <option value="5">25</option>
-              <option value="6">30</option>
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+              <option value="25">25</option>
+              <option value="30">30</option>
             </Form.Select>
           </div>
           <div className="pagination-details">

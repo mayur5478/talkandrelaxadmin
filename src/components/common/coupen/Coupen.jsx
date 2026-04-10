@@ -21,7 +21,9 @@ function Coupen({
     if (show) {
       if (id && initialData) {
         setTitle(initialData.title || "");
-        setExpireDate(initialData.expire_date || "");
+        // Date input requires YYYY-MM-DD format; DB returns full ISO string
+        const rawDate = initialData.expire_date || "";
+        setExpireDate(rawDate ? rawDate.split("T")[0] : "");
         setUserLimit(initialData.user_limit || "");
         setMinimumAmount(initialData.minimum_amount || "");
         setPercentage(initialData.percentage || "");
