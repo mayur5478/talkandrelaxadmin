@@ -31,10 +31,10 @@ export const userApi = createApi({
       }),
     }),
     activeUserList: builder.query({
-      query: ({ page = 1, pageSize = 10, searchParams,  fromDate,toDate }) => ({
+      query: ({ page = 1, pageSize = 10, searchParams, fromDate, toDate, sortBy = "createdAt", sortOrder = "DESC" }) => ({
         url: `user/active-user-list`,
         method: "GET",
-        params: { page, pageSize, searchParams,  fromDate,toDate },
+        params: { page, pageSize, searchParams, fromDate, toDate, sortBy, sortOrder },
       }),
     }),
     formData: builder.query({

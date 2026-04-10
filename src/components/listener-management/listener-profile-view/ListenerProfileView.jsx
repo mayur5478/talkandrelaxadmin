@@ -91,9 +91,11 @@ function ListenerProfileView() {
                   <div className="img-wrapper">
                     {" "}
                     <img
-                      src={`${
+                      src={
                         profileData?.listenerProfileData[0]?.display_image
-                      }?=${new Date().getTime()}`}
+                          ? `${profileData?.listenerProfileData[0]?.display_image}?=${new Date().getTime()}`
+                          : profile
+                      }
                       alt="profile"
                     />
                   </div>

@@ -29,6 +29,23 @@ function ActiveUsers() {
   const [showArchived, setShowArchived] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetTarget, setResetTarget] = useState({ id: "", name: "" });
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortOrder, setSortOrder] = useState("DESC");
+
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === "ASC" ? "DESC" : "ASC"));
+    } else {
+      setSortBy(column);
+      setSortOrder("DESC");
+    }
+    setPage(1);
+  };
+
+  const sortIcon = (column) => {
+    if (sortBy !== column) return <img className="sort" src={sort} alt="Sort" />;
+    return <span style={{ fontSize: "12px", marginLeft: "4px" }}>{sortOrder === "ASC" ? "▲" : "▼"}</span>;
+  };
 
   const { data, error, isLoading, refetch } = useActiveUserListQuery({
     page,
@@ -36,6 +53,8 @@ function ActiveUsers() {
     searchParams: searchQuery ? searchQuery : "",
     fromDate: dateRange[0]?.toISOString(),
     toDate: dateRange[1]?.toISOString(),
+    sortBy,
+    sortOrder,
   });
 
   const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
@@ -224,24 +243,30 @@ function ActiveUsers() {
               Full Name <img className="sort" src={sort} alt="Sort" />
             </p>
           </div>
-          <div>
+          <div
+            onClick={() => handleSort("wallet_balance")}
+            style={{ cursor: "pointer", userSelect: "none" }}
+          >
             <p className="heading-text">
-              Wallet Balance <img className="sort" src={sort} alt="Sort" />
+              Wallet Balance {sortIcon("wallet_balance")}
             </p>
           </div>
           <div>
             <p className="heading-text">
-              Recharge Amount <img className="sort" src={sort} alt="Sort" />
+              Recharge Amount
             </p>
           </div>
           <div>
             <p className="heading-text">
-              Gift Amount <img className="sort" src={sort} alt="Sort" />
+              Gift Amount
             </p>
           </div>
-          <div>
+          <div
+            onClick={() => handleSort("createdAt")}
+            style={{ cursor: "pointer", userSelect: "none" }}
+          >
             <p className="heading-text">
-              Registration Date <img className="sort" src={sort} alt="Sort" />
+              Registration Date {sortIcon("createdAt")}
             </p>
           </div>
           <div>
