@@ -132,6 +132,12 @@ export const authApi = createApi({
         method: "POST",
       }),
     }),
+    cleanupLeakedUserImages: builder.mutation({
+      query: () => ({
+        url: `admin/cleanup-leaked-user-images`,
+        method: "POST",
+      }),
+    }),
 
     getSessionRejections: builder.query({
       query: ({ page, limit, fromDate, toDate, search, type }) => {
@@ -181,6 +187,7 @@ export const {
   useForceEndSessionMutation,
   useResetUserStateMutation,
   useResetAllStuckStatesMutation,
+  useCleanupLeakedUserImagesMutation,
 
   useGetSessionRejectionsQuery,
   useWalletReportQuery,

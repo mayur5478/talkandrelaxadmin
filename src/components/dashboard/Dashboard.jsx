@@ -1,16 +1,35 @@
 import React from "react";
 import "./dashboard.scss";
 import DashboardCards from "../common/dashboard-card/DashboardCards";
-import { useDashboardQuery } from "../../services/auth";
+import { useDashboardQuery, useCleanupLeakedUserImagesMutation } from "../../services/auth";
 import WalletList from "./WalletList";
 import WalletModal from "./WalletModal";
 import DiagnoseModal from "../common/diagnose-connection/DiagnoseModal";
+import Swal from "sweetalert2";
 
 const Dashboard = () => {
   const { data, isLoading, error } = useDashboardQuery();
   const [showUserModal, setShowUserModal] = React.useState(false);
   const [showListenerModal, setShowListenerModal] = React.useState(false);
   const [showDiagnose, setShowDiagnose] = React.useState(false);
+  const [cleanupImages, { isLoading: isCleaning }] = useCleanupLeakedUserImagesMutation();
+
+  const handleCleanupImages = async () => {
+    const confirm = await Swal.fire({
+      title: "Clean up leaked user images?",
+      text: "This removes real user photos that were previously stored in listener nickname records. Safe to run — it only clears images that match the user's actual profile photo.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, clean up",
+    });
+    if (!confirm.isConfirmed) return;
+    try {
+      const res = await cleanupImages().unwrap();
+      Swal.fire("Done", res.message, "success");
+    } catch (err) {
+      Swal.fire("Error", err?.data?.message || "Cleanup failed", "error");
+    }
+  };
 
   if (isLoading) return <div className="p-4">Loading dashboard...</div>;
   if (error) return <div className="p-4 text-danger">Error loading dashboard data</div>;
@@ -33,6 +52,9 @@ const Dashboard = () => {
             <p className="text-muted mb-0">Monitor platform health, financials, and user engagement at a glance.</p>
           </div>
           <div className="d-flex align-items-center gap-3">
+            <button className="btn btn-sm btn-outline-warning rounded-pill px-3" onClick={handleCleanupImages} disabled={isCleaning}>
+              {isCleaning ? "Cleaning..." : "Clean User Images"}
+            </button>
             <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => setShowDiagnose(true)}>
               Diagnose Connection
             </button>
@@ -135,7 +157,7 @@ const Dashboard = () => {
         <section className="mb-5">
           <div className="category-header d-flex justify-content-between align-items-center mb-3">
             <h5 className="category-title mb-0">Active Users</h5>
-            <span className="text-muted small">Recharged users first · Newest registrations</span>
+            <span className="text-muted small">Recharged users first · Newest registrations sorted descending</span>
           </div>
           <div className="modern-card p-0 overflow-hidden shadow-sm border-0">
             <div className="table-responsive">
