@@ -177,6 +177,7 @@ function UserProfiile() {
         show={editUserModal}
         onHide={() => setEditUserModal(false)}
         id={ids}
+        onSuccess={refetch}
       />
       <TransactionModal
         show={show}

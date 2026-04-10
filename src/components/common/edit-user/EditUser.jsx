@@ -45,7 +45,7 @@ const indianStates = [
   "Puducherry",
 ];
 
-function EditUser({ show, onHide, id }) {
+function EditUser({ show, onHide, id, onSuccess }) {
   const { data, isLoading, refetch } = useUserProfileQuery(id);
   useEffect(() => {
     if (show) {
@@ -105,6 +105,7 @@ function EditUser({ show, onHide, id }) {
       await updateUser(body).unwrap();
       setForm({});
       onHide();
+      if (onSuccess) onSuccess();
     } catch (err) {
       console.error("Update failed", err);
     }
