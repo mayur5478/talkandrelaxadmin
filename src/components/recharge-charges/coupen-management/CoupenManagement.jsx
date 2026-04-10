@@ -330,8 +330,8 @@ function CoupenManagement() {
                       {usersData.data.map((row, idx) => (
                         <tr key={row.id}>
                           <td>{(usersPage - 1) * 10 + idx + 1}</td>
-                          <td>{row.user?.fullName || "—"}</td>
-                          <td>{row.user?.mobile_number || "—"}</td>
+                          <td>{row.userData?.fullName || "—"}</td>
+                          <td>{row.userData?.mobile_number || "—"}</td>
                           <td>₹{row.amount}</td>
                           <td>{row.discount_percentage}% (₹{row.discount_amount})</td>
                           <td>{new Date(row.createdAt).toLocaleDateString()}</td>
