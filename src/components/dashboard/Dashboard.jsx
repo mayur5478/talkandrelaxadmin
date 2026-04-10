@@ -4,11 +4,13 @@ import DashboardCards from "../common/dashboard-card/DashboardCards";
 import { useDashboardQuery } from "../../services/auth";
 import WalletList from "./WalletList";
 import WalletModal from "./WalletModal";
+import DiagnoseModal from "../common/diagnose-connection/DiagnoseModal";
 
 const Dashboard = () => {
   const { data, isLoading, error } = useDashboardQuery();
   const [showUserModal, setShowUserModal] = React.useState(false);
   const [showListenerModal, setShowListenerModal] = React.useState(false);
+  const [showDiagnose, setShowDiagnose] = React.useState(false);
 
   if (isLoading) return <div className="p-4">Loading dashboard...</div>;
   if (error) return <div className="p-4 text-danger">Error loading dashboard data</div>;
@@ -30,9 +32,14 @@ const Dashboard = () => {
             <h2 className="fw-bold mb-1">Administrative Overview</h2>
             <p className="text-muted mb-0">Monitor platform health, financials, and user engagement at a glance.</p>
           </div>
-          <div className="live-badge d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border">
-             <div className="heartbeat-dot"></div>
-             <span className="fw-semibold text-primary" style={{ fontSize: '14px' }}>LIVE MONITOR</span>
+          <div className="d-flex align-items-center gap-3">
+            <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => setShowDiagnose(true)}>
+              Diagnose Connection
+            </button>
+            <div className="live-badge d-flex align-items-center gap-2 px-3 py-1 rounded-pill bg-light border">
+               <div className="heartbeat-dot"></div>
+               <span className="fw-semibold text-primary" style={{ fontSize: '14px' }}>LIVE MONITOR</span>
+            </div>
           </div>
         </div>
       </div>
@@ -223,12 +230,14 @@ const Dashboard = () => {
         type="user"
       />
       
-      <WalletModal 
-        show={showListenerModal} 
-        handleClose={() => setShowListenerModal(false)} 
-        title="Top Earners (Full List)" 
+      <WalletModal
+        show={showListenerModal}
+        handleClose={() => setShowListenerModal(false)}
+        title="Top Earners (Full List)"
         type="listener"
       />
+
+      <DiagnoseModal show={showDiagnose} onHide={() => setShowDiagnose(false)} />
     </div>
   );
 };

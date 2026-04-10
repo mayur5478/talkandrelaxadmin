@@ -134,10 +134,14 @@ export const authApi = createApi({
     }),
 
     getSessionRejections: builder.query({
-      query: ({ page, limit, fromDate, toDate }) => ({
-        url: `admin/get-session-rejections?page=${page}&limit=${limit}${fromDate ? `&fromDate=${fromDate}` : ''}${toDate ? `&toDate=${toDate}` : ''}`,
-        method: "GET",
-      }),
+      query: ({ page, limit, fromDate, toDate, search, type }) => {
+        const params = new URLSearchParams({ page, limit });
+        if (fromDate) params.append("fromDate", fromDate);
+        if (toDate) params.append("toDate", toDate);
+        if (search) params.append("search", search);
+        if (type && type !== "all") params.append("type", type);
+        return { url: `admin/get-session-rejections?${params.toString()}`, method: "GET" };
+      },
     }),
     walletReport: builder.query({
       query: () => ({
@@ -150,6 +154,12 @@ export const authApi = createApi({
         url: `admin/all-wallets`,
         method: "GET",
         params: { type, limit },
+      }),
+    }),
+    diagnoseConnection: builder.query({
+      query: ({ userId, listenerId }) => ({
+        url: `admin/diagnose-connection?userId=${userId}&listenerId=${listenerId}`,
+        method: "GET",
       }),
     }),
   }),
@@ -175,4 +185,5 @@ export const {
   useGetSessionRejectionsQuery,
   useWalletReportQuery,
   useAllWalletsQuery,
+  useLazyDiagnoseConnectionQuery,
 } = authApi;

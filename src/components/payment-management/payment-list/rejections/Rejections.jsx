@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import sort from "../../../assets/sort.png";
 import frontIcon from "../../../assets/front.png";
 import backIcon from "../../../assets/back.png";
@@ -13,13 +13,23 @@ import { useNavigate } from "react-router-dom";
 function Rejections({ fromDate, toDate }) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
   const navigate = useNavigate();
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [fromDate, toDate, search, typeFilter]);
 
   const { data, error, isLoading } = useGetSessionRejectionsQuery({
     page,
     limit: pageSize,
     fromDate: fromDate?.toISOString(),
     toDate: toDate?.toISOString(),
+    search: search || undefined,
+    type: typeFilter,
   });
 
   const handleViewUser = (id) => {
@@ -28,6 +38,11 @@ function Rejections({ fromDate, toDate }) {
 
   const handleViewListener = (id) => {
     navigate(`/dashboard/listener-management/profile-view?id=${id}`);
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setSearch(searchInput.trim());
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -49,6 +64,34 @@ function Rejections({ fromDate, toDate }) {
 
   return (
     <div className="rejections-main">
+      <div className="rejections-filters mb-3 d-flex gap-3 flex-wrap align-items-center">
+        <form onSubmit={handleSearchSubmit} className="d-flex gap-2">
+          <Form.Control
+            type="text"
+            placeholder="Search user or listener..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            style={{ minWidth: 220 }}
+          />
+          <button type="submit" className="btn btn-sm btn-primary">Search</button>
+          {search && (
+            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => { setSearch(""); setSearchInput(""); }}>
+              Clear
+            </button>
+          )}
+        </form>
+        <Form.Select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+          style={{ width: 150 }}
+        >
+          <option value="all">All Types</option>
+          <option value="audio">Audio</option>
+          <option value="video">Video</option>
+          <option value="chat">Chat</option>
+        </Form.Select>
+      </div>
+
       <div className="table-headings">
         <div style={columnStyles[0]}><p className="heading-text">Sr#</p></div>
         <div style={columnStyles[1]}><p className="heading-text">Date <img className="sort" src={sort} alt="sort" /></p></div>
