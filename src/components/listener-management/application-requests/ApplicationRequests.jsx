@@ -184,7 +184,11 @@ function ApplicationRequests() {
               <div>
                 <p className="heading-text">
                   <a
-                    href={`/dashboard/listener-management/listeners-profile-approvals-docs?id=${request?.id}`}
+                    href={
+                      request?.listener_request_status === "documents in review"
+                        ? `/dashboard/listener-management/listeners-profile-approvals-docs?id=${request?.id}`
+                        : `/dashboard/listener-management/profile-form?id=${request?.id}`
+                    }
                   >
                     View
                   </a>
