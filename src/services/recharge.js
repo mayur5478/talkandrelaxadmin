@@ -129,6 +129,13 @@ export const rechargeApi = createApi({
         body: { id: id },
       }),
     }),
+    getCoupenUsers: builder.query({
+      query: ({ id, page = 1, limit = 10 }) => ({
+        url: `/coupen/coupens/${id}/users`,
+        method: "GET",
+        params: { page, limit },
+      }),
+    }),
     userManualRefund: builder.mutation({
       query: ({ userId, amount, type }) => ({
         url: `/user/payment/user-refund`,
@@ -174,4 +181,5 @@ export const {
   useUserManualRefundMutation,
   useListenerManualRefundMutation,
   useGetManualAdjustmentsQuery,
+  useGetCoupenUsersQuery,
 } = rechargeApi;

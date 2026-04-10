@@ -16,6 +16,7 @@ import {
   useCreateCoupenMutation,
   useDeleteCoupenMutation,
   useEditCoupenMutation,
+  useGetCoupenUsersQuery,
 } from "../../../services/recharge";
 import Coupen from "../../common/coupen/Coupen";
 import DeleteModal from "../../common/delete-modal/DeleteModal";
@@ -27,6 +28,8 @@ function CoupenManagement() {
   const [initialData, setInitialData] = useState({});
   const [id, setId] = useState("");
   const [show, setShow] = useState(false);
+  const [usersModal, setUsersModal] = useState({ open: false, coupenId: null, coupenTitle: "" });
+  const [usersPage, setUsersPage] = useState(1);
   // Use the coupensList query
   const { data, error, isLoading, refetch } = useCoupensListQuery({
     page,
@@ -38,6 +41,11 @@ function CoupenManagement() {
     setInitialData(data);
     setId(id);
   };
+
+  const { data: usersData, isLoading: isUsersLoading } = useGetCoupenUsersQuery(
+    { id: usersModal.coupenId, page: usersPage, limit: 10 },
+    { skip: !usersModal.coupenId }
+  );
 
   const [createMutation, { isLoading: isCreateLoading }] =
     useCreateCoupenMutation();
@@ -177,11 +185,12 @@ function CoupenManagement() {
                 {(() => {
                   const today = new Date().toISOString().split('T')[0];
                   const expireDay = coupen.expire_date ? coupen.expire_date.split('T')[0] : '';
+                  const limitReached = coupen.user_limit != null && coupen.user_limit > 0 && coupen.user_count >= coupen.user_limit;
                   if (!coupen.isActive) {
                     return <span className="coupen-status inactive">Inactive</span>;
                   } else if (expireDay && expireDay < today) {
                     return <span className="coupen-status expired">Expired</span>;
-                  } else if (coupen.user_count >= coupen.user_limit) {
+                  } else if (limitReached) {
                     return <span className="coupen-status limit-reached">Limit Reached</span>;
                   } else {
                     return <span className="coupen-status active">Active</span>;
@@ -190,6 +199,12 @@ function CoupenManagement() {
               </div>
               <div>
                 <div className="actions">
+                  <button
+                    className="coupen-users-btn"
+                    onClick={() => { setUsersModal({ open: true, coupenId: coupen.id, coupenTitle: coupen.title }); setUsersPage(1); }}
+                  >
+                    Users ({coupen.user_count})
+                  </button>
                   <img
                     onClick={() => {
                       setShow(true);
@@ -284,6 +299,59 @@ function CoupenManagement() {
               isLoading={isDeleteLoading}
               modal_type="coupen"
             />
+
+      {/* Coupon Users Modal */}
+      {usersModal.open && (
+        <div className="coupen-users-overlay" onClick={() => setUsersModal({ open: false, coupenId: null, coupenTitle: "" })}>
+          <div className="coupen-users-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="coupen-users-modal-header">
+              <p className="export-modal-title">Users who used: {usersModal.coupenTitle}</p>
+              <button className="coupen-users-close" onClick={() => setUsersModal({ open: false, coupenId: null, coupenTitle: "" })}>✕</button>
+            </div>
+            <div className="coupen-users-modal-body">
+              {isUsersLoading ? (
+                <p>Loading...</p>
+              ) : !usersData?.data?.length ? (
+                <p className="coupen-no-users">No users have used this coupon yet.</p>
+              ) : (
+                <>
+                  <table className="coupen-users-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Amount Paid</th>
+                        <th>Discount</th>
+                        <th>Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {usersData.data.map((row, idx) => (
+                        <tr key={row.id}>
+                          <td>{(usersPage - 1) * 10 + idx + 1}</td>
+                          <td>{row.user?.fullName || "—"}</td>
+                          <td>{row.user?.mobile_number || "—"}</td>
+                          <td>₹{row.amount}</td>
+                          <td>{row.discount_percentage}% (₹{row.discount_amount})</td>
+                          <td>{new Date(row.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {usersData.meta?.totalPages > 1 && (
+                    <div className="coupen-users-pagination">
+                      <button disabled={usersPage === 1} onClick={() => setUsersPage((p) => p - 1)}>Prev</button>
+                      <span>{usersPage} / {usersData.meta.totalPages}</span>
+                      <button disabled={usersPage === usersData.meta.totalPages} onClick={() => setUsersPage((p) => p + 1)}>Next</button>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
