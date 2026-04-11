@@ -643,17 +643,22 @@ export default function BusinessInsights() {
       {/* ─── RECHARGES TAB ─── */}
       {activeTab === "recharges" && (
         <>
-          {/* Daily recharge breakdown with month selector */}
+          {/* Daily recharge + gifts breakdown with month selector */}
           {(() => {
             const selMonth = months.find(m => m.key === rechargeMonthKey) || latest;
             const daily = selMonth?.dailyRecharges || [];
-            const dayLabels = daily.map(d => d.day ? d.day.slice(5) : ""); // MM-DD
+            const dailyGifts = selMonth?.dailyGifts || [];
+            // Build a merged map keyed by day
+            const allDays = Array.from(new Set([...daily.map(d => d.day), ...dailyGifts.map(d => d.day)])).sort();
+            const rechargeMap = Object.fromEntries(daily.map(d => [d.day, d]));
+            const giftMap = Object.fromEntries(dailyGifts.map(d => [d.day, d]));
+            const dayLabels = daily.map(d => d.day ? d.day.slice(5) : ""); // MM-DD for chart
             return (
               <>
                 <div className="bi-section-header mb-2" style={{ marginTop: "0.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
                   <div>
-                    <h5 className="bi-section-title">Daily Recharges</h5>
-                    <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>Successful vs attempted recharges per day</p>
+                    <h5 className="bi-section-title">Daily Recharges &amp; Gifts</h5>
+                    <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>Successful payments per day — recharges and gifts</p>
                   </div>
                   <select
                     className="bi-range-select"
@@ -685,8 +690,9 @@ export default function BusinessInsights() {
                   </div>
                 </div>
 
-                {/* Monthly GST summary */}
-                <div className="bi-recharge-summary mb-4">
+                {/* Monthly totals — Recharges */}
+                <p className="bi-range-label mb-1" style={{ paddingLeft: "0.1rem", marginBottom: "0.4rem" }}>Recharges</p>
+                <div className="bi-recharge-summary mb-3">
                   <div className="bi-recharge-pill bi-recharge-pill--gross">
                     <span className="bi-rp-label">Total with GST</span>
                     <span className="bi-rp-val">{fmt(selMonth?.totalGrossRecharge || 0)}</span>
@@ -705,35 +711,58 @@ export default function BusinessInsights() {
                   </div>
                 </div>
 
+                {/* Monthly totals — Gifts */}
+                <p className="bi-range-label mb-1" style={{ paddingLeft: "0.1rem", marginBottom: "0.4rem" }}>Gifts</p>
+                <div className="bi-recharge-summary mb-4">
+                  <div className="bi-recharge-pill bi-recharge-pill--gross">
+                    <span className="bi-rp-label">Total with GST</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.totalGiftGross || 0)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--net">
+                    <span className="bi-rp-label">Total without GST</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.totalGiftNet || 0)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--gst">
+                    <span className="bi-rp-label">GST Collected</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.totalGiftGst || 0)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--total">
+                    <span className="bi-rp-label">Successful Gifts</span>
+                    <span className="bi-rp-val">{(dailyGifts.reduce((s, d) => s + d.successful, 0)).toLocaleString()}</span>
+                  </div>
+                </div>
+
                 <div className="bi-chart-grid bi-chart-grid--2 mb-4">
                   <div className="bi-chart-card">
-                    <h6 className="bi-chart-title">Daily Recharge Count — {selMonth?.name}</h6>
+                    <h6 className="bi-chart-title">Daily Count — Recharges &amp; Gifts — {selMonth?.name}</h6>
                     <ReactApexChart
                       options={{
                         chart: { ...DC, type: "bar" },
-                        plotOptions: { bar: { borderRadius: 3, columnWidth: "70%" } },
-                        colors: ["#6366f1", "#10b981"],
+                        plotOptions: { bar: { borderRadius: 3, columnWidth: "65%" } },
+                        colors: ["#6366f1", "#a5b4fc", "#10b981", "#6ee7b7"],
                         xaxis: { ...DARK_XAXIS(dayLabels), tickAmount: Math.min(dayLabels.length, 10) },
                         yaxis: DARK_YAXIS(v => `${v}`),
                         legend: { ...DARK_LEGEND, position: "top" },
                         dataLabels: { enabled: false },
                         grid: DARK_GRID,
-                        tooltip: DARK_TOOLTIP(v => `${v} recharges`),
+                        tooltip: DARK_TOOLTIP(v => `${v}`),
                       }}
                       series={[
-                        { name: "Total Attempts", data: daily.map(d => d.total) },
-                        { name: "Successful", data: daily.map(d => d.successful) },
+                        { name: "Recharges (Attempts)", data: daily.map(d => d.total) },
+                        { name: "Recharges (Successful)", data: daily.map(d => d.successful) },
+                        { name: "Gifts (Attempts)", data: allDays.map(day => (giftMap[day]?.total || 0)) },
+                        { name: "Gifts (Successful)", data: allDays.map(day => (giftMap[day]?.successful || 0)) },
                       ]}
                       type="bar" height={240}
                     />
                   </div>
                   <div className="bi-chart-card">
-                    <h6 className="bi-chart-title">Daily Amount — with vs without GST (₹) — {selMonth?.name}</h6>
+                    <h6 className="bi-chart-title">Daily Amount (₹) — Recharges &amp; Gifts — {selMonth?.name}</h6>
                     <ReactApexChart
                       options={{
                         chart: { ...DC, type: "line" },
-                        stroke: { curve: "smooth", width: [2, 2] },
-                        colors: ["#6366f1", "#10b981"],
+                        stroke: { curve: "smooth", width: [2, 2, 2, 2] },
+                        colors: ["#6366f1", "#a5b4fc", "#10b981", "#6ee7b7"],
                         xaxis: { ...DARK_XAXIS(dayLabels), tickAmount: Math.min(dayLabels.length, 10) },
                         yaxis: DARK_YAXIS(v => `₹${v.toLocaleString()}`),
                         legend: { ...DARK_LEGEND, position: "top" },
@@ -743,47 +772,47 @@ export default function BusinessInsights() {
                         markers: { size: 3 },
                       }}
                       series={[
-                        { name: "With GST (₹)", data: daily.map(d => d.grossAmount) },
-                        { name: "Without GST (₹)", data: daily.map(d => d.netAmount) },
+                        { name: "Recharge with GST", data: daily.map(d => d.grossAmount) },
+                        { name: "Recharge without GST", data: daily.map(d => d.netAmount) },
+                        { name: "Gift with GST", data: allDays.map(day => (giftMap[day]?.grossAmount || 0)) },
+                        { name: "Gift without GST", data: allDays.map(day => (giftMap[day]?.netAmount || 0)) },
                       ]}
                       type="line" height={240}
                     />
                   </div>
                 </div>
 
-                {/* Daily table */}
+                {/* Daily table — recharges + gifts merged by day */}
                 <div className="bi-table-card mb-4" style={{ overflowX: "auto" }}>
                   <table className="bi-table">
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Attempts</th>
-                        <th>Successful</th>
-                        <th>Failed</th>
-                        <th>With GST (₹)</th>
-                        <th>Without GST (₹)</th>
-                        <th>GST (₹)</th>
-                        <th>Success Rate</th>
+                        <th rowSpan={2}>Date</th>
+                        <th colSpan={5} style={{ textAlign: "center", borderBottom: "1px solid #e9eef5", color: "#6366f1" }}>Recharges</th>
+                        <th colSpan={4} style={{ textAlign: "center", borderBottom: "1px solid #e9eef5", color: "#10b981" }}>Gifts</th>
+                      </tr>
+                      <tr>
+                        <th>Attempts</th><th>Success</th><th>Failed</th><th>With GST</th><th>Without GST</th>
+                        <th>Attempts</th><th>Success</th><th>With GST</th><th>Without GST</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {daily.map((d, i) => {
-                        const failed = d.total - d.successful;
-                        const rate = d.total > 0 ? ((d.successful / d.total) * 100).toFixed(0) : 0;
+                      {allDays.map((day, i) => {
+                        const r = rechargeMap[day] || { total: 0, successful: 0, grossAmount: 0, netAmount: 0 };
+                        const g = giftMap[day] || { total: 0, successful: 0, grossAmount: 0, netAmount: 0 };
+                        const rFailed = r.total - r.successful;
                         return (
                           <tr key={i}>
-                            <td className="bi-cell--label">{d.day}</td>
-                            <td>{d.total}</td>
-                            <td className="bi-cell--hot">{d.successful}</td>
-                            <td className={failed > 0 ? "bi-cell--neg" : ""}>{failed || "—"}</td>
-                            <td>{fmt(d.grossAmount)}</td>
-                            <td>{fmt(d.netAmount)}</td>
-                            <td className="bi-cell--muted">{fmt(d.gstAmount)}</td>
-                            <td>
-                              <span className={`bi-badge ${rate >= 90 ? "bi-badge--success" : rate >= 70 ? "bi-badge--info" : "bi-badge--warning"}`}>
-                                {rate}%
-                              </span>
-                            </td>
+                            <td className="bi-cell--label">{day}</td>
+                            <td>{r.total || "—"}</td>
+                            <td className="bi-cell--hot">{r.successful || "—"}</td>
+                            <td className={rFailed > 0 ? "bi-cell--neg" : "bi-cell--muted"}>{rFailed || "—"}</td>
+                            <td style={{ color: "#6366f1" }}>{r.grossAmount ? fmt(r.grossAmount) : "—"}</td>
+                            <td>{r.netAmount ? fmt(r.netAmount) : "—"}</td>
+                            <td>{g.total || "—"}</td>
+                            <td className="bi-cell--hot" style={{ color: "#059669" }}>{g.successful || "—"}</td>
+                            <td style={{ color: "#10b981" }}>{g.grossAmount ? fmt(g.grossAmount) : "—"}</td>
+                            <td>{g.netAmount ? fmt(g.netAmount) : "—"}</td>
                           </tr>
                         );
                       })}
@@ -794,10 +823,12 @@ export default function BusinessInsights() {
                         <td>{daily.reduce((s, d) => s + d.total, 0)}</td>
                         <td className="bi-cell--hot">{daily.reduce((s, d) => s + d.successful, 0)}</td>
                         <td>{daily.reduce((s, d) => s + (d.total - d.successful), 0) || "—"}</td>
-                        <td><strong>{fmt(daily.reduce((s, d) => s + d.grossAmount, 0))}</strong></td>
+                        <td><strong style={{ color: "#6366f1" }}>{fmt(daily.reduce((s, d) => s + d.grossAmount, 0))}</strong></td>
                         <td><strong>{fmt(daily.reduce((s, d) => s + d.netAmount, 0))}</strong></td>
-                        <td className="bi-cell--muted"><strong>{fmt(daily.reduce((s, d) => s + d.gstAmount, 0))}</strong></td>
-                        <td>—</td>
+                        <td>{dailyGifts.reduce((s, d) => s + d.total, 0)}</td>
+                        <td className="bi-cell--hot">{dailyGifts.reduce((s, d) => s + d.successful, 0)}</td>
+                        <td><strong style={{ color: "#10b981" }}>{fmt(dailyGifts.reduce((s, d) => s + d.grossAmount, 0))}</strong></td>
+                        <td><strong>{fmt(dailyGifts.reduce((s, d) => s + d.netAmount, 0))}</strong></td>
                       </tr>
                     </tfoot>
                   </table>
