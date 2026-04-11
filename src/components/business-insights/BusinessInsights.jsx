@@ -110,21 +110,54 @@ function SectionHeader({ title, subtitle }) {
   );
 }
 
+const MONTH_NAMES_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const NOW = new Date();
+const CUR_YEAR = NOW.getFullYear();
+const CUR_MON  = NOW.getMonth() + 1; // 1-based
+const YEAR_OPTIONS = Array.from({ length: CUR_YEAR - 2024 + 1 }, (_, i) => 2024 + i);
+
+function toYYYYMM(year, mon) {
+  return `${year}-${String(mon).padStart(2, "0")}`;
+}
+function parseYYYYMM(str) {
+  const [y, m] = str.split("-");
+  return { year: Number(y), mon: Number(m) };
+}
+
 export default function BusinessInsights() {
   const [activeTab, setActiveTab] = useState("overview");
-  const [fromMonth, setFromMonth] = useState("2025-12");
-  const [toMonth, setToMonth]     = useState(() => {
-    const n = new Date();
-    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+
+  const [fromYear, setFromYear] = useState(2025);
+  const [fromMon,  setFromMon]  = useState(12);
+  const [toYear,   setToYear]   = useState(CUR_YEAR);
+  const [toMon,    setToMon]    = useState(CUR_MON);
+
+  const [appliedRange, setAppliedRange] = useState({
+    from: "2025-12",
+    to: toYYYYMM(CUR_YEAR, CUR_MON),
   });
-  const [appliedRange, setAppliedRange] = useState({ from: "2025-12", to: (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`; })() });
+
+  const fromVal = toYYYYMM(fromYear, fromMon);
+  const toVal   = toYYYYMM(toYear, toMon);
+  const isInvalid = fromVal > toVal;
 
   const { data, isLoading, error, isFetching } = useMonthlyInsightsQuery(appliedRange);
 
   const handleApply = () => {
-    if (fromMonth > toMonth) return;
-    setAppliedRange({ from: fromMonth, to: toMonth });
+    if (isInvalid) return;
+    setAppliedRange({ from: fromVal, to: toVal });
   };
+
+  // Month options capped so "to" can't exceed current month in current year
+  function toMonOptions(year) {
+    const max = year === CUR_YEAR ? CUR_MON : 12;
+    return MONTH_NAMES_FULL.slice(0, max);
+  }
+  // From month options: if same year as "to", cap at toMon
+  function fromMonOptions(year) {
+    const max = year === toYear ? toMon : 12;
+    return MONTH_NAMES_FULL.slice(0, max);
+  }
   const individuals = data?.individuals || {};
   const callAttempts = data?.callAttempts || [];
   const monthlySales = data?.monthlySales || [];
@@ -226,36 +259,74 @@ export default function BusinessInsights() {
             <div className="bi-eyebrow">Business Intelligence</div>
             <h4 className="bi-main-title">Performance Insights</h4>
             <p className="bi-main-subtitle">
-              Showing {appliedRange.from} → {appliedRange.to} &nbsp;·&nbsp; {months.length} month{months.length !== 1 ? "s" : ""}
+              Showing {parseYYYYMM(appliedRange.from).mon && MONTH_NAMES_FULL[parseYYYYMM(appliedRange.from).mon - 1]} {parseYYYYMM(appliedRange.from).year} → {MONTH_NAMES_FULL[parseYYYYMM(appliedRange.to).mon - 1]} {parseYYYYMM(appliedRange.to).year} &nbsp;·&nbsp; {months.length} month{months.length !== 1 ? "s" : ""}
             </p>
           </div>
           <div className="bi-range-picker">
             <div className="bi-range-group">
               <label className="bi-range-label">From</label>
-              <input
-                type="month"
-                className="bi-range-input"
-                value={fromMonth}
-                max={toMonth}
-                onChange={e => setFromMonth(e.target.value)}
-              />
+              <div className="bi-range-selects">
+                <select
+                  className="bi-range-select"
+                  value={fromMon}
+                  onChange={e => {
+                    const m = Number(e.target.value);
+                    setFromMon(m);
+                    if (toYYYYMM(fromYear, m) > toVal) { setToYear(fromYear); setToMon(m); }
+                  }}
+                >
+                  {fromMonOptions(fromYear).map((name, i) => (
+                    <option key={i+1} value={i+1}>{name}</option>
+                  ))}
+                </select>
+                <select
+                  className="bi-range-select"
+                  value={fromYear}
+                  onChange={e => {
+                    const y = Number(e.target.value);
+                    setFromYear(y);
+                    if (toYYYYMM(y, fromMon) > toVal) { setToYear(y); setToMon(fromMon); }
+                  }}
+                >
+                  {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
             </div>
             <span className="bi-range-sep">→</span>
             <div className="bi-range-group">
               <label className="bi-range-label">To</label>
-              <input
-                type="month"
-                className="bi-range-input"
-                value={toMonth}
-                min={fromMonth}
-                max={(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`; })()}
-                onChange={e => setToMonth(e.target.value)}
-              />
+              <div className="bi-range-selects">
+                <select
+                  className="bi-range-select"
+                  value={toMon}
+                  onChange={e => {
+                    const m = Number(e.target.value);
+                    setToMon(m);
+                    if (toYYYYMM(fromYear, fromMon) > toYYYYMM(toYear, m)) { setFromYear(toYear); setFromMon(m); }
+                  }}
+                >
+                  {toMonOptions(toYear).map((name, i) => (
+                    <option key={i+1} value={i+1}>{name}</option>
+                  ))}
+                </select>
+                <select
+                  className="bi-range-select"
+                  value={toYear}
+                  onChange={e => {
+                    const y = Number(e.target.value);
+                    setToYear(y);
+                    const newToMon = y === CUR_YEAR ? Math.min(toMon, CUR_MON) : toMon;
+                    setToMon(newToMon);
+                  }}
+                >
+                  {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
             </div>
             <button
               className={`bi-apply-btn ${isFetching ? "bi-apply-btn--loading" : ""}`}
               onClick={handleApply}
-              disabled={isFetching || fromMonth > toMonth}
+              disabled={isFetching || isInvalid}
             >
               {isFetching ? "Loading…" : "Apply"}
             </button>

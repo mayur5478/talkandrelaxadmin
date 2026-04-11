@@ -95,18 +95,24 @@
   color: var(--text-muted);
 }
 
-.bi-range-input {
+.bi-range-selects {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.bi-range-select {
   background: var(--background);
   border: 1.5px solid #e2e8f0;
   border-radius: var(--radius-md);
   color: var(--text-main);
   font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 500;
-  padding: 0.42rem 0.75rem;
+  padding: 0.42rem 0.5rem;
   outline: none;
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
+  appearance: auto;
 
   &:focus, &:hover {
     border-color: var(--primary);
