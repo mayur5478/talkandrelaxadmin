@@ -192,6 +192,9 @@
   &--failed  { border-left: 3px solid #ef4444; .bi-rp-val { color: #ef4444; } }
   &--rate    { border-left: 3px solid #6366f1; .bi-rp-val { color: #6366f1; } }
   &--total   { border-left: 3px solid #64748b; }
+  &--gross   { border-left: 3px solid #6366f1; .bi-rp-val { color: #6366f1; } }
+  &--net     { border-left: 3px solid #10b981; .bi-rp-val { color: #10b981; } }
+  &--gst     { border-left: 3px solid #f59e0b; .bi-rp-val { color: #f59e0b; } }
 }
 
 // ── KPI Strip ─────────────────────────────────────────────────
@@ -430,6 +433,10 @@
       font-weight: 700;
     }
 
+    &.bi-cell--muted {
+      color: #94a3b8;
+    }
+
     &.bi-cell--strategy {
       font-size: 0.78rem;
       color: var(--text-muted);
@@ -452,6 +459,13 @@
 
   tbody tr:hover td {
     background: #f8fafc;
+  }
+
+  tfoot td {
+    border-top: 2px solid #e2e8f0;
+    background: #f8fafc;
+    font-size: 0.82rem;
+    padding: 0.55rem 0.85rem;
   }
 }
 

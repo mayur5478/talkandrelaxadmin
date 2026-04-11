@@ -665,7 +665,7 @@ export default function BusinessInsights() {
                   </select>
                 </div>
 
-                {/* Success rate strip */}
+                {/* Summary pills */}
                 <div className="bi-recharge-summary mb-4">
                   <div className="bi-recharge-pill bi-recharge-pill--total">
                     <span className="bi-rp-label">Total Attempts</span>
@@ -682,6 +682,26 @@ export default function BusinessInsights() {
                   <div className="bi-recharge-pill bi-recharge-pill--rate">
                     <span className="bi-rp-label">Success Rate</span>
                     <span className="bi-rp-val">{selMonth?.rechargeSuccessRate ?? "—"}%</span>
+                  </div>
+                </div>
+
+                {/* Monthly GST summary */}
+                <div className="bi-recharge-summary mb-4">
+                  <div className="bi-recharge-pill bi-recharge-pill--gross">
+                    <span className="bi-rp-label">Total with GST</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.totalGrossRecharge || 0)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--net">
+                    <span className="bi-rp-label">Total without GST</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.totalNetRecharge || 0)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--gst">
+                    <span className="bi-rp-label">GST Collected</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.totalGstAmount || 0)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--total">
+                    <span className="bi-rp-label">Avg Ticket (excl. GST)</span>
+                    <span className="bi-rp-val">{fmt(selMonth?.avgRechargeTicket || 0)}</span>
                   </div>
                 </div>
 
@@ -708,22 +728,25 @@ export default function BusinessInsights() {
                     />
                   </div>
                   <div className="bi-chart-card">
-                    <h6 className="bi-chart-title">Daily Net Amount (₹) — {selMonth?.name}</h6>
+                    <h6 className="bi-chart-title">Daily Amount — with vs without GST (₹) — {selMonth?.name}</h6>
                     <ReactApexChart
                       options={{
-                        chart: { ...DC, type: "area" },
-                        stroke: { curve: "smooth", width: 2 },
-                        fill: { type: "gradient", gradient: { shade: "light", type: "vertical", shadeIntensity: 0.1, opacityFrom: 0.4, opacityTo: 0.05 } },
-                        colors: ["#10b981"],
+                        chart: { ...DC, type: "line" },
+                        stroke: { curve: "smooth", width: [2, 2] },
+                        colors: ["#6366f1", "#10b981"],
                         xaxis: { ...DARK_XAXIS(dayLabels), tickAmount: Math.min(dayLabels.length, 10) },
                         yaxis: DARK_YAXIS(v => `₹${v.toLocaleString()}`),
+                        legend: { ...DARK_LEGEND, position: "top" },
                         dataLabels: { enabled: false },
                         grid: DARK_GRID,
                         tooltip: DARK_TOOLTIP(v => `₹${Number(v).toLocaleString("en-IN")}`),
                         markers: { size: 3 },
                       }}
-                      series={[{ name: "Net Recharge", data: daily.map(d => d.netAmount) }]}
-                      type="area" height={240}
+                      series={[
+                        { name: "With GST (₹)", data: daily.map(d => d.grossAmount) },
+                        { name: "Without GST (₹)", data: daily.map(d => d.netAmount) },
+                      ]}
+                      type="line" height={240}
                     />
                   </div>
                 </div>
@@ -732,7 +755,16 @@ export default function BusinessInsights() {
                 <div className="bi-table-card mb-4" style={{ overflowX: "auto" }}>
                   <table className="bi-table">
                     <thead>
-                      <tr><th>Date</th><th>Total Attempts</th><th>Successful</th><th>Failed/Pending</th><th>Net Amount</th><th>Success Rate</th></tr>
+                      <tr>
+                        <th>Date</th>
+                        <th>Attempts</th>
+                        <th>Successful</th>
+                        <th>Failed</th>
+                        <th>With GST (₹)</th>
+                        <th>Without GST (₹)</th>
+                        <th>GST (₹)</th>
+                        <th>Success Rate</th>
+                      </tr>
                     </thead>
                     <tbody>
                       {daily.map((d, i) => {
@@ -744,7 +776,9 @@ export default function BusinessInsights() {
                             <td>{d.total}</td>
                             <td className="bi-cell--hot">{d.successful}</td>
                             <td className={failed > 0 ? "bi-cell--neg" : ""}>{failed || "—"}</td>
+                            <td>{fmt(d.grossAmount)}</td>
                             <td>{fmt(d.netAmount)}</td>
+                            <td className="bi-cell--muted">{fmt(d.gstAmount)}</td>
                             <td>
                               <span className={`bi-badge ${rate >= 90 ? "bi-badge--success" : rate >= 70 ? "bi-badge--info" : "bi-badge--warning"}`}>
                                 {rate}%
@@ -754,6 +788,18 @@ export default function BusinessInsights() {
                         );
                       })}
                     </tbody>
+                    <tfoot>
+                      <tr>
+                        <td className="bi-cell--label">Total</td>
+                        <td>{daily.reduce((s, d) => s + d.total, 0)}</td>
+                        <td className="bi-cell--hot">{daily.reduce((s, d) => s + d.successful, 0)}</td>
+                        <td>{daily.reduce((s, d) => s + (d.total - d.successful), 0) || "—"}</td>
+                        <td><strong>{fmt(daily.reduce((s, d) => s + d.grossAmount, 0))}</strong></td>
+                        <td><strong>{fmt(daily.reduce((s, d) => s + d.netAmount, 0))}</strong></td>
+                        <td className="bi-cell--muted"><strong>{fmt(daily.reduce((s, d) => s + d.gstAmount, 0))}</strong></td>
+                        <td>—</td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               </>
