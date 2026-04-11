@@ -3,73 +3,94 @@ import ReactApexChart from "react-apexcharts";
 import { useMonthlyInsightsQuery } from "../../services/auth";
 import "./business-insights.scss";
 
-const MONTH_COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444"];
+const MONTH_COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e"];
 
 const fmt = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 
+// Shared dark chart base — all charts inherit this
+const DC = {
+  background: "transparent",
+  foreColor: "#94a3b8",
+  fontFamily: "DM Mono, monospace",
+  toolbar: { show: false },
+  animations: { enabled: true, easing: "easeinout", speed: 600 },
+};
+const DARK_GRID = { borderColor: "rgba(255,255,255,0.04)", strokeDashArray: 3 };
+const DARK_XAXIS = (categories) => ({
+  categories,
+  labels: { style: { colors: "#475569", fontSize: "11px", fontFamily: "DM Mono, monospace" } },
+  axisBorder: { show: false },
+  axisTicks: { show: false },
+});
+const DARK_YAXIS = (formatter) => ({
+  labels: { style: { colors: "#475569", fontSize: "11px", fontFamily: "DM Mono, monospace" }, formatter },
+});
+const DARK_TOOLTIP = (formatter) => ({
+  theme: "dark",
+  style: { fontFamily: "DM Mono, monospace", fontSize: "12px" },
+  y: { formatter },
+});
+const DARK_LEGEND = { labels: { colors: "#94a3b8" }, fontFamily: "DM Mono, monospace", fontSize: "11px" };
+
 function TrendChart({ title, series, categories, colors, yFormatter }) {
   const options = {
-    chart: { type: "bar", toolbar: { show: false }, fontFamily: "inherit" },
-    plotOptions: { bar: { borderRadius: 6, columnWidth: "55%" } },
+    chart: { ...DC, type: "bar" },
+    plotOptions: { bar: { borderRadius: 5, columnWidth: "52%", borderRadiusApplication: "end" } },
     colors: colors || MONTH_COLORS,
     dataLabels: { enabled: false },
-    xaxis: { categories, labels: { style: { fontSize: "12px" } } },
-    yaxis: { labels: { formatter: yFormatter || ((v) => v) } },
-    grid: { borderColor: "#f1f5f9" },
-    tooltip: { y: { formatter: yFormatter || ((v) => v) } },
+    xaxis: DARK_XAXIS(categories),
+    yaxis: DARK_YAXIS(yFormatter || ((v) => v)),
+    grid: DARK_GRID,
+    tooltip: DARK_TOOLTIP(yFormatter || ((v) => v)),
+    fill: { type: "gradient", gradient: { shade: "dark", type: "vertical", shadeIntensity: 0.15, opacityFrom: 1, opacityTo: 0.85 } },
   };
   return (
     <div className="bi-chart-card">
-      <h6 className="bi-chart-title">{title}</h6>
+      <div className="bi-chart-title">{title}</div>
       <ReactApexChart options={options} series={series} type="bar" height={220} />
-    </div>
-  );
-}
-
-function LineChart({ title, series, categories, yFormatter }) {
-  const options = {
-    chart: { type: "line", toolbar: { show: false }, fontFamily: "inherit" },
-    stroke: { curve: "smooth", width: 3 },
-    colors: ["#6366f1", "#10b981", "#f59e0b"],
-    markers: { size: 5 },
-    dataLabels: { enabled: false },
-    xaxis: { categories, labels: { style: { fontSize: "12px" } } },
-    yaxis: { labels: { formatter: yFormatter || ((v) => v) } },
-    grid: { borderColor: "#f1f5f9" },
-    legend: { position: "top" },
-    tooltip: { y: { formatter: yFormatter || ((v) => v) } },
-  };
-  return (
-    <div className="bi-chart-card">
-      <h6 className="bi-chart-title">{title}</h6>
-      <ReactApexChart options={options} series={series} type="line" height={220} />
     </div>
   );
 }
 
 function DonutChart({ title, labels, values, colors }) {
   const options = {
-    chart: { type: "donut", fontFamily: "inherit" },
+    chart: { ...DC, type: "donut" },
     labels,
-    colors: colors || ["#6366f1", "#06b6d4", "#10b981", "#f59e0b"],
-    legend: { position: "bottom", fontSize: "12px" },
-    dataLabels: { formatter: (val) => `${val.toFixed(1)}%` },
-    plotOptions: { pie: { donut: { size: "60%" } } },
+    colors: colors || MONTH_COLORS,
+    legend: { ...DARK_LEGEND, position: "bottom" },
+    dataLabels: { enabled: true, formatter: (val) => `${val.toFixed(0)}%`, style: { fontSize: "11px", fontFamily: "DM Mono, monospace", colors: ["#0e1420"] }, dropShadow: { enabled: false } },
+    plotOptions: { pie: { donut: { size: "62%", labels: { show: false } } } },
+    stroke: { width: 2, colors: ["#111827"] },
+    tooltip: { theme: "dark", style: { fontFamily: "DM Mono, monospace", fontSize: "12px" } },
   };
   return (
     <div className="bi-chart-card">
-      <h6 className="bi-chart-title">{title}</h6>
+      <div className="bi-chart-title">{title}</div>
       <ReactApexChart options={options} series={values} type="donut" height={220} />
     </div>
   );
 }
 
-function StatCard({ label, value, sub, color }) {
+const KPI_CONFIGS = {
+  sales:    { color: "#10b981", rgb: "16,185,129", icon: "₹" },
+  sessions: { color: "#6366f1", rgb: "99,102,241",  icon: "◎" },
+  minutes:  { color: "#f59e0b", rgb: "245,158,11",  icon: "◷" },
+  quality:  { color: "#06b6d4", rgb: "6,182,212",   icon: "◈" },
+};
+
+function StatCard({ label, value, sub, colorKey = "sales", positive }) {
+  const cfg = KPI_CONFIGS[colorKey] || KPI_CONFIGS.sales;
+  const isPos = positive === undefined ? null : positive;
   return (
-    <div className="bi-stat-card" style={{ borderLeft: `4px solid ${color || "#6366f1"}` }}>
+    <div className="bi-stat-card" style={{ "--kpi-color": cfg.color, "--kpi-rgb": cfg.rgb }}>
+      <span className="bi-stat-icon">{cfg.icon}</span>
       <div className="bi-stat-label">{label}</div>
       <div className="bi-stat-value">{value}</div>
-      {sub && <div className="bi-stat-sub">{sub}</div>}
+      {sub && (
+        <div className="bi-stat-sub" style={{ color: isPos === null ? cfg.color : isPos ? "#10b981" : "#f43f5e" }}>
+          {isPos !== null && (isPos ? "▲ " : "▼ ")}{sub}
+        </div>
+      )}
     </div>
   );
 }
@@ -80,9 +101,11 @@ function InsightBadge({ text, type }) {
 
 function SectionHeader({ title, subtitle }) {
   return (
-    <div className="bi-section-header">
-      <h5 className="bi-section-title">{title}</h5>
-      {subtitle && <p className="bi-section-subtitle">{subtitle}</p>}
+    <div className="bi-section-header mb-4" style={{ marginTop: "0.25rem" }}>
+      <div>
+        <h5 className="bi-section-title">{title}</h5>
+        {subtitle && <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>{subtitle}</p>}
+      </div>
     </div>
   );
 }
@@ -94,8 +117,8 @@ export default function BusinessInsights() {
   const callAttempts = data?.callAttempts || [];
   const monthlySales = data?.monthlySales || [];
 
-  if (isLoading) return <div className="bi-loading">Loading insights...</div>;
-  if (error) return <div className="bi-error">Failed to load data. Please try again.</div>;
+  if (isLoading) return <div className="bi-wrapper"><div className="bi-loading">Loading insights</div></div>;
+  if (error) return <div className="bi-wrapper"><div className="bi-error">Failed to load — check connection</div></div>;
 
   const months = data?.months || [];
   const names = months.map((m) => m.name);
@@ -124,14 +147,16 @@ export default function BusinessInsights() {
   const chatSeries = [{ name: "Chat", data: months.map((m) => parseFloat((m.sessionTypes?.chat?.cnt / m.days).toFixed(1))) }];
 
   const typeStackedOptions = {
-    chart: { type: "bar", stacked: true, toolbar: { show: false }, fontFamily: "inherit" },
-    plotOptions: { bar: { borderRadius: 4, columnWidth: "55%" } },
+    chart: { ...DC, type: "bar", stacked: true },
+    plotOptions: { bar: { borderRadius: 4, columnWidth: "52%", borderRadiusApplication: "end" } },
     colors: ["#6366f1", "#10b981", "#f59e0b"],
-    xaxis: { categories: names, labels: { style: { fontSize: "12px" } } },
-    yaxis: { labels: { formatter: (v) => `${v}/d` } },
-    legend: { position: "top" },
+    xaxis: DARK_XAXIS(names),
+    yaxis: DARK_YAXIS((v) => `${v}/d`),
+    legend: { ...DARK_LEGEND, position: "top" },
     dataLabels: { enabled: false },
-    grid: { borderColor: "#f1f5f9" },
+    grid: DARK_GRID,
+    fill: { opacity: 0.9 },
+    tooltip: { theme: "dark", style: { fontFamily: "DM Mono, monospace", fontSize: "12px" } },
   };
 
   // Revenue ratio
@@ -181,38 +206,42 @@ export default function BusinessInsights() {
   ];
 
   return (
-    <div className="bi-wrapper px-4 py-4">
+    <div className="bi-wrapper">
       {/* Header */}
-      <div className="bi-header mb-4">
-        <h4 className="bi-main-title">Business Insights</h4>
+      <div className="bi-header">
+        <div className="bi-eyebrow">Business Intelligence</div>
+        <h4 className="bi-main-title">Performance Insights</h4>
         <p className="bi-main-subtitle">Monthly trend analysis · Dec 2025 – Apr 2026</p>
       </div>
 
       {/* KPI Strip */}
-      <div className="bi-kpi-strip mb-4">
+      <div className="bi-kpi-strip">
         <StatCard
-          label={`${latest.name} Avg Daily Sales`}
+          colorKey="sales"
+          label={`${latest.name} · Avg Daily Sales`}
           value={fmt(latest.avgDailyNetSales)}
-          sub={salesChange !== null ? `${salesChange > 0 ? "+" : ""}${salesChange}% vs ${prev.name}` : ""}
-          color={salesChange > 0 ? "#10b981" : "#ef4444"}
+          sub={salesChange !== null ? `${Math.abs(salesChange)}% vs ${prev.name}` : ""}
+          positive={salesChange > 0}
         />
         <StatCard
-          label={`${latest.name} Avg Daily Sessions`}
+          colorKey="sessions"
+          label={`${latest.name} · Avg Daily Sessions`}
           value={`${latest.avgDailySessions}/day`}
-          sub={sessChange !== null ? `${sessChange > 0 ? "+" : ""}${sessChange}% vs ${prev.name}` : ""}
-          color={sessChange > 0 ? "#10b981" : "#ef4444"}
+          sub={sessChange !== null ? `${Math.abs(sessChange)}% vs ${prev.name}` : ""}
+          positive={sessChange > 0}
         />
         <StatCard
-          label={`${latest.name} Avg Daily Minutes`}
+          colorKey="minutes"
+          label={`${latest.name} · Avg Daily Minutes`}
           value={`${latest.avgDailyMinutes} min`}
-          sub={minsChange !== null ? `${minsChange > 0 ? "+" : ""}${minsChange}% vs ${prev.name}` : ""}
-          color={minsChange > 0 ? "#10b981" : "#f59e0b"}
+          sub={minsChange !== null ? `${Math.abs(minsChange)}% vs ${prev.name}` : ""}
+          positive={minsChange > 0}
         />
         <StatCard
-          label={`${latest.name} Avg Min/Session`}
+          colorKey="quality"
+          label={`${latest.name} · Avg Min / Session`}
           value={`${latest.avgMinPerSession} min`}
           sub={`${latest.uniqueActiveUsers} active users`}
-          color="#6366f1"
         />
       </div>
 
@@ -250,18 +279,18 @@ export default function BusinessInsights() {
             <h6 className="bi-chart-title">Sales / Sessions / Minutes — Month-over-Month</h6>
             <ReactApexChart
               options={{
-                chart: { type: "line", toolbar: { show: false }, fontFamily: "inherit" },
+                chart: { ...DC, type: "line" },
                 stroke: { curve: "smooth", width: [3, 3, 3] },
                 colors: ["#6366f1", "#10b981", "#f59e0b"],
                 markers: { size: 6 },
                 dataLabels: { enabled: false },
-                xaxis: { categories: names },
+                xaxis: DARK_XAXIS(names),
                 yaxis: [
-                  { title: { text: "₹ Sales" }, labels: { formatter: (v) => `₹${v.toLocaleString()}` } },
-                  { opposite: true, title: { text: "Sessions / Minutes" } },
+                  { title: { text: "₹ Sales", style: { color: "#475569", fontFamily: "DM Mono, monospace", fontSize: "11px" } }, labels: { style: { colors: "#475569", fontFamily: "DM Mono, monospace" }, formatter: (v) => `₹${v.toLocaleString()}` } },
+                  { opposite: true, title: { text: "Sessions / Minutes", style: { color: "#475569", fontFamily: "DM Mono, monospace", fontSize: "11px" } }, labels: { style: { colors: "#475569", fontFamily: "DM Mono, monospace" } } },
                 ],
-                legend: { position: "top" },
-                grid: { borderColor: "#f1f5f9" },
+                legend: { ...DARK_LEGEND, position: "top" },
+                grid: DARK_GRID,
               }}
               series={[
                 { name: "Net Sales/Day (₹)", data: months.map((m) => m.avgDailyNetSales) },
@@ -311,11 +340,11 @@ export default function BusinessInsights() {
                 chart: { type: "bar", stacked: true, toolbar: { show: false }, fontFamily: "inherit" },
                 plotOptions: { bar: { borderRadius: 4, columnWidth: "55%" } },
                 colors: ["#6366f1", "#10b981", "#f59e0b"],
-                xaxis: { categories: names },
-                yaxis: { labels: { formatter: (v) => `₹${v.toLocaleString()}` } },
-                legend: { position: "top" },
+                xaxis: DARK_XAXIS(names),
+                yaxis: DARK_YAXIS((v) => `₹${v.toLocaleString()}`),
+                legend: { ...DARK_LEGEND, position: "top" },
                 dataLabels: { enabled: false },
-                grid: { borderColor: "#f1f5f9" },
+                grid: DARK_GRID,
               }}
               series={[
                 { name: "Call Rev", data: months.map((m) => Math.round(m.sessionTypes?.call?.rev / m.days)) },
@@ -396,14 +425,14 @@ export default function BusinessInsights() {
               <h6 className="bi-chart-title">Total Net Recharge (₹)</h6>
               <ReactApexChart
                 options={{
-                  chart: { type: "bar", toolbar: { show: false }, fontFamily: "inherit" },
+                  chart: { ...DC, type: "bar" },
                   plotOptions: { bar: { borderRadius: 6, columnWidth: "50%", distributed: true } },
                   colors: MONTH_COLORS,
                   dataLabels: { enabled: true, formatter: (v) => `₹${(v/1000).toFixed(0)}k` },
-                  xaxis: { categories: monthlySales.map(m => m.name) },
-                  yaxis: { labels: { formatter: (v) => `₹${(v/1000).toFixed(0)}k` } },
+                  xaxis: DARK_XAXIS(monthlySales.map(m => m.name)),
+                  yaxis: DARK_YAXIS((v) => `₹${(v/1000).toFixed(0)}k`),
                   legend: { show: false },
-                  grid: { borderColor: "#f1f5f9" },
+                  grid: DARK_GRID,
                   tooltip: { y: { formatter: (v) => `₹${Number(v).toLocaleString("en-IN")}` } },
                 }}
                 series={[{ name: "Net Recharge", data: monthlySales.map(m => m.totalNetRecharge) }]}
@@ -414,14 +443,14 @@ export default function BusinessInsights() {
               <h6 className="bi-chart-title">Total Session Revenue (₹)</h6>
               <ReactApexChart
                 options={{
-                  chart: { type: "bar", toolbar: { show: false }, fontFamily: "inherit" },
+                  chart: { ...DC, type: "bar" },
                   plotOptions: { bar: { borderRadius: 6, columnWidth: "50%", distributed: true } },
                   colors: ["#10b981","#10b981","#10b981","#10b981","#10b981"],
                   dataLabels: { enabled: true, formatter: (v) => `₹${(v/1000).toFixed(0)}k` },
-                  xaxis: { categories: monthlySales.map(m => m.name) },
-                  yaxis: { labels: { formatter: (v) => `₹${(v/1000).toFixed(0)}k` } },
+                  xaxis: DARK_XAXIS(monthlySales.map(m => m.name)),
+                  yaxis: DARK_YAXIS((v) => `₹${(v/1000).toFixed(0)}k`),
                   legend: { show: false },
-                  grid: { borderColor: "#f1f5f9" },
+                  grid: DARK_GRID,
                   tooltip: { y: { formatter: (v) => `₹${Number(v).toLocaleString("en-IN")}` } },
                 }}
                 series={[{ name: "Session Revenue", data: monthlySales.map(m => Math.round(m.totalSessionRevenue)) }]}
@@ -499,14 +528,14 @@ export default function BusinessInsights() {
               <h6 className="bi-chart-title">Session Revenue vs Net Recharge (Avg/Day)</h6>
               <ReactApexChart
                 options={{
-                  chart: { type: "bar", toolbar: { show: false }, fontFamily: "inherit" },
+                  chart: { ...DC, type: "bar" },
                   plotOptions: { bar: { borderRadius: 6, columnWidth: "50%", groupPadding: 0.2 } },
                   colors: ["#6366f1", "#10b981"],
-                  xaxis: { categories: names },
-                  yaxis: { labels: { formatter: (v) => `₹${v.toLocaleString()}` } },
-                  legend: { position: "top" },
+                  xaxis: DARK_XAXIS(names),
+                  yaxis: DARK_YAXIS((v) => `₹${v.toLocaleString()}`),
+                  legend: { ...DARK_LEGEND, position: "top" },
                   dataLabels: { enabled: false },
-                  grid: { borderColor: "#f1f5f9" },
+                  grid: DARK_GRID,
                 }}
                 series={[
                   { name: "Session Revenue/Day", data: months.map((m) => m.avgSessionRevenue) },
@@ -520,15 +549,15 @@ export default function BusinessInsights() {
               <h6 className="bi-chart-title">Session Rev / Recharge Ratio (%)</h6>
               <ReactApexChart
                 options={{
-                  chart: { type: "line", toolbar: { show: false }, fontFamily: "inherit" },
+                  chart: { ...DC, type: "line" },
                   stroke: { curve: "smooth", width: 3 },
                   colors: ["#ef4444"],
                   markers: { size: 6 },
                   annotations: { yaxis: [{ y: 100, borderColor: "#6366f1", label: { text: "Break-even (100%)", style: { color: "#6366f1" } } }] },
-                  xaxis: { categories: names },
-                  yaxis: { labels: { formatter: (v) => `${v}%` } },
+                  xaxis: DARK_XAXIS(names),
+                  yaxis: DARK_YAXIS((v) => `${v}%`),
                   dataLabels: { enabled: true, formatter: (v) => `${v}%` },
-                  grid: { borderColor: "#f1f5f9" },
+                  grid: DARK_GRID,
                 }}
                 series={[{ name: "Ratio", data: months.map((m) => m.sessRechargeRatio) }]}
                 type="line"
@@ -736,14 +765,14 @@ export default function BusinessInsights() {
               <h6 className="bi-chart-title">Total Attempts vs Completed vs Rejected</h6>
               <ReactApexChart
                 options={{
-                  chart: { type: "bar", toolbar: { show: false }, fontFamily: "inherit" },
+                  chart: { ...DC, type: "bar" },
                   plotOptions: { bar: { borderRadius: 4, columnWidth: "55%" } },
                   colors: ["#6366f1", "#10b981", "#ef4444"],
-                  xaxis: { categories: callAttempts.map(m => m.name) },
-                  yaxis: { labels: { formatter: v => `${v}` } },
-                  legend: { position: "top" },
+                  xaxis: DARK_XAXIS(callAttempts.map(m => m.name)),
+                  yaxis: DARK_YAXIS((v) => `${v}`),
+                  legend: { ...DARK_LEGEND, position: "top" },
                   dataLabels: { enabled: false },
-                  grid: { borderColor: "#f1f5f9" },
+                  grid: DARK_GRID,
                 }}
                 series={[
                   { name: "Total Attempts", data: callAttempts.map(m => m.totalAttempts) },
@@ -757,14 +786,14 @@ export default function BusinessInsights() {
               <h6 className="bi-chart-title">Success Rate % by Month</h6>
               <ReactApexChart
                 options={{
-                  chart: { type: "line", toolbar: { show: false }, fontFamily: "inherit" },
+                  chart: { ...DC, type: "line" },
                   stroke: { curve: "smooth", width: 3 },
                   colors: ["#10b981"],
                   markers: { size: 6 },
                   dataLabels: { enabled: true, formatter: v => `${v}%` },
-                  xaxis: { categories: callAttempts.map(m => m.name) },
-                  yaxis: { min: 0, max: 100, labels: { formatter: v => `${v}%` } },
-                  grid: { borderColor: "#f1f5f9" },
+                  xaxis: DARK_XAXIS(callAttempts.map(m => m.name)),
+                  yaxis: { min: 0, max: 100, ...DARK_YAXIS((v) => `${v}%`) },
+                  grid: DARK_GRID,
                   annotations: { yaxis: [{ y: 50, borderColor: "#f59e0b", label: { text: "50% baseline", style: { color: "#f59e0b" } } }] },
                 }}
                 series={[{ name: "Success Rate", data: callAttempts.map(m => m.successRate) }]}
@@ -809,7 +838,7 @@ export default function BusinessInsights() {
                       chart: { type: "donut", fontFamily: "inherit" },
                       labels: reasons.map(r => r.reason),
                       colors: ["#ef4444","#f59e0b","#6366f1","#06b6d4","#10b981","#ec4899"],
-                      legend: { position: "bottom", fontSize: "11px" },
+                      legend: { ...DARK_LEGEND, position: "bottom" },
                       dataLabels: { formatter: (v) => `${v.toFixed(0)}%` },
                       plotOptions: { pie: { donut: { size: "55%" } } },
                     }}
@@ -829,12 +858,12 @@ export default function BusinessInsights() {
                   <h6 className="bi-chart-title">{m.name} — Rejection by Session Type</h6>
                   <ReactApexChart
                     options={{
-                      chart: { type: "bar", toolbar: { show: false }, fontFamily: "inherit" },
+                      chart: { ...DC, type: "bar" },
                       plotOptions: { bar: { borderRadius: 6, horizontal: true } },
                       colors: ["#6366f1"],
                       dataLabels: { enabled: true },
-                      xaxis: { categories: (m.rejByType || []).map(r => r.type) },
-                      grid: { borderColor: "#f1f5f9" },
+                      xaxis: DARK_XAXIS((m.rejByType || []).map(r => r.type)),
+                      grid: DARK_GRID,
                     }}
                     series={[{ name: "Rejections", data: (m.rejByType || []).map(r => r.count) }]}
                     type="bar" height={200}
@@ -847,7 +876,7 @@ export default function BusinessInsights() {
                       chart: { type: "donut", fontFamily: "inherit" },
                       labels: (m.rejByWho || []).map(r => r.who),
                       colors: ["#ef4444","#f59e0b","#6366f1","#10b981"],
-                      legend: { position: "bottom" },
+                      legend: { ...DARK_LEGEND, position: "bottom" },
                       dataLabels: { formatter: v => `${v.toFixed(0)}%` },
                       plotOptions: { pie: { donut: { size: "55%" } } },
                     }}

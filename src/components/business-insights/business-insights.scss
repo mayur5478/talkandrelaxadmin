@@ -1,311 +1,595 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap');
+
+// ── Design tokens ────────────────────────────────────────────
+$bg:        #080c14;
+$surface:   #0e1420;
+$card:      #111827;
+$card-hi:   #161d2e;
+$border:    rgba(255,255,255,0.06);
+$border-hi: rgba(99,102,241,0.35);
+
+$indigo:    #6366f1;
+$cyan:      #06b6d4;
+$emerald:   #10b981;
+$amber:     #f59e0b;
+$rose:      #f43f5e;
+$violet:    #8b5cf6;
+
+$text-1:    #f1f5f9;
+$text-2:    #94a3b8;
+$text-3:    #475569;
+
+// ── Keyframes ────────────────────────────────────────────────
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); }
+  50%       { box-shadow: 0 0 24px 4px rgba(99,102,241,0.15); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// ── Wrapper ──────────────────────────────────────────────────
 .bi-wrapper {
-  background-color: var(--background);
+  background: $bg;
   min-height: 100vh;
+  padding: 2rem 2.25rem;
+  font-family: 'Inter', sans-serif;
+  color: $text-1;
+  animation: fadeUp 0.4s ease both;
+
+  // ApexCharts global dark overrides
+  .apexcharts-canvas {
+    background: transparent !important;
+  }
+  .apexcharts-text, .apexcharts-legend-text {
+    fill: $text-2 !important;
+    color: $text-2 !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 11px !important;
+  }
+  .apexcharts-gridline { stroke: rgba(255,255,255,0.04) !important; }
+  .apexcharts-tooltip {
+    background: #1e2740 !important;
+    border: 1px solid $border-hi !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+    color: $text-1 !important;
+    border-radius: 8px !important;
+    font-family: 'DM Mono', monospace !important;
+  }
+  .apexcharts-tooltip-title {
+    background: rgba(99,102,241,0.15) !important;
+    border-bottom: 1px solid $border-hi !important;
+    color: $text-1 !important;
+    font-weight: 600 !important;
+  }
+  .apexcharts-xaxis-label, .apexcharts-yaxis-label {
+    fill: $text-3 !important;
+  }
+  .apexcharts-legend-marker {
+    border-radius: 3px !important;
+  }
 }
 
+// ── Header ───────────────────────────────────────────────────
 .bi-header {
-  .bi-main-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary, #1e293b);
-    margin-bottom: 0.25rem;
+  margin-bottom: 2rem;
+  animation: fadeUp 0.4s 0.05s ease both;
+
+  .bi-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: $indigo;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 2px;
+      background: $indigo;
+      border-radius: 2px;
+    }
   }
+
+  .bi-main-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: $text-1;
+    margin: 0 0 0.3rem;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
   .bi-main-subtitle {
-    font-size: 0.875rem;
-    color: var(--text-muted, #64748b);
+    font-size: 0.82rem;
+    color: $text-2;
     margin: 0;
+    font-weight: 400;
   }
 }
 
-// KPI Strip
+// ── KPI Strip ────────────────────────────────────────────────
 .bi-kpi-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 1rem;
+  margin-bottom: 1.75rem;
+  animation: fadeUp 0.4s 0.1s ease both;
 }
 
 .bi-stat-card {
-  background: var(--surface, #fff);
-  border-radius: 12px;
-  padding: 1.1rem 1.25rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border-left-width: 4px;
-  border-left-style: solid;
+  background: $card;
+  border-radius: 14px;
+  padding: 1.25rem 1.4rem 1.1rem;
+  border: 1px solid $border;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--kpi-color, #{$indigo});
+    opacity: 0.9;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at top left, rgba(var(--kpi-rgb, 99,102,241), 0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  &:hover {
+    border-color: rgba(var(--kpi-rgb, 99,102,241), 0.3);
+    transform: translateY(-2px);
+  }
 
   .bi-stat-label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted, #64748b);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.35rem;
+    color: $text-2;
+    margin-bottom: 0.6rem;
   }
+
   .bi-stat-value {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-primary, #1e293b);
-    line-height: 1.2;
+    font-family: 'Syne', sans-serif;
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: $text-1;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    animation: countUp 0.5s 0.2s ease both;
   }
+
   .bi-stat-sub {
-    font-size: 0.78rem;
-    color: var(--text-muted, #64748b);
-    margin-top: 0.25rem;
+    margin-top: 0.45rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--kpi-color, #{$indigo});
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 500;
+  }
+
+  .bi-stat-icon {
+    position: absolute;
+    top: 1rem; right: 1.1rem;
+    font-size: 1.3rem;
+    opacity: 0.12;
   }
 }
 
-// Tabs
+// ── Tabs ──────────────────────────────────────────────────────
 .bi-tabs {
   display: flex;
-  gap: 0.5rem;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0;
+  gap: 0.25rem;
+  background: $card;
+  padding: 0.35rem;
+  border-radius: 12px;
+  border: 1px solid $border;
+  margin-bottom: 1.75rem;
+  animation: fadeUp 0.4s 0.15s ease both;
   flex-wrap: wrap;
 }
-.bi-tab {
-  background: none;
-  border: none;
-  padding: 0.6rem 1.25rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-muted, #64748b);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  border-radius: 4px 4px 0 0;
-  transition: color 0.15s, border-color 0.15s;
 
-  &:hover { color: #6366f1; }
+.bi-tab {
+  background: transparent;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: $text-2;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    color: $text-1;
+    background: rgba(255,255,255,0.05);
+  }
 
   &--active {
-    color: #6366f1;
-    border-bottom-color: #6366f1;
+    background: $indigo;
+    color: #fff;
     font-weight: 600;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+
+    &:hover { background: darken($indigo, 5%); }
   }
 }
 
-// Charts
+// ── Section headers ──────────────────────────────────────────
+.bi-section-header {
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+
+  .bi-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $text-1;
+    margin: 0;
+    letter-spacing: -0.01em;
+
+    &::before {
+      content: '▸';
+      color: $indigo;
+      margin-right: 0.4rem;
+      font-size: 0.7em;
+    }
+  }
+
+  .bi-section-subtitle {
+    font-size: 0.76rem;
+    color: $text-3;
+    margin: 0;
+    font-weight: 400;
+  }
+}
+
+// ── Chart grid ───────────────────────────────────────────────
 .bi-chart-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem;
+  gap: 1rem;
 
   &--2 {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 }
 
 .bi-chart-card {
-  background: var(--surface, #fff);
-  border-radius: 12px;
-  padding: 1.25rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border: 1px solid rgba(0,0,0,0.04);
+  background: $card;
+  border-radius: 14px;
+  padding: 1.25rem 1.25rem 0.5rem;
+  border: 1px solid $border;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: rgba(99,102,241,0.2);
+  }
 }
 
 .bi-chart-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted, #64748b);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.67rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: 0.75rem;
+  color: $text-2;
+  margin-bottom: 0.85rem;
 }
 
-// Section headers
-.bi-section-header {
-  margin-bottom: 1rem;
-  .bi-section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary, #1e293b);
-    margin-bottom: 0.2rem;
-  }
-  .bi-section-subtitle {
-    font-size: 0.82rem;
-    color: var(--text-muted, #64748b);
-    margin: 0;
-  }
-}
-
-// Tables
+// ── Tables ───────────────────────────────────────────────────
 .bi-table-card {
-  background: var(--surface, #fff);
-  border-radius: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border: 1px solid rgba(0,0,0,0.04);
+  background: $card;
+  border-radius: 14px;
+  border: 1px solid $border;
   overflow: hidden;
 }
 
 .bi-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.84rem;
+  font-size: 0.83rem;
+
+  thead {
+    background: $card-hi;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
 
   th {
-    background: #f8fafc;
     padding: 0.7rem 1rem;
     text-align: left;
-    font-weight: 600;
-    color: #475569;
-    font-size: 0.78rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    border-bottom: 1px solid #e2e8f0;
+    color: $text-3;
+    border-bottom: 1px solid $border;
     white-space: nowrap;
   }
 
   td {
-    padding: 0.65rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    color: var(--text-primary, #1e293b);
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: $text-2;
     white-space: nowrap;
+    font-size: 0.83rem;
+    transition: background 0.15s;
 
     &.bi-cell--label {
       font-weight: 600;
-      color: #475569;
-      background: #fafafa;
+      color: $text-1;
+      font-size: 0.82rem;
     }
+
     &.bi-cell--hot {
-      color: #10b981;
-      font-weight: 600;
+      color: $emerald;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
     }
-    &.bi-cell--cold {
-      color: #94a3b8;
+
+    &.bi-cell--neg {
+      color: $rose;
+      font-weight: 700;
+      font-family: 'DM Mono', monospace;
+    }
+
+    &.bi-cell--strategy {
+      font-size: 0.76rem;
+      color: $text-3;
+      max-width: 240px;
+      white-space: normal !important;
+      line-height: 1.45;
     }
   }
 
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #f8fafc; }
+
+  tbody tr:hover td {
+    background: rgba(99,102,241,0.04);
+  }
 }
 
-// Observations
+// ── Observations ─────────────────────────────────────────────
 .bi-observations {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
 }
 
 .bi-observation {
   display: flex;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.85rem;
   padding: 0.9rem 1.1rem;
   border-radius: 10px;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  font-size: 0.83rem;
+  line-height: 1.55;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
 
   .bi-obs-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
-    margin-top: 0.35rem;
+    margin-top: 0.45rem;
   }
 
-  &--info    { background: #eff6ff; color: #1e40af; .bi-obs-dot { background: #3b82f6; } }
-  &--success { background: #f0fdf4; color: #166534; .bi-obs-dot { background: #22c55e; } }
-  &--warning { background: #fffbeb; color: #92400e; .bi-obs-dot { background: #f59e0b; } }
-  &--danger  { background: #fef2f2; color: #991b1b; .bi-obs-dot { background: #ef4444; } }
+  &--info    { background: rgba(6,182,212,0.07);  border-color: rgba(6,182,212,0.15);  color: #a5f3fc; .bi-obs-dot { background: $cyan; } }
+  &--success { background: rgba(16,185,129,0.07); border-color: rgba(16,185,129,0.15); color: #6ee7b7; .bi-obs-dot { background: $emerald; } }
+  &--warning { background: rgba(245,158,11,0.07); border-color: rgba(245,158,11,0.15); color: #fcd34d; .bi-obs-dot { background: $amber; } }
+  &--danger  { background: rgba(244,63,94,0.07);  border-color: rgba(244,63,94,0.15);  color: #fda4af; .bi-obs-dot { background: $rose; } }
 }
 
-// Analysis cards
+// ── Analysis cards ───────────────────────────────────────────
 .bi-analysis-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .bi-analysis-card {
-  background: var(--surface, #fff);
-  border-radius: 12px;
+  background: $card;
+  border-radius: 14px;
   padding: 1.25rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border: 1px solid rgba(0,0,0,0.04);
+  border: 1px solid $border;
+  border-top-width: 2px;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+  }
 
   .bi-analysis-title {
-    font-size: 0.9rem;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.88rem;
     font-weight: 700;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.9rem;
+    letter-spacing: -0.01em;
   }
 
   .bi-analysis-points {
-    padding-left: 1.25rem;
-    margin-bottom: 0.9rem;
+    padding-left: 1.1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+
     li {
-      font-size: 0.82rem;
-      color: #475569;
-      margin-bottom: 0.3rem;
-      line-height: 1.4;
+      font-size: 0.79rem;
+      color: $text-2;
+      margin-bottom: 0.35rem;
+      line-height: 1.45;
+      position: relative;
+
+      &::before {
+        content: '—';
+        position: absolute;
+        left: -1.1rem;
+        color: $text-3;
+      }
     }
   }
 
   .bi-analysis-action {
-    font-size: 0.82rem;
-    background: #f8fafc;
-    border-radius: 6px;
-    padding: 0.5rem 0.75rem;
-    color: #334155;
-    line-height: 1.4;
+    font-size: 0.78rem;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.18);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    color: #a5b4fc;
+    line-height: 1.45;
 
     .bi-action-label {
       font-weight: 700;
-      color: #1e293b;
+      color: $indigo;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 0.2rem;
     }
   }
 }
 
-// Badges
-.bi-badge {
-  display: inline-block;
-  padding: 0.2rem 0.6rem;
-  border-radius: 100px;
-  font-size: 0.75rem;
-  font-weight: 600;
-
-  &--success { background: #dcfce7; color: #166534; }
-  &--warning { background: #fef9c3; color: #854d0e; }
-  &--danger  { background: #fee2e2; color: #991b1b; }
-  &--info    { background: #dbeafe; color: #1e40af; }
-}
-
-// Rank badges
+// ── Rank badges ──────────────────────────────────────────────
 .bi-rank {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #e0e7ff;
-  color: #4f46e5;
-  font-size: 0.75rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.25);
+  color: #a5b4fc;
+  font-size: 0.72rem;
   font-weight: 700;
+  font-family: 'DM Mono', monospace;
 
   &--green {
-    background: #dcfce7;
-    color: #16a34a;
+    background: rgba(16,185,129,0.12);
+    border-color: rgba(16,185,129,0.25);
+    color: #6ee7b7;
+  }
+
+  &--top3 {
+    background: rgba(245,158,11,0.15);
+    border-color: rgba(245,158,11,0.3);
+    color: #fcd34d;
   }
 }
 
-// Table strategy cell
-.bi-cell--strategy {
-  font-size: 0.78rem;
-  color: #475569;
-  max-width: 260px;
-  line-height: 1.4;
-  white-space: normal !important;
-}
-
-.bi-cell--neg {
-  color: #ef4444;
+// ── Badges ───────────────────────────────────────────────────
+.bi-badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 100px;
+  font-size: 0.7rem;
   font-weight: 600;
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.04em;
+
+  &--success { background: rgba(16,185,129,0.15);  color: #6ee7b7;  border: 1px solid rgba(16,185,129,0.25); }
+  &--warning { background: rgba(245,158,11,0.15);  color: #fcd34d;  border: 1px solid rgba(245,158,11,0.25); }
+  &--danger  { background: rgba(244,63,94,0.15);   color: #fda4af;  border: 1px solid rgba(244,63,94,0.25); }
+  &--info    { background: rgba(6,182,212,0.12);   color: #a5f3fc;  border: 1px solid rgba(6,182,212,0.2); }
 }
 
-// States
-.bi-loading, .bi-error {
-  padding: 3rem;
-  text-align: center;
-  font-size: 1rem;
-  color: var(--text-muted, #64748b);
+// ── Divider/spacer ───────────────────────────────────────────
+.mb-4 { margin-bottom: 1.5rem !important; }
+
+// ── Loading / Error ──────────────────────────────────────────
+.bi-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  color: $text-3;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 16px; height: 16px;
+    border: 2px solid $border;
+    border-top-color: $indigo;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 0.75rem;
+  }
 }
-.bi-error { color: #ef4444; }
+
+.bi-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.83rem;
+  color: $rose;
+  letter-spacing: 0.05em;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Tab content fade ─────────────────────────────────────────
+.bi-tab-content {
+  animation: fadeUp 0.3s ease both;
+}
+
+// ── Peak hour table highlight ────────────────────────────────
+.bi-cell--peak-hi {
+  color: $amber !important;
+  font-weight: 700 !important;
+  font-family: 'DM Mono', monospace !important;
+}
+
+.bi-cell--peak-lo {
+  color: $text-3 !important;
+}
+
+// ── Mono numbers everywhere ───────────────────────────────────
+td:not(.bi-cell--label):not(.bi-cell--strategy) {
+  font-family: 'DM Mono', monospace;
+}
