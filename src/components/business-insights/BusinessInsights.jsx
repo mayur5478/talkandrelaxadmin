@@ -7,30 +7,30 @@ const MONTH_COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#f43f5e"];
 
 const fmt = (n) => `₹${Number(n).toLocaleString("en-IN")}`;
 
-// Shared dark chart base — all charts inherit this
+// Shared light chart base — all charts inherit this
 const DC = {
   background: "transparent",
-  foreColor: "#94a3b8",
-  fontFamily: "DM Mono, monospace",
+  foreColor: "#64748b",
+  fontFamily: "Outfit, Inter, sans-serif",
   toolbar: { show: false },
   animations: { enabled: true, easing: "easeinout", speed: 600 },
 };
-const DARK_GRID = { borderColor: "rgba(255,255,255,0.04)", strokeDashArray: 3 };
+const DARK_GRID = { borderColor: "#e9eef5", strokeDashArray: 3 };
 const DARK_XAXIS = (categories) => ({
   categories,
-  labels: { style: { colors: "#475569", fontSize: "11px", fontFamily: "DM Mono, monospace" } },
+  labels: { style: { colors: "#94a3b8", fontSize: "11px", fontFamily: "Outfit, Inter, sans-serif" } },
   axisBorder: { show: false },
   axisTicks: { show: false },
 });
 const DARK_YAXIS = (formatter) => ({
-  labels: { style: { colors: "#475569", fontSize: "11px", fontFamily: "DM Mono, monospace" }, formatter },
+  labels: { style: { colors: "#94a3b8", fontSize: "11px", fontFamily: "Outfit, Inter, sans-serif" }, formatter },
 });
 const DARK_TOOLTIP = (formatter) => ({
-  theme: "dark",
-  style: { fontFamily: "DM Mono, monospace", fontSize: "12px" },
+  theme: "light",
+  style: { fontFamily: "Outfit, Inter, sans-serif", fontSize: "12px" },
   y: { formatter },
 });
-const DARK_LEGEND = { labels: { colors: "#94a3b8" }, fontFamily: "DM Mono, monospace", fontSize: "11px" };
+const DARK_LEGEND = { labels: { colors: "#64748b" }, fontFamily: "Outfit, Inter, sans-serif", fontSize: "11px" };
 
 function TrendChart({ title, series, categories, colors, yFormatter }) {
   const options = {
@@ -42,7 +42,7 @@ function TrendChart({ title, series, categories, colors, yFormatter }) {
     yaxis: DARK_YAXIS(yFormatter || ((v) => v)),
     grid: DARK_GRID,
     tooltip: DARK_TOOLTIP(yFormatter || ((v) => v)),
-    fill: { type: "gradient", gradient: { shade: "dark", type: "vertical", shadeIntensity: 0.15, opacityFrom: 1, opacityTo: 0.85 } },
+    fill: { type: "gradient", gradient: { shade: "light", type: "vertical", shadeIntensity: 0.1, opacityFrom: 1, opacityTo: 0.88 } },
   };
   return (
     <div className="bi-chart-card">
@@ -58,10 +58,10 @@ function DonutChart({ title, labels, values, colors }) {
     labels,
     colors: colors || MONTH_COLORS,
     legend: { ...DARK_LEGEND, position: "bottom" },
-    dataLabels: { enabled: true, formatter: (val) => `${val.toFixed(0)}%`, style: { fontSize: "11px", fontFamily: "DM Mono, monospace", colors: ["#0e1420"] }, dropShadow: { enabled: false } },
+    dataLabels: { enabled: true, formatter: (val) => `${val.toFixed(0)}%`, style: { fontSize: "11px", fontFamily: "Outfit, Inter, sans-serif", colors: ["#1e293b"] }, dropShadow: { enabled: false } },
     plotOptions: { pie: { donut: { size: "62%", labels: { show: false } } } },
-    stroke: { width: 2, colors: ["#111827"] },
-    tooltip: { theme: "dark", style: { fontFamily: "DM Mono, monospace", fontSize: "12px" } },
+    stroke: { width: 2, colors: ["#ffffff"] },
+    tooltip: { theme: "light", style: { fontFamily: "Outfit, Inter, sans-serif", fontSize: "12px" } },
   };
   return (
     <div className="bi-chart-card">
@@ -111,8 +111,20 @@ function SectionHeader({ title, subtitle }) {
 }
 
 export default function BusinessInsights() {
-  const { data, isLoading, error } = useMonthlyInsightsQuery();
   const [activeTab, setActiveTab] = useState("overview");
+  const [fromMonth, setFromMonth] = useState("2025-12");
+  const [toMonth, setToMonth]     = useState(() => {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`;
+  });
+  const [appliedRange, setAppliedRange] = useState({ from: "2025-12", to: (() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`; })() });
+
+  const { data, isLoading, error, isFetching } = useMonthlyInsightsQuery(appliedRange);
+
+  const handleApply = () => {
+    if (fromMonth > toMonth) return;
+    setAppliedRange({ from: fromMonth, to: toMonth });
+  };
   const individuals = data?.individuals || {};
   const callAttempts = data?.callAttempts || [];
   const monthlySales = data?.monthlySales || [];
@@ -156,7 +168,7 @@ export default function BusinessInsights() {
     dataLabels: { enabled: false },
     grid: DARK_GRID,
     fill: { opacity: 0.9 },
-    tooltip: { theme: "dark", style: { fontFamily: "DM Mono, monospace", fontSize: "12px" } },
+    tooltip: { theme: "light", style: { fontFamily: "Outfit, Inter, sans-serif", fontSize: "12px" } },
   };
 
   // Revenue ratio
@@ -209,9 +221,46 @@ export default function BusinessInsights() {
     <div className="bi-wrapper">
       {/* Header */}
       <div className="bi-header">
-        <div className="bi-eyebrow">Business Intelligence</div>
-        <h4 className="bi-main-title">Performance Insights</h4>
-        <p className="bi-main-subtitle">Monthly trend analysis · Dec 2025 – Apr 2026</p>
+        <div className="bi-header-top">
+          <div>
+            <div className="bi-eyebrow">Business Intelligence</div>
+            <h4 className="bi-main-title">Performance Insights</h4>
+            <p className="bi-main-subtitle">
+              Showing {appliedRange.from} → {appliedRange.to} &nbsp;·&nbsp; {months.length} month{months.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+          <div className="bi-range-picker">
+            <div className="bi-range-group">
+              <label className="bi-range-label">From</label>
+              <input
+                type="month"
+                className="bi-range-input"
+                value={fromMonth}
+                max={toMonth}
+                onChange={e => setFromMonth(e.target.value)}
+              />
+            </div>
+            <span className="bi-range-sep">→</span>
+            <div className="bi-range-group">
+              <label className="bi-range-label">To</label>
+              <input
+                type="month"
+                className="bi-range-input"
+                value={toMonth}
+                min={fromMonth}
+                max={(() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}`; })()}
+                onChange={e => setToMonth(e.target.value)}
+              />
+            </div>
+            <button
+              className={`bi-apply-btn ${isFetching ? "bi-apply-btn--loading" : ""}`}
+              onClick={handleApply}
+              disabled={isFetching || fromMonth > toMonth}
+            >
+              {isFetching ? "Loading…" : "Apply"}
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* KPI Strip */}
@@ -286,8 +335,8 @@ export default function BusinessInsights() {
                 dataLabels: { enabled: false },
                 xaxis: DARK_XAXIS(names),
                 yaxis: [
-                  { title: { text: "₹ Sales", style: { color: "#475569", fontFamily: "DM Mono, monospace", fontSize: "11px" } }, labels: { style: { colors: "#475569", fontFamily: "DM Mono, monospace" }, formatter: (v) => `₹${v.toLocaleString()}` } },
-                  { opposite: true, title: { text: "Sessions / Minutes", style: { color: "#475569", fontFamily: "DM Mono, monospace", fontSize: "11px" } }, labels: { style: { colors: "#475569", fontFamily: "DM Mono, monospace" } } },
+                  { title: { text: "₹ Sales", style: { color: "#94a3b8", fontFamily: "Outfit, Inter, sans-serif", fontSize: "11px" } }, labels: { style: { colors: "#94a3b8", fontFamily: "Outfit, Inter, sans-serif" }, formatter: (v) => `₹${v.toLocaleString()}` } },
+                  { opposite: true, title: { text: "Sessions / Minutes", style: { color: "#94a3b8", fontFamily: "Outfit, Inter, sans-serif", fontSize: "11px" } }, labels: { style: { colors: "#94a3b8", fontFamily: "Outfit, Inter, sans-serif" } } },
                 ],
                 legend: { ...DARK_LEGEND, position: "top" },
                 grid: DARK_GRID,

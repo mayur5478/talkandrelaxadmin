@@ -176,9 +176,10 @@ export const authApi = createApi({
       }),
     }),
     monthlyInsights: builder.query({
-      query: () => ({
+      query: ({ from, to } = {}) => ({
         url: `admin/monthly-insights`,
         method: "GET",
+        params: { from, to },
       }),
     }),
   }),
