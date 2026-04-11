@@ -175,6 +175,12 @@ export const authApi = createApi({
         body: { fromDate, toDate },
       }),
     }),
+    monthlyInsights: builder.query({
+      query: () => ({
+        url: `admin/monthly-insights`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -201,4 +207,5 @@ export const {
   useWalletReportQuery,
   useAllWalletsQuery,
   useLazyDiagnoseConnectionQuery,
+  useMonthlyInsightsQuery,
 } = authApi;

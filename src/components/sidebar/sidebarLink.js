@@ -101,6 +101,12 @@ export const links = [
     ],
   },
   {
+    title: "Business Insights",
+    icon: payment,
+    path: "/dashboard/business-insights",
+    type: "button",
+  },
+  {
     title: "Service History",
     icon: recharge,
     path: "/dashboard/service-history",

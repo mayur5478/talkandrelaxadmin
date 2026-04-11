@@ -34,6 +34,7 @@ import ServiceHistory from "../analytics/ServiceHistory";
 import CallRejections from "../analytics/CallRejections";
 import ManualRecharges from "../payment-management/manual-recharges/ManualRecharges";
 import SoftDeletedUsers from "../user-management/soft-deleted-users/SoftDeletedUsers";
+import BusinessInsights from "../business-insights/BusinessInsights";
 
 const Main = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -86,6 +87,7 @@ const Main = () => {
           <Route path="/recharge-charges/coupen-manage" element={<CoupenManagement />} />
           <Route path="/recharge-charges/charge-manage" element={<ChargeManagement />} />
           <Route path="/recharge-charges/penalty-manage" element={<PenaltyManage />} />
+          <Route path="/business-insights" element={<BusinessInsights />} />
           <Route path="/service-history" element={<ServiceHistory />} />
           <Route path="/rejections" element={<CallRejections />} />
           <Route path="/status" element={<Status />} />
