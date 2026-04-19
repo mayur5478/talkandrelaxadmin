@@ -160,10 +160,24 @@ export default function BusinessInsights() {
     const max = year === toYear ? toMon : 12;
     return MONTH_NAMES_FULL.slice(0, max);
   }
+  // ── Payroll cycle date state (25→25) ──
+  const payrollDefaultFrom = (() => {
+    const d = new Date();
+    if (d.getDate() >= 25) return new Date(d.getFullYear(), d.getMonth(), 25);
+    const prev = new Date(d.getFullYear(), d.getMonth() - 1, 25);
+    return prev;
+  })();
+  const payrollDefaultTo = new Date(); // today
+  const fmtDate = (d) => d.toISOString().split("T")[0];
+  const [payrollFrom, setPayrollFrom] = useState(fmtDate(payrollDefaultFrom));
+  const [payrollTo,   setPayrollTo]   = useState(fmtDate(payrollDefaultTo));
+  const [minWorkHours, setMinWorkHours] = useState(3); // deduction threshold in hours
+
   const individuals = data?.individuals || {};
   const callAttempts = data?.callAttempts || [];
   const monthlySales = data?.monthlySales || [];
   const listenerHours = data?.listenerHours || [];
+  const listenerDailyHours = data?.listenerDailyHours || [];
 
   if (isLoading) return <div className="bi-wrapper"><div className="bi-loading">Loading insights</div></div>;
   if (error) return <div className="bi-wrapper"><div className="bi-error">Failed to load — check connection</div></div>;
@@ -1242,6 +1256,206 @@ export default function BusinessInsights() {
           ) : (
             <div className="bi-table-card mb-4" style={{ padding: "1.5rem", color: "#94a3b8", textAlign: "center" }}>No listener session data for this range.</div>
           )}
+
+          {/* ── PAYROLL TRACKER ── */}
+          {(() => {
+            // Filter listenerDailyHours to the selected payroll range
+            const filtered = listenerDailyHours.filter(r => r.day >= payrollFrom && r.day <= payrollTo);
+
+            // Build sorted date list for columns
+            const dateSet = new Set(filtered.map(r => r.day));
+            const dates = Array.from(dateSet).sort();
+
+            // Build pivot: { listenerName -> { day -> {totalHours, totalMins, sessionCount} } }
+            const pivot = {};
+            filtered.forEach(r => {
+              if (!pivot[r.name]) pivot[r.name] = {};
+              pivot[r.name][r.day] = { h: r.totalHours, m: r.totalMins, s: r.sessionCount };
+            });
+
+            // Sort listeners by total hours descending
+            const listenerNames = Object.keys(pivot).sort((a, b) => {
+              const sumA = Object.values(pivot[a]).reduce((s, v) => s + v.h, 0);
+              const sumB = Object.values(pivot[b]).reduce((s, v) => s + v.h, 0);
+              return sumB - sumA;
+            });
+
+            // Build deduction summary per listener
+            const deductionRows = listenerNames.map(name => {
+              const days = pivot[name];
+              let workingDays = 0, underDays = 0, totalHours = 0;
+              dates.forEach(d => {
+                if (days[d] && days[d].h > 0) {
+                  workingDays++;
+                  totalHours += days[d].h;
+                  if (days[d].h < minWorkHours) underDays++;
+                }
+              });
+              return { name, workingDays, underDays, absentDays: dates.length - workingDays, totalHours: parseFloat(totalHours.toFixed(2)) };
+            });
+
+            const cellColor = (hrs) => {
+              if (!hrs || hrs === 0) return { bg: "#f8fafc", color: "#cbd5e1" };
+              if (hrs < minWorkHours) return { bg: "#fff1f2", color: "#e11d48" };
+              if (hrs < minWorkHours + 1) return { bg: "#fffbeb", color: "#d97706" };
+              return { bg: "#f0fdf4", color: "#15803d" };
+            };
+
+            return (
+              <>
+                {/* Header + controls */}
+                <div className="bi-section-header mb-2" style={{ marginTop: "2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <div>
+                    <h5 className="bi-section-title">Payroll Tracker — Daily Listener Hours</h5>
+                    <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>
+                      25→25 salary cycle · Days under {minWorkHours}h threshold are flagged for deduction
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Cycle From</span>
+                      <input type="date" value={payrollFrom} onChange={e => setPayrollFrom(e.target.value)}
+                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff" }} />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Cycle To</span>
+                      <input type="date" value={payrollTo} onChange={e => setPayrollTo(e.target.value)}
+                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff" }} />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Min Hours/Day</span>
+                      <input type="number" min={1} max={12} value={minWorkHours} onChange={e => setMinWorkHours(Number(e.target.value))}
+                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff", width: "64px" }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem", fontSize: "11px", flexWrap: "wrap" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f0fdf4", border: "1px solid #15803d" }}></span><span style={{ color: "#15803d" }}>≥ {minWorkHours}h (good)</span></span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#fffbeb", border: "1px solid #d97706" }}></span><span style={{ color: "#d97706" }}>{minWorkHours}–{minWorkHours + 1}h (borderline)</span></span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#fff1f2", border: "1px solid #e11d48" }}></span><span style={{ color: "#e11d48" }}>&lt; {minWorkHours}h (deductible)</span></span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f8fafc", border: "1px solid #cbd5e1" }}></span><span style={{ color: "#94a3b8" }}>Absent</span></span>
+                </div>
+
+                {filtered.length === 0 ? (
+                  <div className="bi-table-card mb-4" style={{ padding: "1.5rem", color: "#94a3b8", textAlign: "center" }}>
+                    No session data for this payroll range. Make sure the main date range above covers this period.
+                  </div>
+                ) : (
+                  <>
+                    {/* Pivot heatmap table */}
+                    <div className="bi-table-card mb-4" style={{ overflowX: "auto", maxHeight: "520px", overflowY: "auto" }}>
+                      <table style={{ borderCollapse: "collapse", fontSize: "11px", minWidth: "max-content", width: "100%" }}>
+                        <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "#f8fafc" }}>
+                          <tr>
+                            <th style={{ padding: "8px 12px", textAlign: "left", fontWeight: 700, color: "#475569", borderBottom: "2px solid #e2e8f0", position: "sticky", left: 0, background: "#f8fafc", zIndex: 3, minWidth: "130px" }}>Listener</th>
+                            {dates.map(d => (
+                              <th key={d} style={{ padding: "6px 4px", textAlign: "center", fontWeight: 600, color: "#94a3b8", borderBottom: "2px solid #e2e8f0", minWidth: "46px" }}>
+                                <div>{d.slice(8)}</div>
+                                <div style={{ fontSize: "9px", color: "#cbd5e1" }}>{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(d).getDay()]}</div>
+                              </th>
+                            ))}
+                            <th style={{ padding: "8px 8px", textAlign: "center", fontWeight: 700, color: "#475569", borderBottom: "2px solid #e2e8f0", minWidth: "70px", position: "sticky", right: 0, background: "#f8fafc", zIndex: 3 }}>Total Hrs</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {listenerNames.map((name, ri) => {
+                            const days = pivot[name];
+                            const totalH = Object.values(days).reduce((s, v) => s + v.h, 0);
+                            return (
+                              <tr key={name} style={{ background: ri % 2 === 0 ? "#fff" : "#fafafa" }}>
+                                <td style={{ padding: "5px 12px", fontWeight: 600, color: "#334155", borderBottom: "1px solid #f1f5f9", position: "sticky", left: 0, background: ri % 2 === 0 ? "#fff" : "#fafafa", zIndex: 1 }}>
+                                  {name}
+                                </td>
+                                {dates.map(d => {
+                                  const cell = days[d];
+                                  const hrs = cell ? cell.h : 0;
+                                  const c = cellColor(hrs);
+                                  return (
+                                    <td key={d} title={cell ? `${cell.h}h (${cell.m} min, ${cell.s} sessions)` : "Absent"}
+                                      style={{ padding: "4px 3px", textAlign: "center", borderBottom: "1px solid #f1f5f9", background: c.bg }}>
+                                      {hrs > 0 ? (
+                                        <span style={{ display: "inline-block", color: c.color, fontWeight: 700, fontSize: "10px", padding: "2px 4px", borderRadius: "4px" }}>
+                                          {hrs >= 10 ? hrs.toFixed(1) : hrs.toFixed(1)}h
+                                        </span>
+                                      ) : (
+                                        <span style={{ color: "#e2e8f0", fontSize: "10px" }}>—</span>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                                <td style={{ padding: "5px 8px", textAlign: "center", fontWeight: 700, color: totalH >= (minWorkHours * dates.filter(d => pivot[name][d] && pivot[name][d].h > 0).length * 0.7) ? "#15803d" : "#e11d48", borderBottom: "1px solid #f1f5f9", position: "sticky", right: 0, background: ri % 2 === 0 ? "#fff" : "#fafafa" }}>
+                                  {totalH.toFixed(1)}h
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Deduction Summary table */}
+                    <SectionHeader title="Deduction Summary" subtitle={`Listeners with days below ${minWorkHours}h threshold in ${payrollFrom} → ${payrollTo}`} />
+                    <div className="bi-table-card mb-4" style={{ overflowX: "auto" }}>
+                      <table className="bi-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Listener</th>
+                            <th>Working Days</th>
+                            <th>Absent Days</th>
+                            <th style={{ color: "#e11d48" }}>Days &lt; {minWorkHours}h</th>
+                            <th>Total Hours</th>
+                            <th>Avg Hrs/Day</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {deductionRows.filter(r => r.underDays > 0 || r.absentDays > 0).sort((a, b) => b.underDays - a.underDays).map((r, i) => (
+                            <tr key={i}>
+                              <td><span className="bi-rank bi-rank--green">{i + 1}</span></td>
+                              <td className="bi-cell--label">{r.name}</td>
+                              <td>{r.workingDays}</td>
+                              <td style={{ color: r.absentDays > 3 ? "#e11d48" : "#94a3b8" }}>{r.absentDays}</td>
+                              <td>
+                                <span style={{ background: r.underDays > 0 ? "#fff1f2" : "#f0fdf4", color: r.underDays > 0 ? "#e11d48" : "#15803d", padding: "2px 8px", borderRadius: "12px", fontWeight: 700, fontSize: "11px" }}>
+                                  {r.underDays} days
+                                </span>
+                              </td>
+                              <td style={{ fontWeight: 600 }}>{r.totalHours} hrs</td>
+                              <td>{r.workingDays > 0 ? (r.totalHours / r.workingDays).toFixed(1) : "—"} hrs</td>
+                              <td>
+                                {r.underDays === 0 && r.absentDays === 0
+                                  ? <span style={{ color: "#15803d", fontWeight: 600 }}>✓ Full month</span>
+                                  : r.underDays > 5 || r.absentDays > 5
+                                  ? <span style={{ color: "#e11d48", fontWeight: 600 }}>⚠ Deduct salary</span>
+                                  : <span style={{ color: "#d97706", fontWeight: 600 }}>⚡ Review</span>}
+                              </td>
+                            </tr>
+                          ))}
+                          {deductionRows.filter(r => r.underDays > 0 || r.absentDays > 0).length === 0 && (
+                            <tr><td colSpan={8} style={{ textAlign: "center", color: "#15803d", padding: "1rem", fontWeight: 600 }}>✓ All listeners met the {minWorkHours}h/day target this cycle</td></tr>
+                          )}
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <td colSpan={2} className="bi-cell--label"><strong>Totals ({listenerNames.length} listeners)</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                            <td className="bi-cell--neg"><strong>{deductionRows.reduce((s, r) => s + r.underDays, 0)} total low days</strong></td>
+                            <td><strong>{deductionRows.reduce((s, r) => s + r.totalHours, 0).toFixed(1)} hrs</strong></td>
+                            <td>—</td>
+                            <td>—</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          })()}
 
           {/* High Rejection Listeners */}
           <SectionHeader title="Under-Performing Listeners" subtitle="High rejection rate — hurting user experience and platform revenue" />
