@@ -127,6 +127,7 @@ function parseYYYYMM(str) {
 export default function BusinessInsights() {
   const [activeTab, setActiveTab] = useState("overview");
   const [rechargeMonthKey, setRechargeMonthKey] = useState(null); // null = latest
+  const [sessionMonthKey, setSessionMonthKey] = useState(null);   // null = latest
 
   const [fromYear, setFromYear] = useState(2025);
   const [fromMon,  setFromMon]  = useState(12);
@@ -162,6 +163,7 @@ export default function BusinessInsights() {
   const individuals = data?.individuals || {};
   const callAttempts = data?.callAttempts || [];
   const monthlySales = data?.monthlySales || [];
+  const listenerHours = data?.listenerHours || [];
 
   if (isLoading) return <div className="bi-wrapper"><div className="bi-loading">Loading insights</div></div>;
   if (error) return <div className="bi-wrapper"><div className="bi-error">Failed to load — check connection</div></div>;
@@ -438,6 +440,139 @@ export default function BusinessInsights() {
       {/* ─── SESSIONS TAB ─── */}
       {activeTab === "sessions" && (
         <>
+          {/* ── DAILY SESSION DETAILS ── */}
+          {(() => {
+            const selMonth = months.find(m => m.key === sessionMonthKey) || latest;
+            const daily = selMonth?.dailySessions || [];
+            const dayLabels = daily.map(d => d.day ? d.day.slice(5) : "");
+            const totalCount = daily.reduce((s, d) => s + d.count, 0);
+            const totalRevenue = daily.reduce((s, d) => s + d.revenue, 0);
+            const totalMins = daily.reduce((s, d) => s + d.minutes, 0);
+            return (
+              <>
+                <div className="bi-section-header mb-2" style={{ marginTop: "0.25rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <div>
+                    <h5 className="bi-section-title">Daily Session Details</h5>
+                    <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>Session count, revenue and minutes per day</p>
+                  </div>
+                  <select
+                    className="bi-range-select"
+                    value={sessionMonthKey || latest?.key || ""}
+                    onChange={e => setSessionMonthKey(e.target.value)}
+                    style={{ alignSelf: "flex-end" }}
+                  >
+                    {months.map(m => <option key={m.key} value={m.key}>{m.name}</option>)}
+                  </select>
+                </div>
+
+                {/* Summary pills */}
+                <div className="bi-recharge-summary mb-4">
+                  <div className="bi-recharge-pill bi-recharge-pill--total">
+                    <span className="bi-rp-label">Total Sessions</span>
+                    <span className="bi-rp-val">{totalCount.toLocaleString("en-IN")}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--gross">
+                    <span className="bi-rp-label">Total Revenue</span>
+                    <span className="bi-rp-val">{fmt(totalRevenue)}</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--net">
+                    <span className="bi-rp-label">Total Minutes</span>
+                    <span className="bi-rp-val">{totalMins.toLocaleString("en-IN")} min</span>
+                  </div>
+                  <div className="bi-recharge-pill bi-recharge-pill--rate">
+                    <span className="bi-rp-label">Avg/Day</span>
+                    <span className="bi-rp-val">{daily.length > 0 ? Math.round(totalCount / daily.length) : 0} sessions</span>
+                  </div>
+                </div>
+
+                <div className="bi-chart-grid bi-chart-grid--2 mb-4">
+                  <div className="bi-chart-card">
+                    <h6 className="bi-chart-title">Daily Session Count by Type — {selMonth?.name}</h6>
+                    <ReactApexChart
+                      options={{
+                        chart: { ...DC, type: "bar", stacked: true },
+                        plotOptions: { bar: { borderRadius: 3, columnWidth: "65%" } },
+                        colors: ["#6366f1", "#10b981", "#f59e0b"],
+                        xaxis: { ...DARK_XAXIS(dayLabels), tickAmount: Math.min(dayLabels.length, 10) },
+                        yaxis: DARK_YAXIS(v => `${v}`),
+                        legend: { ...DARK_LEGEND, position: "top" },
+                        dataLabels: { enabled: false },
+                        grid: DARK_GRID,
+                      }}
+                      series={[
+                        { name: "Call", data: daily.map(d => d.callCount) },
+                        { name: "Video", data: daily.map(d => d.videoCount) },
+                        { name: "Chat", data: daily.map(d => d.chatCount) },
+                      ]}
+                      type="bar" height={240}
+                    />
+                  </div>
+                  <div className="bi-chart-card">
+                    <h6 className="bi-chart-title">Daily Revenue &amp; Minutes — {selMonth?.name}</h6>
+                    <ReactApexChart
+                      options={{
+                        chart: { ...DC, type: "line" },
+                        stroke: { curve: "smooth", width: [3, 2] },
+                        colors: ["#6366f1", "#f59e0b"],
+                        xaxis: { ...DARK_XAXIS(dayLabels), tickAmount: Math.min(dayLabels.length, 10) },
+                        yaxis: [
+                          { labels: { style: { colors: "#94a3b8" }, formatter: v => `₹${v.toLocaleString()}` } },
+                          { opposite: true, labels: { style: { colors: "#94a3b8" }, formatter: v => `${v}m` } },
+                        ],
+                        legend: { ...DARK_LEGEND, position: "top" },
+                        dataLabels: { enabled: false },
+                        grid: DARK_GRID,
+                        markers: { size: 3 },
+                      }}
+                      series={[
+                        { name: "Revenue (₹)", data: daily.map(d => d.revenue) },
+                        { name: "Minutes", data: daily.map(d => d.minutes) },
+                      ]}
+                      type="line" height={240}
+                    />
+                  </div>
+                </div>
+
+                {/* Daily table */}
+                <div className="bi-table-card mb-4" style={{ overflowX: "auto" }}>
+                  <table className="bi-table">
+                    <thead>
+                      <tr>
+                        <th>Date</th><th>Sessions</th><th>Call</th><th>Video</th><th>Chat</th><th>Revenue</th><th>Minutes</th><th>Avg min/sess</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {daily.map((d, i) => (
+                        <tr key={i}>
+                          <td className="bi-cell--label">{d.day}</td>
+                          <td><strong>{d.count}</strong></td>
+                          <td>{d.callCount || "—"}</td>
+                          <td>{d.videoCount || "—"}</td>
+                          <td>{d.chatCount || "—"}</td>
+                          <td style={{ color: "#6366f1" }}>{d.revenue ? fmt(d.revenue) : "—"}</td>
+                          <td>{d.minutes ? `${d.minutes} min` : "—"}</td>
+                          <td>{d.count > 0 ? `${(d.minutes / d.count).toFixed(1)} min` : "—"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td className="bi-cell--label">Total</td>
+                        <td><strong>{totalCount}</strong></td>
+                        <td>{daily.reduce((s,d)=>s+d.callCount,0)}</td>
+                        <td>{daily.reduce((s,d)=>s+d.videoCount,0)}</td>
+                        <td>{daily.reduce((s,d)=>s+d.chatCount,0)}</td>
+                        <td><strong style={{ color: "#6366f1" }}>{fmt(totalRevenue)}</strong></td>
+                        <td><strong>{totalMins} min</strong></td>
+                        <td>{totalCount > 0 ? `${(totalMins/totalCount).toFixed(1)} min` : "—"}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </>
+            );
+          })()}
+
           <SectionHeader title="Session Type Breakdown" subtitle="Avg sessions per day by type (Call · Video · Chat)" />
           <div className="bi-chart-card mb-4">
             <h6 className="bi-chart-title">Session Types — Avg/Day (Stacked)</h6>
@@ -1030,6 +1165,83 @@ export default function BusinessInsights() {
               </tbody>
             </table>
           </div>
+
+          {/* Listener Active Hours */}
+          <SectionHeader
+            title="Listener Active Hours"
+            subtitle={`Total session minutes per listener for selected range (${MONTH_NAMES_FULL[parseYYYYMM(appliedRange.from).mon - 1]} ${parseYYYYMM(appliedRange.from).year} → ${MONTH_NAMES_FULL[parseYYYYMM(appliedRange.to).mon - 1]} ${parseYYYYMM(appliedRange.to).year})`}
+          />
+          {listenerHours.length > 0 ? (
+            <>
+              <div className="bi-chart-card mb-4">
+                <h6 className="bi-chart-title">Active Hours per Listener</h6>
+                <ReactApexChart
+                  options={{
+                    chart: { ...DC, type: "bar" },
+                    plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: "65%" } },
+                    colors: ["#6366f1"],
+                    dataLabels: { enabled: true, formatter: v => `${v}h`, style: { fontSize: "11px", colors: ["#1e293b"] } },
+                    xaxis: { ...DARK_XAXIS(listenerHours.map(l => l.name)), labels: { formatter: v => `${v}h` } },
+                    yaxis: { labels: { style: { colors: "#94a3b8", fontSize: "11px" } } },
+                    grid: DARK_GRID,
+                    tooltip: { theme: "light", y: { formatter: v => `${v} hrs` } },
+                  }}
+                  series={[{ name: "Active Hours", data: listenerHours.map(l => l.totalHours) }]}
+                  type="bar"
+                  height={Math.max(240, listenerHours.length * 32)}
+                />
+              </div>
+              <div className="bi-table-card mb-4" style={{ overflowX: "auto" }}>
+                <table className="bi-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Listener</th>
+                      <th>Total Hours</th>
+                      <th>Total Minutes</th>
+                      <th>Sessions</th>
+                      <th>Avg min/Session</th>
+                      <th>Call Min</th>
+                      <th>Video Min</th>
+                      <th>Chat Min</th>
+                      <th>Total Earned</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {listenerHours.map((l, i) => (
+                      <tr key={i}>
+                        <td><span className="bi-rank bi-rank--green">{i + 1}</span></td>
+                        <td className="bi-cell--label">{l.name}</td>
+                        <td className="bi-cell--hot" style={{ fontWeight: 600 }}>{l.totalHours} hrs</td>
+                        <td>{l.totalMins.toLocaleString("en-IN")} min</td>
+                        <td>{l.sessionCount}</td>
+                        <td>{l.avgMinsPerSession} min</td>
+                        <td style={{ color: "#6366f1" }}>{l.callMins ? `${l.callMins} min` : "—"}</td>
+                        <td style={{ color: "#10b981" }}>{l.videoMins ? `${l.videoMins} min` : "—"}</td>
+                        <td style={{ color: "#f59e0b" }}>{l.chatMins ? `${l.chatMins} min` : "—"}</td>
+                        <td>{fmt(l.totalEarned)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={2} className="bi-cell--label">Total</td>
+                      <td className="bi-cell--hot"><strong>{(listenerHours.reduce((s,l)=>s+l.totalHours,0)).toFixed(2)} hrs</strong></td>
+                      <td><strong>{listenerHours.reduce((s,l)=>s+l.totalMins,0).toLocaleString("en-IN")} min</strong></td>
+                      <td><strong>{listenerHours.reduce((s,l)=>s+l.sessionCount,0)}</strong></td>
+                      <td>—</td>
+                      <td style={{ color: "#6366f1" }}>{listenerHours.reduce((s,l)=>s+l.callMins,0)} min</td>
+                      <td style={{ color: "#10b981" }}>{listenerHours.reduce((s,l)=>s+l.videoMins,0)} min</td>
+                      <td style={{ color: "#f59e0b" }}>{listenerHours.reduce((s,l)=>s+l.chatMins,0)} min</td>
+                      <td><strong>{fmt(listenerHours.reduce((s,l)=>s+l.totalEarned,0))}</strong></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </>
+          ) : (
+            <div className="bi-table-card mb-4" style={{ padding: "1.5rem", color: "#94a3b8", textAlign: "center" }}>No listener session data for this range.</div>
+          )}
 
           {/* High Rejection Listeners */}
           <SectionHeader title="Under-Performing Listeners" subtitle="High rejection rate — hurting user experience and platform revenue" />
