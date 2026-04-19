@@ -1,40 +1,43 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import "./main.scss";
 import Sidebar from "../sidebar/Sidebar";
 import Navbars from "../navbars/Navbars";
 import { Route, Routes, useNavigate } from "react-router-dom";
-import Dashboard from "../dashboard/Dashboard";
-import Users from "../user-management/user-list/Users";
-import ActiveUsers from "../user-management/active-users/ActiveUsers";
-import RecentUsers from "../user-management/recent-users/RecentUsers";
-import Listeners from "../listener-management/listeners-list/Listeners";
-import ApplicationRequests from "../listener-management/application-requests/ApplicationRequests";
-import ProfileApproval from "../listener-management/profile-approvals/ProfileApproval";
-import PaymentList from "../payment-management/payment-list/PaymentList";
-import SalaryPyout from "../payment-management/salary-payout/SalaryPyout";
-import Gst from "../payment-management/gst-list/Gst";
-import CommisionLiat from "../payment-management/commision-list/CommisionLiat";
-import RevenueInfo from "../payment-management/revenue-info/RevenueInfo";
-import Recharge from "../recharge-charges/recharge-plans/Recharge";
-import GiftManagement from "../recharge-charges/gift-management/GiftManagement";
-import CoupenManagement from "../recharge-charges/coupen-management/CoupenManagement";
-import ChargeManagement from "../recharge-charges/charge-management/ChargeManagement";
-import ReportBlock from "../contact-quires-manage/report-block/ReportBlock";
-import PenaltyManage from "../recharge-charges/penalty-manage/Penaltymanage";
-import ListenerProfileView from "../listener-management/listener-profile-view/ListenerProfileView";
-import Docs from "../listener-management/docs/Docs";
-import UserProfile from "../user-management/user-profile-view/UserProfile";
-import ListenerDetailsForm from "../listener-management/listener-detail-form/ListenerDetailsForm";
-import EditSalary from "../payment-management/payment-list/edit-salary/EditSalary";
-import SalarySlip from "../payment-management/payment-list/salary-slip/SalarySlip";
 import { useGetMeQuery } from "../../services/auth";
 import { getCookie } from "../../cookie_helper/cookie";
-import Status from "../status/Status";
-import ServiceHistory from "../analytics/ServiceHistory";
-import CallRejections from "../analytics/CallRejections";
-import ManualRecharges from "../payment-management/manual-recharges/ManualRecharges";
-import SoftDeletedUsers from "../user-management/soft-deleted-users/SoftDeletedUsers";
-import BusinessInsights from "../business-insights/BusinessInsights";
+
+// Lazy-load all route components — each becomes its own JS chunk
+// loaded only when the user navigates to that route.
+const Dashboard           = lazy(() => import("../dashboard/Dashboard"));
+const Users               = lazy(() => import("../user-management/user-list/Users"));
+const ActiveUsers         = lazy(() => import("../user-management/active-users/ActiveUsers"));
+const RecentUsers         = lazy(() => import("../user-management/recent-users/RecentUsers"));
+const SoftDeletedUsers    = lazy(() => import("../user-management/soft-deleted-users/SoftDeletedUsers"));
+const Listeners           = lazy(() => import("../listener-management/listeners-list/Listeners"));
+const ApplicationRequests = lazy(() => import("../listener-management/application-requests/ApplicationRequests"));
+const ProfileApproval     = lazy(() => import("../listener-management/profile-approvals/ProfileApproval"));
+const Docs                = lazy(() => import("../listener-management/docs/Docs"));
+const ListenerProfileView = lazy(() => import("../listener-management/listener-profile-view/ListenerProfileView"));
+const ListenerDetailsForm = lazy(() => import("../listener-management/listener-detail-form/ListenerDetailsForm"));
+const PaymentList         = lazy(() => import("../payment-management/payment-list/PaymentList"));
+const EditSalary          = lazy(() => import("../payment-management/payment-list/edit-salary/EditSalary"));
+const SalarySlip          = lazy(() => import("../payment-management/payment-list/salary-slip/SalarySlip"));
+const SalaryPyout         = lazy(() => import("../payment-management/salary-payout/SalaryPyout"));
+const Gst                 = lazy(() => import("../payment-management/gst-list/Gst"));
+const CommisionLiat       = lazy(() => import("../payment-management/commision-list/CommisionLiat"));
+const RevenueInfo         = lazy(() => import("../payment-management/revenue-info/RevenueInfo"));
+const ManualRecharges     = lazy(() => import("../payment-management/manual-recharges/ManualRecharges"));
+const Recharge            = lazy(() => import("../recharge-charges/recharge-plans/Recharge"));
+const GiftManagement      = lazy(() => import("../recharge-charges/gift-management/GiftManagement"));
+const CoupenManagement    = lazy(() => import("../recharge-charges/coupen-management/CoupenManagement"));
+const ChargeManagement    = lazy(() => import("../recharge-charges/charge-management/ChargeManagement"));
+const PenaltyManage       = lazy(() => import("../recharge-charges/penalty-manage/Penaltymanage"));
+const ReportBlock         = lazy(() => import("../contact-quires-manage/report-block/ReportBlock"));
+const BusinessInsights    = lazy(() => import("../business-insights/BusinessInsights"));
+const ServiceHistory      = lazy(() => import("../analytics/ServiceHistory"));
+const CallRejections      = lazy(() => import("../analytics/CallRejections"));
+const Status              = lazy(() => import("../status/Status"));
+const UserProfile         = lazy(() => import("../user-management/user-profile-view/UserProfile"));
 
 const Main = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -64,6 +67,7 @@ const Main = () => {
       <Sidebar isSidebarOpen={isSidebarOpen} closeSidebar={closeSidebar} />
       <div id="main" className="main">
         <Navbars toggleSidebar={toggleSidebar} />
+        <Suspense fallback={<div style={{padding:'2rem',textAlign:'center'}}>Loading...</div>}>
         <Routes>
           <Route path="/analytics" element={<Dashboard />} />
           <Route path="/user-management/users-list" element={<Users />} />
@@ -96,6 +100,7 @@ const Main = () => {
           <Route path="user-management/profile-view" element={<UserProfile />} />
           <Route path="listener-management/profile-form" element={<ListenerDetailsForm />} />
         </Routes>
+        </Suspense>
       </div>
     </div>
   );
