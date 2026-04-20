@@ -178,6 +178,7 @@ export default function BusinessInsights() {
   const monthlySales = data?.monthlySales || [];
   const listenerHours = data?.listenerHours || [];
   const listenerDailyHours = data?.listenerDailyHours || [];
+  const listenerDailyOnlineHours = data?.listenerDailyOnlineHours || [];
 
   if (isLoading) return <div className="bi-wrapper"><div className="bi-loading">Loading insights</div></div>;
   if (error) return <div className="bi-wrapper"><div className="bi-error">Failed to load — check connection</div></div>;
@@ -1181,30 +1182,140 @@ export default function BusinessInsights() {
           </div>
 
 
-          {/* ── PAYROLL TRACKER ── */}
+          {/* ── SESSIONS PER DAY (call/chat time only — not penalty-based) ── */}
           {(() => {
-            // Filter listenerDailyHours to the selected payroll range
             const filtered = listenerDailyHours.filter(r => r.day >= payrollFrom && r.day <= payrollTo);
-
-            // Build sorted date list for columns
             const dateSet = new Set(filtered.map(r => r.day));
             const dates = Array.from(dateSet).sort();
 
-            // Build pivot: { listenerName -> { day -> {totalHours, totalMins, sessionCount} } }
             const pivot = {};
             filtered.forEach(r => {
               if (!pivot[r.name]) pivot[r.name] = {};
               pivot[r.name][r.day] = { h: r.totalHours, m: r.totalMins, s: r.sessionCount };
             });
 
-            // Sort listeners by total hours descending
             const listenerNames = Object.keys(pivot).sort((a, b) => {
               const sumA = Object.values(pivot[a]).reduce((s, v) => s + v.h, 0);
               const sumB = Object.values(pivot[b]).reduce((s, v) => s + v.h, 0);
               return sumB - sumA;
             });
 
-            // Build deduction summary per listener
+            // Neutral color scale for session time (not penalty-based)
+            const sessionCellColor = (hrs) => {
+              if (!hrs || hrs === 0) return { bg: "#f8fafc", color: "#cbd5e1" };
+              if (hrs >= 2) return { bg: "#eff6ff", color: "#1d4ed8" };
+              if (hrs >= 0.5) return { bg: "#f0f9ff", color: "#0284c7" };
+              return { bg: "#f8fafc", color: "#64748b" };
+            };
+
+            return (
+              <>
+                <div className="bi-section-header mb-2" style={{ marginTop: "2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <div>
+                    <h5 className="bi-section-title">Sessions Per Day — Daily Call Time Per Listener</h5>
+                    <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>
+                      Actual call/chat session time spent per day · Use the Online Availability tracker below for penalty decisions
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Cycle From</span>
+                      <input type="date" value={payrollFrom} onChange={e => setPayrollFrom(e.target.value)}
+                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff" }} />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Cycle To</span>
+                      <input type="date" value={payrollTo} onChange={e => setPayrollTo(e.target.value)}
+                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff" }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem", fontSize: "11px", flexWrap: "wrap" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#eff6ff", border: "1px solid #1d4ed8" }}></span><span style={{ color: "#1d4ed8" }}>≥ 2h sessions</span></span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f0f9ff", border: "1px solid #0284c7" }}></span><span style={{ color: "#0284c7" }}>0.5–2h sessions</span></span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f8fafc", border: "1px solid #94a3b8" }}></span><span style={{ color: "#64748b" }}>&lt; 0.5h sessions</span></span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f8fafc", border: "1px solid #cbd5e1" }}></span><span style={{ color: "#94a3b8" }}>No sessions</span></span>
+                </div>
+
+                {filtered.length === 0 ? (
+                  <div className="bi-table-card mb-4" style={{ padding: "1.5rem", color: "#94a3b8", textAlign: "center" }}>
+                    No session data for this range. Make sure the main date range above covers this period.
+                  </div>
+                ) : (
+                  <div className="bi-table-card mb-4" style={{ overflowX: "auto", maxHeight: "520px", overflowY: "auto" }}>
+                    <table style={{ borderCollapse: "collapse", fontSize: "11px", minWidth: "max-content", width: "100%" }}>
+                      <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "#f8fafc" }}>
+                        <tr>
+                          <th style={{ padding: "8px 12px", textAlign: "left", fontWeight: 700, color: "#475569", borderBottom: "2px solid #e2e8f0", position: "sticky", left: 0, background: "#f8fafc", zIndex: 3, minWidth: "130px" }}>Listener</th>
+                          {dates.map(d => (
+                            <th key={d} style={{ padding: "6px 4px", textAlign: "center", fontWeight: 600, color: "#94a3b8", borderBottom: "2px solid #e2e8f0", minWidth: "46px" }}>
+                              <div>{d.slice(8)}</div>
+                              <div style={{ fontSize: "9px", color: "#cbd5e1" }}>{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(d).getDay()]}</div>
+                            </th>
+                          ))}
+                          <th style={{ padding: "8px 8px", textAlign: "center", fontWeight: 700, color: "#475569", borderBottom: "2px solid #e2e8f0", minWidth: "70px", position: "sticky", right: 0, background: "#f8fafc", zIndex: 3 }}>Total Hrs</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {listenerNames.map((name, ri) => {
+                          const days = pivot[name];
+                          const totalH = Object.values(days).reduce((s, v) => s + v.h, 0);
+                          return (
+                            <tr key={name} style={{ background: ri % 2 === 0 ? "#fff" : "#fafafa" }}>
+                              <td style={{ padding: "5px 12px", fontWeight: 600, color: "#334155", borderBottom: "1px solid #f1f5f9", position: "sticky", left: 0, background: ri % 2 === 0 ? "#fff" : "#fafafa", zIndex: 1 }}>
+                                {name}
+                              </td>
+                              {dates.map(d => {
+                                const cell = days[d];
+                                const hrs = cell ? cell.h : 0;
+                                const c = sessionCellColor(hrs);
+                                return (
+                                  <td key={d} title={cell ? `${cell.h}h (${cell.m} min, ${cell.s} sessions)` : "No sessions"}
+                                    style={{ padding: "4px 3px", textAlign: "center", borderBottom: "1px solid #f1f5f9", background: c.bg }}>
+                                    {hrs > 0 ? (
+                                      <span style={{ display: "inline-block", color: c.color, fontWeight: 700, fontSize: "10px", padding: "2px 4px", borderRadius: "4px" }}>
+                                        {hrs.toFixed(1)}h
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: "#e2e8f0", fontSize: "10px" }}>—</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                              <td style={{ padding: "5px 8px", textAlign: "center", fontWeight: 700, color: "#1d4ed8", borderBottom: "1px solid #f1f5f9", position: "sticky", right: 0, background: ri % 2 === 0 ? "#fff" : "#fafafa" }}>
+                                {totalH.toFixed(1)}h
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
+          {/* ── PAYROLL TRACKER — Online Availability (penalty-based, 3h toggle rule) ── */}
+          {(() => {
+            const filteredOnline = listenerDailyOnlineHours.filter(r => r.day >= payrollFrom && r.day <= payrollTo);
+
+            const dateSet = new Set(filteredOnline.map(r => r.day));
+            const dates = Array.from(dateSet).sort();
+
+            const pivot = {};
+            filteredOnline.forEach(r => {
+              if (!pivot[r.name]) pivot[r.name] = {};
+              pivot[r.name][r.day] = { h: r.totalHours, m: r.totalMins };
+            });
+
+            const listenerNames = Object.keys(pivot).sort((a, b) => {
+              const sumA = Object.values(pivot[a]).reduce((s, v) => s + v.h, 0);
+              const sumB = Object.values(pivot[b]).reduce((s, v) => s + v.h, 0);
+              return sumB - sumA;
+            });
+
             const deductionRows = listenerNames.map(name => {
               const days = pivot[name];
               let workingDays = 0, underDays = 0, totalHours = 0;
@@ -1227,34 +1338,20 @@ export default function BusinessInsights() {
 
             return (
               <>
-                {/* Header + controls */}
                 <div className="bi-section-header mb-2" style={{ marginTop: "2rem", display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "0.75rem" }}>
                   <div>
-                    <h5 className="bi-section-title">Payroll Tracker — Daily Listener Hours</h5>
+                    <h5 className="bi-section-title">Payroll Tracker — Online Availability Hours</h5>
                     <p className="bi-section-subtitle" style={{ marginTop: "0.2rem", paddingLeft: "1.1rem" }}>
-                      25→25 salary cycle · Days under {minWorkHours}h threshold are flagged for deduction
+                      25→25 salary cycle · Time toggle was ON · Days under {minWorkHours}h are flagged for deduction
                     </p>
                   </div>
-                  <div style={{ display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Cycle From</span>
-                      <input type="date" value={payrollFrom} onChange={e => setPayrollFrom(e.target.value)}
-                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff" }} />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Cycle To</span>
-                      <input type="date" value={payrollTo} onChange={e => setPayrollTo(e.target.value)}
-                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff" }} />
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-                      <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Min Hours/Day</span>
-                      <input type="number" min={1} max={12} value={minWorkHours} onChange={e => setMinWorkHours(Number(e.target.value))}
-                        style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff", width: "64px" }} />
-                    </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                    <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase" }}>Min Hours/Day</span>
+                    <input type="number" min={1} max={12} value={minWorkHours} onChange={e => setMinWorkHours(Number(e.target.value))}
+                      style={{ border: "1px solid #e2e8f0", borderRadius: "6px", padding: "4px 8px", fontSize: "12px", color: "#334155", background: "#fff", width: "64px" }} />
                   </div>
                 </div>
 
-                {/* Legend */}
                 <div style={{ display: "flex", gap: "1rem", marginBottom: "0.75rem", fontSize: "11px", flexWrap: "wrap" }}>
                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f0fdf4", border: "1px solid #15803d" }}></span><span style={{ color: "#15803d" }}>≥ {minWorkHours}h (good)</span></span>
                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#fffbeb", border: "1px solid #d97706" }}></span><span style={{ color: "#d97706" }}>{minWorkHours}–{minWorkHours + 1}h (borderline)</span></span>
@@ -1262,13 +1359,12 @@ export default function BusinessInsights() {
                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}><span style={{ display: "inline-block", width: 12, height: 12, borderRadius: 3, background: "#f8fafc", border: "1px solid #cbd5e1" }}></span><span style={{ color: "#94a3b8" }}>Absent</span></span>
                 </div>
 
-                {filtered.length === 0 ? (
+                {filteredOnline.length === 0 ? (
                   <div className="bi-table-card mb-4" style={{ padding: "1.5rem", color: "#94a3b8", textAlign: "center" }}>
-                    No session data for this payroll range. Make sure the main date range above covers this period.
+                    No availability data for this range. Toggle activity logs may not go back this far.
                   </div>
                 ) : (
                   <>
-                    {/* Pivot heatmap table */}
                     <div className="bi-table-card mb-4" style={{ overflowX: "auto", maxHeight: "520px", overflowY: "auto" }}>
                       <table style={{ borderCollapse: "collapse", fontSize: "11px", minWidth: "max-content", width: "100%" }}>
                         <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "#f8fafc" }}>
@@ -1297,11 +1393,11 @@ export default function BusinessInsights() {
                                   const hrs = cell ? cell.h : 0;
                                   const c = cellColor(hrs);
                                   return (
-                                    <td key={d} title={cell ? `${cell.h}h (${cell.m} min, ${cell.s} sessions)` : "Absent"}
+                                    <td key={d} title={cell ? `Online ${cell.h}h (${cell.m} min)` : "Absent / toggle never on"}
                                       style={{ padding: "4px 3px", textAlign: "center", borderBottom: "1px solid #f1f5f9", background: c.bg }}>
                                       {hrs > 0 ? (
                                         <span style={{ display: "inline-block", color: c.color, fontWeight: 700, fontSize: "10px", padding: "2px 4px", borderRadius: "4px" }}>
-                                          {hrs >= 10 ? hrs.toFixed(1) : hrs.toFixed(1)}h
+                                          {hrs.toFixed(1)}h
                                         </span>
                                       ) : (
                                         <span style={{ color: "#e2e8f0", fontSize: "10px" }}>—</span>
@@ -1319,18 +1415,18 @@ export default function BusinessInsights() {
                       </table>
                     </div>
 
-                    {/* Deduction Summary table */}
-                    <SectionHeader title="Deduction Summary" subtitle={`Listeners with days below ${minWorkHours}h threshold in ${payrollFrom} → ${payrollTo}`} />
+                    {/* Deduction Summary */}
+                    <SectionHeader title="Penalty / Deduction Summary" subtitle={`Listeners with online time below ${minWorkHours}h/day in ${payrollFrom} → ${payrollTo}`} />
                     <div className="bi-table-card mb-4" style={{ overflowX: "auto" }}>
                       <table className="bi-table">
                         <thead>
                           <tr>
                             <th>#</th>
                             <th>Listener</th>
-                            <th>Working Days</th>
+                            <th>Days Online</th>
                             <th>Absent Days</th>
                             <th style={{ color: "#e11d48" }}>Days &lt; {minWorkHours}h</th>
-                            <th>Total Hours</th>
+                            <th>Total Online Hrs</th>
                             <th>Avg Hrs/Day</th>
                             <th>Status</th>
                           </tr>
@@ -1351,7 +1447,7 @@ export default function BusinessInsights() {
                               <td>{r.workingDays > 0 ? (r.totalHours / r.workingDays).toFixed(1) : "—"} hrs</td>
                               <td>
                                 {r.underDays === 0 && r.absentDays === 0
-                                  ? <span style={{ color: "#15803d", fontWeight: 600 }}>✓ Full month</span>
+                                  ? <span style={{ color: "#15803d", fontWeight: 600 }}>✓ Full cycle</span>
                                   : r.underDays > 5 || r.absentDays > 5
                                   ? <span style={{ color: "#e11d48", fontWeight: 600 }}>⚠ Deduct salary</span>
                                   : <span style={{ color: "#d97706", fontWeight: 600 }}>⚡ Review</span>}
@@ -1359,7 +1455,7 @@ export default function BusinessInsights() {
                             </tr>
                           ))}
                           {deductionRows.filter(r => r.underDays > 0 || r.absentDays > 0).length === 0 && (
-                            <tr><td colSpan={8} style={{ textAlign: "center", color: "#15803d", padding: "1rem", fontWeight: 600 }}>✓ All listeners met the {minWorkHours}h/day target this cycle</td></tr>
+                            <tr><td colSpan={8} style={{ textAlign: "center", color: "#15803d", padding: "1rem", fontWeight: 600 }}>✓ All listeners were online ≥ {minWorkHours}h/day this cycle</td></tr>
                           )}
                         </tbody>
                         <tfoot>
