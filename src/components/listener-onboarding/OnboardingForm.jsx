@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./onboardingForm.scss";
 
-const API_BASE = process.env.REACT_APP_SERVER_URL || "";
+const API_BASE = (process.env.REACT_APP_SERVER_URL || "").replace(/\/?$/, "/");
 
 function OnboardingForm() {
   const token = window.location.pathname.split("/onboarding/")[1];
