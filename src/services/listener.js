@@ -52,6 +52,20 @@ export const listenerApi = createApi({
       }),
     }),
 
+    sendOnboardingForm1: builder.mutation({
+      query: (userId) => ({
+        url: `listener/send-onboarding-form-1`,
+        method: "POST",
+        body: { id: userId },
+      }),
+    }),
+    sendOnboardingForm2: builder.mutation({
+      query: (userId) => ({
+        url: `listener/send-onboarding-form-2`,
+        method: "POST",
+        body: { id: userId },
+      }),
+    }),
     rejectRequest: builder.mutation({
       query: ({ userId, reason, text }) => ({
         url: `listener/reject-request`,
@@ -163,6 +177,8 @@ export const {
   useProfileApprovalsQuery,
   useApplicationsQuery,
   useListenerProfileFormLinkMutation,
+  useSendOnboardingForm1Mutation,
+  useSendOnboardingForm2Mutation,
   useRejectRequestMutation,
   useListenerProfileApprovalMutation,
   useListenerProfileQuery,

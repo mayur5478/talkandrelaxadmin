@@ -269,6 +269,25 @@
               }
             }
           }
+          .form-btn {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            white-space: nowrap;
+            &:disabled { opacity: 0.6; cursor: not-allowed; }
+          }
+          .form-btn-1 {
+            background-color: #4CAF50;
+            color: #fff;
+          }
+          .form-btn-2 {
+            background-color: #2196F3;
+            color: #fff;
+          }
+
           @media (max-width: 1199px) {
             .pagination{
               min-width: 2000px;

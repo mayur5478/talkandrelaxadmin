@@ -13,8 +13,9 @@ import "./applicationRequests.scss";
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import {
   useApplicationsQuery,
-  useListenerProfileFormLinkMutation,
-} from "../../../services/listener"; // Import your API hook
+  useSendOnboardingForm1Mutation,
+  useSendOnboardingForm2Mutation,
+} from "../../../services/listener";
 import moment from "moment";
 import LinkShare from "../../common/link-share/LinkShare";
 import RejectionModal from "../reject-request-modal/RejectionModal";
@@ -28,12 +29,11 @@ function ApplicationRequests() {
   const [searchParams, setSearchParams] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [pendingFormStep, setPendingFormStep] = useState(null);
   const [userName, setUserName] = useState(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
-  const [
-    sendFormLink,
-    { data: mutationData, error: mutationError, isLoading: isMutationLoading },
-  ] = useListenerProfileFormLinkMutation();
+  const [sendOnboardingForm1, { isLoading: isSendingForm1 }] = useSendOnboardingForm1Mutation();
+  const [sendOnboardingForm2, { isLoading: isSendingForm2 }] = useSendOnboardingForm2Mutation();
   // Call your API hook
   const { data, isLoading, isError, refetch } = useApplicationsQuery({
     page,
@@ -67,21 +67,27 @@ function ApplicationRequests() {
   };
 
   const handleView = () => {};
-  const handleSendFormLink = (userId, userName) => {
+  const handleSendFormLink = (userId, userNameVal, formStep) => {
     setSelectedUser(userId);
+    setUserName(userNameVal);
+    setPendingFormStep(formStep);
     setShowLinkModal(true);
-    setUserName(userName);
   };
   const confirmSendFormLink = async () => {
     try {
-      await sendFormLink(selectedUser).unwrap();
+      if (pendingFormStep === 1) {
+        await sendOnboardingForm1(selectedUser).unwrap();
+      } else {
+        await sendOnboardingForm2(selectedUser).unwrap();
+      }
       refetch();
     } catch (err) {
-      console.error("Error toggling account freeze:", err);
+      console.error("Error sending onboarding form link:", err);
     } finally {
       setSelectedUser(null);
       setShowLinkModal(false);
       setUserName(null);
+      setPendingFormStep(null);
     }
   };
   const haldleReject = async (userId) => {
@@ -196,13 +202,26 @@ function ApplicationRequests() {
               </div>
               <div>
                 <div className="actions">
-                  <img
-                    onClick={() =>
-                      handleSendFormLink(request?.id, request.fullName)
-                    }
-                    src={right}
-                    alt={right}
-                  />{" "}
+                  {request?.listener_request_status === "confirmation request" ? (
+                    <button
+                      className="form-btn form-btn-2"
+                      title="Send Form 2 (Profile & Documents)"
+                      disabled={isSendingForm2}
+                      onClick={() => handleSendFormLink(request?.id, request.fullName, 2)}
+                    >
+                      Send Form 2
+                    </button>
+                  ) : request?.listener_request_status !== "documents in review" &&
+                    request?.listener_request_status !== "profile in process" ? (
+                    <button
+                      className="form-btn form-btn-1"
+                      title="Send Form 1 (Application)"
+                      disabled={isSendingForm1}
+                      onClick={() => handleSendFormLink(request?.id, request.fullName, 1)}
+                    >
+                      Send Form 1
+                    </button>
+                  ) : null}
                   <img
                     onClick={() => haldleReject(request?.id)}
                     src={cancel}
@@ -276,7 +295,8 @@ function ApplicationRequests() {
         onConfirm={confirmSendFormLink}
         userId={selectedUser}
         userName={userName}
-        isMutationLoading={isMutationLoading}
+        formStep={pendingFormStep}
+        isMutationLoading={isSendingForm1 || isSendingForm2}
       />
     </div>
   );

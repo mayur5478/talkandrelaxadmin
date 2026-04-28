@@ -5,6 +5,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 
 const Login = lazy(() => import("./components/login/Login"));
 const Main  = lazy(() => import("./components/main/Main"));
+const OnboardingForm = lazy(() => import("./components/listener-onboarding/OnboardingForm"));
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
           <Routes>
             <Route>
               <Route path="/" element={<Login />} />
+              {/* Public route — no auth required, token validates access */}
+              <Route path="/onboarding/:token" element={<OnboardingForm />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard/*" element={<Main />} />
               </Route>
