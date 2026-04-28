@@ -72,11 +72,19 @@ function OnboardingForm() {
       [key]: p[key].includes(val) ? p[key].filter((x) => x !== val) : [...p[key], val],
     }));
 
+  const MAX_FILE_MB = 15;
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    if (name === "resume") setResume(files[0]);
-    else if (name === "audioFile") setAudioFile(files[0]);
-    else setF2Files((p) => ({ ...p, [name]: files[0] }));
+    const file = files[0];
+    if (file && file.size > MAX_FILE_MB * 1024 * 1024) {
+      setSubmitError(`"${file.name}" is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum allowed size is ${MAX_FILE_MB} MB. Please compress the image and try again.`);
+      e.target.value = "";
+      return;
+    }
+    setSubmitError("");
+    if (name === "resume") setResume(file);
+    else if (name === "audioFile") setAudioFile(file);
+    else setF2Files((p) => ({ ...p, [name]: file }));
   };
 
   const submitForm1 = async (e) => {

@@ -202,17 +202,19 @@ function ApplicationRequests() {
               </div>
               <div>
                 <div className="actions">
-                  {request?.listener_request_status === "confirmation request" ? (
+                  {request?.listener_request_status === "confirmation request" ||
+                   request?.listener_request_status === "profile in process" ? (
                     <button
                       className="form-btn form-btn-2"
                       title="Send Form 2 (Profile & Documents)"
                       disabled={isSendingForm2}
                       onClick={() => handleSendFormLink(request?.id, request.fullName, 2)}
                     >
-                      Send Form 2
+                      {request?.listener_request_status === "profile in process"
+                        ? "Resend Form 2"
+                        : "Send Form 2"}
                     </button>
-                  ) : request?.listener_request_status !== "documents in review" &&
-                    request?.listener_request_status !== "profile in process" ? (
+                  ) : request?.listener_request_status !== "documents in review" ? (
                     <button
                       className="form-btn form-btn-1"
                       title="Send Form 1 (Application)"
