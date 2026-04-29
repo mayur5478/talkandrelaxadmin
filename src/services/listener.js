@@ -168,6 +168,13 @@ export const listenerApi = createApi({
         body: data,
       }),
     }),
+    bulkUpdateCharges: builder.mutation({
+      query: (charges) => ({
+        url: "listener/bulk-update-charges",
+        method: "POST",
+        body: charges,
+      }),
+    }),
   }),
 });
 
@@ -193,5 +200,6 @@ export const {
   useGetSinglePayoutQuery,
   usePaySalaryUserMutation,
   usePaySalaryMutation,
-  useCreateSessionMutation
+  useCreateSessionMutation,
+  useBulkUpdateChargesMutation,
 } = listenerApi;

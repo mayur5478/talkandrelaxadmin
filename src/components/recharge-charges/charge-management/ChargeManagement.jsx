@@ -10,6 +10,7 @@ import backIcon from "../../assets/back.png";
 import forwardIcon from "../../assets/forward.png";
 import backwardIcon from "../../assets/backward.png";
 import { useChargesListQuery, useEditChargesMutation } from "../../../services/recharge";
+import { useBulkUpdateChargesMutation } from "../../../services/listener";
 import EditCharge from "../../common/edit-charge/EditCharge";
 
 function ChargeManagement() {
@@ -44,8 +45,44 @@ function ChargeManagement() {
     setSearchTerm(event.target.value);
     setPage(1); // Reset to first page on search
   };
-  const [editMutation, { isLoading: isEditLoading }] =
-    useEditChargesMutation();
+  const [editMutation, { isLoading: isEditLoading }] = useEditChargesMutation();
+  const [bulkUpdateCharges, { isLoading: isBulkUpdating }] = useBulkUpdateChargesMutation();
+
+  // Bulk rate reset state
+  const [bulkVoice, setBulkVoice] = useState("");
+  const [bulkChat, setBulkChat] = useState("");
+  const [bulkVideo, setBulkVideo] = useState("");
+  const [bulkMsg, setBulkMsg] = useState(null);
+
+  const handleBulkReset = async () => {
+    const fields = {};
+    if (bulkVoice !== "") fields.voice_charge = bulkVoice;
+    if (bulkChat !== "") fields.chat_charge = bulkChat;
+    if (bulkVideo !== "") fields.video_charge = bulkVideo;
+
+    if (Object.keys(fields).length === 0) {
+      setBulkMsg({ type: "error", text: "Enter at least one rate to update." });
+      return;
+    }
+
+    const labels = [];
+    if (fields.voice_charge !== undefined) labels.push(`Voice: ₹${fields.voice_charge}`);
+    if (fields.chat_charge !== undefined) labels.push(`Chat: ₹${fields.chat_charge}`);
+    if (fields.video_charge !== undefined) labels.push(`Video: ₹${fields.video_charge}`);
+
+    if (!window.confirm(`Apply to ALL listeners?\n${labels.join(", ")} per min`)) return;
+
+    try {
+      const res = await bulkUpdateCharges(fields).unwrap();
+      setBulkMsg({ type: "success", text: res.message || "Bulk update successful." });
+      setBulkVoice("");
+      setBulkChat("");
+      setBulkVideo("");
+      refetch();
+    } catch (err) {
+      setBulkMsg({ type: "error", text: err?.data?.message || "Bulk update failed." });
+    }
+  };
 
   const [showEdit, setShowEdit] = useState(false);
     const [value, setValue] = useState({});
@@ -73,6 +110,56 @@ function ChargeManagement() {
 
   return (
     <div className="gift-management-main">
+      {/* Bulk Rate Reset Panel */}
+      <div className="bulk-reset-panel">
+        <h5 className="bulk-reset-title">Bulk Rate Reset</h5>
+        <div className="bulk-reset-fields">
+          <div className="bulk-reset-field">
+            <label>Voice Call (₹/min)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              placeholder="e.g. 6"
+              value={bulkVoice}
+              onChange={(e) => { setBulkVoice(e.target.value); setBulkMsg(null); }}
+            />
+          </div>
+          <div className="bulk-reset-field">
+            <label>Chat (₹/min)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              placeholder="e.g. 6"
+              value={bulkChat}
+              onChange={(e) => { setBulkChat(e.target.value); setBulkMsg(null); }}
+            />
+          </div>
+          <div className="bulk-reset-field">
+            <label>Video Call (₹/min)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.5"
+              placeholder="e.g. 16"
+              value={bulkVideo}
+              onChange={(e) => { setBulkVideo(e.target.value); setBulkMsg(null); }}
+            />
+          </div>
+          <button
+            className="bulk-reset-btn"
+            onClick={handleBulkReset}
+            disabled={isBulkUpdating}
+          >
+            {isBulkUpdating ? "Updating..." : "Apply to All Listeners"}
+          </button>
+        </div>
+        {bulkMsg && (
+          <p className={`bulk-reset-msg bulk-reset-msg--${bulkMsg.type}`}>{bulkMsg.text}</p>
+        )}
+      </div>
+
       <div className="top-section">
         <div className="left-section">
           <div className="search-bar">
