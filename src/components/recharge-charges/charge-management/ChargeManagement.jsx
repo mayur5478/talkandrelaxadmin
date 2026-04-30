@@ -120,7 +120,7 @@ function ChargeManagement() {
               type="number"
               min="0"
               step="0.5"
-              placeholder="e.g. 6"
+              placeholder="e.g. 8"
               value={bulkVoice}
               onChange={(e) => { setBulkVoice(e.target.value); setBulkMsg(null); }}
             />
@@ -131,7 +131,7 @@ function ChargeManagement() {
               type="number"
               min="0"
               step="0.5"
-              placeholder="e.g. 6"
+              placeholder="e.g. 8"
               value={bulkChat}
               onChange={(e) => { setBulkChat(e.target.value); setBulkMsg(null); }}
             />

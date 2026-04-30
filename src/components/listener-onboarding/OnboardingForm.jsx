@@ -256,15 +256,31 @@ function OnboardingForm() {
               <div className="form-section">
                 <h4>Documents</h4>
                 <div className="form-row">
-                  <div className="form-group">
+                  <div className="form-group file-upload-group">
                     <label>Resume / CV * <span className="hint">(PDF, DOC — max 10MB)</span></label>
-                    <input type="file" name="resume" onChange={handleFileChange} accept=".pdf,.doc,.docx" required />
-                    {resume && <span className="file-name">✓ {resume.name}</span>}
+                    <div className="file-upload-box">
+                      <input type="file" name="resume" id="resume" onChange={handleFileChange} accept=".pdf,.doc,.docx" required />
+                      <label htmlFor="resume" className="file-upload-label">
+                        {resume ? (
+                          <span className="file-chosen">✓ {resume.name}</span>
+                        ) : (
+                          <span className="file-placeholder">Click to upload</span>
+                        )}
+                      </label>
+                    </div>
                   </div>
-                  <div className="form-group">
+                  <div className="form-group file-upload-group">
                     <label>Audio Introduction <span className="hint">(MP3, WAV, WEBM — optional)</span></label>
-                    <input type="file" name="audioFile" onChange={handleFileChange} accept="audio/*" />
-                    {audioFile && <span className="file-name">✓ {audioFile.name}</span>}
+                    <div className="file-upload-box">
+                      <input type="file" name="audioFile" id="audioFile" onChange={handleFileChange} accept="audio/*" />
+                      <label htmlFor="audioFile" className="file-upload-label">
+                        {audioFile ? (
+                          <span className="file-chosen">✓ {audioFile.name}</span>
+                        ) : (
+                          <span className="file-placeholder">Click to upload</span>
+                        )}
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
