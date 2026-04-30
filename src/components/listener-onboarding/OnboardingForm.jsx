@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import "./onboardingForm.scss";
 
 const API_BASE = (process.env.REACT_APP_SERVER_URL || "").replace(/\/?$/, "/");
+const MAX_RECORD_SECONDS = 60;
 
 function OnboardingForm() {
   const token = window.location.pathname.split("/onboarding/")[1];
@@ -20,6 +21,62 @@ function OnboardingForm() {
   });
   const [resume, setResume] = useState(null);
   const [audioFile, setAudioFile] = useState(null);
+
+  // Live recording state
+  const [recording, setRecording] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const [audioURL, setAudioURL] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const chunksRef = useRef([]);
+  const timerRef = useRef(null);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      chunksRef.current = [];
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        const file = new File([blob], `intro-${Date.now()}.webm`, { type: "audio/webm" });
+        setAudioFile(file);
+        setAudioURL(URL.createObjectURL(blob));
+        stream.getTracks().forEach((t) => t.stop());
+      };
+      recorder.start();
+      mediaRecorderRef.current = recorder;
+      setRecording(true);
+      setRecordSeconds(0);
+      setAudioURL(null);
+      setAudioFile(null);
+
+      timerRef.current = setInterval(() => {
+        setRecordSeconds((s) => {
+          if (s + 1 >= MAX_RECORD_SECONDS) {
+            stopRecording();
+            return MAX_RECORD_SECONDS;
+          }
+          return s + 1;
+        });
+      }, 1000);
+    } catch {
+      setSubmitError("Microphone access denied. Please allow microphone permission and try again.");
+    }
+  };
+
+  const stopRecording = () => {
+    clearInterval(timerRef.current);
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    setRecording(false);
+  };
+
+  const discardRecording = () => {
+    setAudioFile(null);
+    setAudioURL(null);
+    setRecordSeconds(0);
+  };
 
   // Form 2 state
   const [f2, setF2] = useState({
@@ -270,16 +327,43 @@ function OnboardingForm() {
                     </div>
                   </div>
                   <div className="form-group file-upload-group">
-                    <label>Audio Introduction <span className="hint">(MP3, WAV, WEBM — optional)</span></label>
-                    <div className="file-upload-box">
-                      <input type="file" name="audioFile" id="audioFile" onChange={handleFileChange} accept="audio/*" />
-                      <label htmlFor="audioFile" className="file-upload-label">
-                        {audioFile ? (
-                          <span className="file-chosen">✓ {audioFile.name}</span>
-                        ) : (
-                          <span className="file-placeholder">Click to upload</span>
+                    <label>Tell Us Something About Yourself <span className="hint">(optional — upload or record up to 1 min)</span></label>
+                    <div className="audio-intro-box">
+                      {/* Upload option */}
+                      <div className="file-upload-box">
+                        <input type="file" name="audioFile" id="audioFile" onChange={handleFileChange} accept="audio/*" />
+                        <label htmlFor="audioFile" className="file-upload-label audio-upload-label">
+                          {audioFile && !audioURL ? (
+                            <span className="file-chosen">✓ {audioFile.name}</span>
+                          ) : (
+                            <span className="file-placeholder">📁 Upload audio</span>
+                          )}
+                        </label>
+                      </div>
+
+                      <span className="audio-or">or</span>
+
+                      {/* Live record option */}
+                      <div className="audio-record-section">
+                        {!recording && !audioURL && (
+                          <button type="button" className="record-btn" onClick={startRecording}>
+                            🎙 Record
+                          </button>
                         )}
-                      </label>
+                        {recording && (
+                          <div className="recording-active">
+                            <span className="rec-dot" />
+                            <span className="rec-timer">{MAX_RECORD_SECONDS - recordSeconds}s left</span>
+                            <button type="button" className="stop-btn" onClick={stopRecording}>⏹ Stop</button>
+                          </div>
+                        )}
+                        {audioURL && (
+                          <div className="recorded-preview">
+                            <audio controls src={audioURL} className="audio-player" />
+                            <button type="button" className="discard-btn" onClick={discardRecording}>✕ Discard</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
