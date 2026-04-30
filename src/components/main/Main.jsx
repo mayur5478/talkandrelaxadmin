@@ -27,6 +27,7 @@ const Gst                 = lazy(() => import("../payment-management/gst-list/Gs
 const CommisionLiat       = lazy(() => import("../payment-management/commision-list/CommisionLiat"));
 const RevenueInfo         = lazy(() => import("../payment-management/revenue-info/RevenueInfo"));
 const ManualRecharges     = lazy(() => import("../payment-management/manual-recharges/ManualRecharges"));
+const WalletLedger        = lazy(() => import("../payment-management/wallet-ledger/WalletLedger"));
 const Recharge            = lazy(() => import("../recharge-charges/recharge-plans/Recharge"));
 const GiftManagement      = lazy(() => import("../recharge-charges/gift-management/GiftManagement"));
 const CoupenManagement    = lazy(() => import("../recharge-charges/coupen-management/CoupenManagement"));
@@ -87,6 +88,7 @@ const Main = () => {
           <Route path="/payment-management/commission-list" element={<CommisionLiat />} />
           <Route path="/payment-management/revenue-info" element={<RevenueInfo />} />
           <Route path="/payment-management/manual-recharges" element={<ManualRecharges />} />
+          <Route path="/payment-management/wallet-ledger" element={<WalletLedger />} />
           <Route path="/recharge-charges/plans" element={<Recharge />} />
           <Route path="/recharge-charges/gift-manage" element={<GiftManagement />} />
           <Route path="/recharge-charges/coupen-manage" element={<CoupenManagement />} />

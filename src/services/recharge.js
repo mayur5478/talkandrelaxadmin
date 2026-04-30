@@ -158,6 +158,13 @@ export const rechargeApi = createApi({
       }),
       providesTags: ["recharge"],
     }),
+    getWalletLedger: builder.query({
+      query: ({ page = 1, pageSize = 20, owner_id, wallet_type, tx_type, fromDate, toDate } = {}) => ({
+        url: `/admin/wallet-ledger`,
+        method: "GET",
+        params: { page, pageSize, owner_id, wallet_type, tx_type, fromDate, toDate },
+      }),
+    }),
   }),
 });
 
@@ -182,4 +189,5 @@ export const {
   useListenerManualRefundMutation,
   useGetManualAdjustmentsQuery,
   useGetCoupenUsersQuery,
+  useGetWalletLedgerQuery,
 } = rechargeApi;

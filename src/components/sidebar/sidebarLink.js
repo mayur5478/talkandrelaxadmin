@@ -98,6 +98,11 @@ export const links = [
         path: "/dashboard/payment-management/manual-recharges",
         icon: dropdown,
       },
+      {
+        title: "Wallet Ledger",
+        path: "/dashboard/payment-management/wallet-ledger",
+        icon: dropdown,
+      },
     ],
   },
   {
