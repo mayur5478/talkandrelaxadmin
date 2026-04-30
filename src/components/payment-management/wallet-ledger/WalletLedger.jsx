@@ -79,8 +79,10 @@ function WalletLedger() {
     <div className="payment-main px-4 py-4">
       <div className="welcome-banner mb-4 p-4 rounded-4 bg-white shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center">
         <div>
-          <h3 className="fw-bold mb-1">Wallet Ledger</h3>
-          <p className="text-muted mb-0">
+          <h3 className="fw-bold mb-1" style={{ fontSize: "22px" }}>
+            📒 Wallet Ledger
+          </h3>
+          <p className="text-muted mb-0" style={{ fontSize: "13px" }}>
             Immutable audit trail of every wallet credit and debit.
           </p>
         </div>
@@ -97,56 +99,79 @@ function WalletLedger() {
       </div>
 
       <div className="modern-card p-0 overflow-auto shadow-sm">
-        <div className="px-4 pt-3 border-bottom bg-light">
-          <div className="d-flex flex-wrap gap-3 align-items-center mb-3">
+        <div className="px-4 py-3 border-bottom" style={{ background: "#f8f9fa" }}>
+          <div className="d-flex flex-wrap gap-2 align-items-center">
+            {/* Owner ID search */}
             <div
-              className="search-bar border rounded-3 px-3 py-1 bg-white d-flex align-items-center"
-              style={{ minWidth: "260px" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                background: "#fff",
+                border: "1px solid #dee2e6",
+                borderRadius: "8px",
+                padding: "4px 10px",
+                minWidth: "260px",
+                gap: "6px",
+              }}
             >
+              <span style={{ color: "#adb5bd", fontSize: "14px" }}>🔍</span>
               <input
                 type="text"
-                className="border-0 bg-transparent w-100 py-1"
-                placeholder="Search by owner ID..."
+                style={{ border: "none", outline: "none", fontSize: "13px", width: "100%", background: "transparent" }}
+                placeholder="Search by owner ID…"
                 value={ownerId}
                 onChange={(e) => setOwnerId(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                style={{ outline: "none", fontSize: "14px" }}
               />
-              <Button
-                size="sm"
-                variant="primary"
-                className="ms-2 px-3"
-                onClick={handleSearch}
-              >
+              {ownerId && (
+                <button
+                  onClick={() => { setOwnerId(""); setAppliedOwnerId(""); }}
+                  style={{ background: "none", border: "none", color: "#adb5bd", cursor: "pointer", padding: "0 2px", fontSize: "14px", lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              )}
+              <Button size="sm" variant="primary" style={{ borderRadius: "6px", padding: "2px 12px", fontSize: "12px" }} onClick={handleSearch}>
                 Go
               </Button>
             </div>
 
+            {/* Wallet type */}
             <Form.Select
               size="sm"
-              style={{ maxWidth: "160px" }}
+              style={{ maxWidth: "150px", borderRadius: "8px", fontSize: "13px", border: "1px solid #dee2e6" }}
               value={walletType}
               onChange={(e) => setWalletType(e.target.value)}
             >
               {WALLET_TYPES.map((w) => (
-                <option key={w.value} value={w.value}>
-                  {w.label}
-                </option>
+                <option key={w.value} value={w.value}>{w.label}</option>
               ))}
             </Form.Select>
 
+            {/* TX type */}
             <Form.Select
               size="sm"
-              style={{ maxWidth: "220px" }}
+              style={{ maxWidth: "210px", borderRadius: "8px", fontSize: "13px", border: "1px solid #dee2e6" }}
               value={txType}
               onChange={(e) => setTxType(e.target.value)}
             >
               {TX_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>
-                  {t.label}
-                </option>
+                <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </Form.Select>
+
+            {/* Active filter chips */}
+            {(appliedOwnerId || walletType || txType) && (
+              <button
+                onClick={() => { setOwnerId(""); setAppliedOwnerId(""); setWalletType(""); setTxType(""); }}
+                style={{
+                  background: "#fff3cd", border: "1px solid #ffc107", color: "#856404",
+                  borderRadius: "20px", fontSize: "12px", padding: "3px 12px", cursor: "pointer",
+                }}
+              >
+                Clear filters ×
+              </button>
+            )}
           </div>
         </div>
 
