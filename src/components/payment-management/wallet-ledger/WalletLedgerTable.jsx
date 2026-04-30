@@ -4,28 +4,21 @@ import { useGetWalletLedgerQuery } from "../../../services/recharge";
 import { useUserProfileQuery } from "../../../services/user";
 import { useListenerProfileQuery } from "../../../services/listener";
 
-const TX_COLOR = {
-  session_debit: "#dc3545",
-  recharge: "#198754",
-  admin_credit: "#198754",
-  admin_debit: "#dc3545",
-  session_listener_credit: "#0dcaf0",
-  session_admin_credit: "#0d6efd",
+const TX_META = {
+  session_debit:          { label: "Session Debit",     color: "#e53e3e", bg: "#fff5f5", solid: "#ffe5e5" },
+  recharge:               { label: "Recharge",          color: "#2f855a", bg: "#f0fff4", solid: "#c6f6d5" },
+  admin_credit:           { label: "Admin Credit",      color: "#6b46c1", bg: "#faf5ff", solid: "#e9d8fd" },
+  admin_debit:            { label: "Admin Debit",       color: "#c05621", bg: "#fffaf0", solid: "#feebc8" },
+  session_listener_credit:{ label: "Listener Credit",   color: "#0987a0", bg: "#e6fffa", solid: "#b2f5ea" },
+  session_admin_credit:   { label: "Platform Credit",   color: "#2b6cb0", bg: "#ebf8ff", solid: "#bee3f8" },
 };
 
-const TX_BG = {
-  session_debit: "#fff5f5",
-  recharge: "#f0fff4",
-  admin_credit: "#f0fff4",
-  admin_debit: "#fff5f5",
-  session_listener_credit: "#f0fbff",
-  session_admin_credit: "#f0f5ff",
-};
+const TX_BG = Object.fromEntries(Object.entries(TX_META).map(([k, v]) => [k, v.bg]));
 
 const WALLET_BADGE = {
-  user: { bg: "#6c757d", label: "User" },
-  listener: { bg: "#0dcaf0", label: "Listener" },
-  admin: { bg: "#212529", label: "Admin" },
+  user:     { bg: "#4a5568", icon: "👤", label: "User" },
+  listener: { bg: "#0987a0", icon: "🎧", label: "Listener" },
+  admin:    { bg: "#553c9a", icon: "👑", label: "Admin" },
 };
 
 function CopyCell({ value, display }) {
@@ -169,8 +162,9 @@ const WalletLedgerTable = ({ ownerId, walletType, txType, fromDate, toDate, setE
               rows.map((item, idx) => {
                 const isDebit = item.tx_type?.includes("debit");
                 const rowBg = idx % 2 === 0 ? "#ffffff" : "#fafafa";
-                const accentColor = TX_COLOR[item.tx_type] || "#6c757d";
-                const wallet = WALLET_BADGE[item.wallet_type] || { bg: "#6c757d", label: item.wallet_type };
+                const txMeta = TX_META[item.tx_type] || { label: item.tx_type?.replace(/_/g, " "), color: "#6c757d", bg: "#f8f9fa", solid: "#e9ecef" };
+                const accentColor = txMeta.color;
+                const wallet = WALLET_BADGE[item.wallet_type] || { bg: "#6c757d", icon: "•", label: item.wallet_type };
 
                 return (
                   <tr
@@ -189,32 +183,38 @@ const WalletLedgerTable = ({ ownerId, walletType, txType, fromDate, toDate, setE
                     <td style={{ padding: "10px 14px" }}>
                       <span
                         style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
                           background: wallet.bg,
                           color: "#fff",
-                          fontSize: "10px",
+                          fontSize: "11px",
                           fontWeight: 600,
-                          padding: "2px 8px",
+                          padding: "3px 10px 3px 7px",
                           borderRadius: "20px",
-                          textTransform: "capitalize",
-                          letterSpacing: "0.3px",
+                          letterSpacing: "0.2px",
+                          whiteSpace: "nowrap",
                         }}
                       >
+                        <span style={{ fontSize: "12px" }}>{wallet.icon}</span>
                         {wallet.label}
                       </span>
                     </td>
                     <td style={{ padding: "10px 14px" }}>
                       <span
                         style={{
-                          background: accentColor + "22",
-                          color: accentColor,
+                          display: "inline-block",
+                          background: txMeta.solid,
+                          color: txMeta.color,
                           fontSize: "11px",
-                          fontWeight: 600,
-                          padding: "3px 9px",
-                          borderRadius: "20px",
+                          fontWeight: 700,
+                          padding: "3px 10px",
+                          borderRadius: "6px",
                           whiteSpace: "nowrap",
+                          letterSpacing: "0.1px",
                         }}
                       >
-                        {item.tx_type?.replace(/_/g, " ")}
+                        {txMeta.label}
                       </span>
                     </td>
                     <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
