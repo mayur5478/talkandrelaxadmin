@@ -64,8 +64,8 @@ function OwnerName({ id, walletType }) {
   if (walletType === "admin") return <span style={{ fontWeight: 500, color: "#212529" }}>Admin</span>;
 
   const name = isUser
-    ? userData?.fullName
-    : listenerData?.fullName || listenerData?.nick_name;
+    ? userData?.user?.fullName
+    : listenerData?.profile?.fullName || listenerData?.profile?.displayName;
 
   if (!name) {
     return (
