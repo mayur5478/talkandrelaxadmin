@@ -175,6 +175,13 @@ export const listenerApi = createApi({
         body: charges,
       }),
     }),
+    dailySummary: builder.query({
+      query: ({ fromDate, toDate } = {}) => ({
+        url: "listener/daily-summary",
+        method: "GET",
+        params: { fromDate, toDate },
+      }),
+    }),
   }),
 });
 
@@ -202,4 +209,5 @@ export const {
   usePaySalaryMutation,
   useCreateSessionMutation,
   useBulkUpdateChargesMutation,
+  useDailySummaryQuery,
 } = listenerApi;

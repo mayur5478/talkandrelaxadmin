@@ -36,6 +36,7 @@ const ReportBlock         = lazy(() => import("../contact-quires-manage/report-b
 const BusinessInsights    = lazy(() => import("../business-insights/BusinessInsights"));
 const ServiceHistory      = lazy(() => import("../analytics/ServiceHistory"));
 const CallRejections      = lazy(() => import("../analytics/CallRejections"));
+const DailySummary        = lazy(() => import("../analytics/DailySummary"));
 const Status              = lazy(() => import("../status/Status"));
 const UserProfile         = lazy(() => import("../user-management/user-profile-view/UserProfile"));
 
@@ -94,6 +95,7 @@ const Main = () => {
           <Route path="/business-insights" element={<BusinessInsights />} />
           <Route path="/service-history" element={<ServiceHistory />} />
           <Route path="/rejections" element={<CallRejections />} />
+          <Route path="/daily-summary" element={<DailySummary />} />
           <Route path="/status" element={<Status />} />
           <Route path="/contact-queries/report-block" element={<ReportBlock />} />
           <Route path="/listener-management/profile-view" element={<ListenerProfileView />} />

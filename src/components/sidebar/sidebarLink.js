@@ -107,6 +107,12 @@ export const links = [
     type: "button",
   },
   {
+    title: "Daily Summary",
+    icon: dashboard,
+    path: "/dashboard/daily-summary",
+    type: "button",
+  },
+  {
     title: "Service History",
     icon: recharge,
     path: "/dashboard/service-history",
