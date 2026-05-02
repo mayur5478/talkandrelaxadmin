@@ -1,44 +1,59 @@
 import React, { useState } from "react";
-import { Button, Form } from "react-bootstrap";
-import MultiDatePicker from "../../user-management/user-list/date-picker/MultiDatePicker";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
+import MultiDatePicker from "../../user-management/user-list/date-picker/MultiDatePicker";
 import WalletLedgerTable from "./WalletLedgerTable";
 
+const T = {
+  font: "'Plus Jakarta Sans', sans-serif",
+  mono: "'JetBrains Mono', monospace",
+  bg: "#F7F8FC",
+  surface: "#FFFFFF",
+  border: "#EAEDF3",
+  text: "#0F172A",
+  muted: "#64748B",
+  faint: "#94A3B8",
+  accent: "#6366F1",
+  accentLight: "#EEF2FF",
+};
+
 const TX_TYPES = [
-  { value: "", label: "All Types" },
+  { value: "", label: "All types" },
   { value: "session_debit", label: "Session Debit" },
   { value: "recharge", label: "Recharge" },
   { value: "admin_credit", label: "Admin Credit" },
   { value: "admin_debit", label: "Admin Debit" },
   { value: "session_listener_credit", label: "Listener Credit" },
-  { value: "session_admin_credit", label: "Admin Session Credit" },
+  { value: "session_admin_credit", label: "Platform Credit" },
 ];
 
 const WALLET_TYPES = [
-  { value: "", label: "All Wallets" },
+  { value: "", label: "All wallets" },
   { value: "user", label: "User" },
   { value: "listener", label: "Listener" },
   { value: "admin", label: "Admin" },
 ];
 
-function WalletLedger() {
-  const [ownerId, setOwnerId] = useState("");
-  const [walletType, setWalletType] = useState("");
-  const [txType, setTxType] = useState("");
-  const [dateRange, setDateRange] = useState([]);
-  const [excelData, setExcelData] = useState([]);
+export default function WalletLedger() {
+  const [ownerId, setOwnerId]           = useState("");
+  const [walletType, setWalletType]     = useState("");
+  const [txType, setTxType]             = useState("");
+  const [dateRange, setDateRange]       = useState([]);
+  const [excelData, setExcelData]       = useState([]);
   const [appliedOwnerId, setAppliedOwnerId] = useState("");
 
-  const handleSearch = () => setAppliedOwnerId(ownerId.trim());
+  const anyFilter = appliedOwnerId || walletType || txType || dateRange.length > 0;
 
-  const exportToExcel = async (dataArray, fileName = "wallet_ledger.xlsx") => {
-    if (!Array.isArray(dataArray) || dataArray.length === 0) return;
+  const clearAll = () => {
+    setOwnerId(""); setAppliedOwnerId("");
+    setWalletType(""); setTxType(""); setDateRange([]);
+  };
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Wallet Ledger");
-
-    worksheet.columns = [
+  const exportToExcel = async () => {
+    if (!excelData.length) return;
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Wallet Ledger");
+    ws.columns = [
       { header: "ID", key: "id", width: 38 },
       { header: "Owner ID", key: "owner_id", width: 38 },
       { header: "Wallet", key: "wallet_type", width: 12 },
@@ -51,143 +66,175 @@ function WalletLedger() {
       { header: "Note", key: "note", width: 30 },
       { header: "Date", key: "createdAt", width: 22 },
     ];
-
-    dataArray.forEach((item) => {
-      worksheet.addRow({
-        id: item.id || "",
-        owner_id: item.owner_id || "",
-        wallet_type: item.wallet_type || "",
-        tx_type: item.tx_type || "",
-        amount: item.amount || 0,
-        balance_before: item.balance_before || 0,
-        balance_after: item.balance_after || 0,
-        reference_id: item.reference_id || "",
-        reference_type: item.reference_type || "",
-        note: item.note || "",
-        createdAt: item.createdAt ? new Date(item.createdAt).toLocaleString() : "",
-      });
-    });
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-    saveAs(blob, fileName);
+    excelData.forEach(item => ws.addRow({
+      ...item,
+      createdAt: item.createdAt ? new Date(item.createdAt).toLocaleString() : "",
+    }));
+    const buf = await wb.xlsx.writeBuffer();
+    saveAs(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "wallet_ledger.xlsx");
   };
 
   return (
-    <div className="payment-main px-4 py-4">
-      <div className="welcome-banner mb-4 p-4 rounded-4 bg-white shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center">
-        <div>
-          <h3 className="fw-bold mb-1" style={{ fontSize: "22px" }}>
-            📒 Wallet Ledger
-          </h3>
-          <p className="text-muted mb-0" style={{ fontSize: "13px" }}>
-            Immutable audit trail of every wallet credit and debit.
-          </p>
-        </div>
-        <div className="d-flex gap-3 mt-3 mt-md-0">
-          <Button
-            variant="outline-primary"
-            className="rounded-3 px-4"
-            onClick={() => exportToExcel(excelData)}
+    <div style={{ fontFamily: T.font, background: T.bg, minHeight: "100vh", padding: "28px 24px" }}>
+
+      {/* ── page header ── */}
+      <div style={{ marginBottom: "24px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+              <div style={{
+                width: "36px", height: "36px", borderRadius: "10px",
+                background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 4px 12px #6366F140", fontSize: "16px",
+              }}>📒</div>
+              <h1 style={{ margin: 0, fontSize: "22px", fontWeight: 800, color: T.text, letterSpacing: "-0.03em" }}>
+                Wallet Ledger
+              </h1>
+            </div>
+            <p style={{ margin: 0, fontSize: "13px", color: T.muted, paddingLeft: "46px" }}>
+              Immutable audit trail of every wallet credit and debit
+            </p>
+          </div>
+
+          <button
+            onClick={exportToExcel}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "7px",
+              background: "#fff", border: `1px solid ${T.border}`,
+              borderRadius: "10px", padding: "9px 16px",
+              fontFamily: T.font, fontSize: "13px", fontWeight: 600, color: "#334155",
+              cursor: "pointer", boxShadow: "0 1px 2px rgba(15,23,42,0.05)",
+              transition: "all .15s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = T.accent; e.currentTarget.style.color = T.accent; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.color = "#334155"; }}
           >
-            Export to Excel
-          </Button>
-          <MultiDatePicker onChange={setDateRange} />
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Export Excel
+          </button>
         </div>
       </div>
 
-      <div className="modern-card p-0 overflow-auto shadow-sm">
-        <div className="px-4 py-3 border-bottom" style={{ background: "#f8f9fa" }}>
-          <div className="d-flex flex-wrap gap-2 align-items-center">
-            {/* Owner ID search */}
-            <div
+      {/* ── filter card ── */}
+      <div style={{
+        background: T.surface, borderRadius: "14px",
+        border: `1px solid ${T.border}`,
+        boxShadow: "0 1px 3px rgba(15,23,42,0.04)",
+        marginBottom: "16px",
+        padding: "14px 18px",
+      }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", alignItems: "center" }}>
+
+          {/* search */}
+          <SearchInput
+            value={ownerId}
+            onChange={e => setOwnerId(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && setAppliedOwnerId(ownerId.trim())}
+            onClear={() => { setOwnerId(""); setAppliedOwnerId(""); }}
+            onSearch={() => setAppliedOwnerId(ownerId.trim())}
+          />
+
+          <SelectFilter value={walletType} onChange={e => setWalletType(e.target.value)} options={WALLET_TYPES} />
+          <SelectFilter value={txType} onChange={e => setTxType(e.target.value)} options={TX_TYPES} width="190px" />
+
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <MultiDatePicker onChange={setDateRange} />
+          </div>
+
+          {anyFilter && (
+            <button
+              onClick={clearAll}
               style={{
-                display: "flex",
-                alignItems: "center",
-                background: "#fff",
-                border: "1px solid #dee2e6",
-                borderRadius: "8px",
-                padding: "4px 10px",
-                minWidth: "260px",
-                gap: "6px",
+                display: "inline-flex", alignItems: "center", gap: "5px",
+                background: "#FEF2F2", border: "1px solid #FECACA",
+                borderRadius: "8px", padding: "6px 12px",
+                fontFamily: T.font, fontSize: "12px", fontWeight: 600, color: "#DC2626",
+                cursor: "pointer",
               }}
             >
-              <span style={{ color: "#adb5bd", fontSize: "14px" }}>🔍</span>
-              <input
-                type="text"
-                style={{ border: "none", outline: "none", fontSize: "13px", width: "100%", background: "transparent" }}
-                placeholder="Search by owner ID…"
-                value={ownerId}
-                onChange={(e) => setOwnerId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              {ownerId && (
-                <button
-                  onClick={() => { setOwnerId(""); setAppliedOwnerId(""); }}
-                  style={{ background: "none", border: "none", color: "#adb5bd", cursor: "pointer", padding: "0 2px", fontSize: "14px", lineHeight: 1 }}
-                >
-                  ×
-                </button>
-              )}
-              <Button size="sm" variant="primary" style={{ borderRadius: "6px", padding: "2px 12px", fontSize: "12px" }} onClick={handleSearch}>
-                Go
-              </Button>
-            </div>
-
-            {/* Wallet type */}
-            <Form.Select
-              size="sm"
-              style={{ maxWidth: "150px", borderRadius: "8px", fontSize: "13px", border: "1px solid #dee2e6" }}
-              value={walletType}
-              onChange={(e) => setWalletType(e.target.value)}
-            >
-              {WALLET_TYPES.map((w) => (
-                <option key={w.value} value={w.value}>{w.label}</option>
-              ))}
-            </Form.Select>
-
-            {/* TX type */}
-            <Form.Select
-              size="sm"
-              style={{ maxWidth: "210px", borderRadius: "8px", fontSize: "13px", border: "1px solid #dee2e6" }}
-              value={txType}
-              onChange={(e) => setTxType(e.target.value)}
-            >
-              {TX_TYPES.map((t) => (
-                <option key={t.value} value={t.value}>{t.label}</option>
-              ))}
-            </Form.Select>
-
-            {/* Active filter chips */}
-            {(appliedOwnerId || walletType || txType) && (
-              <button
-                onClick={() => { setOwnerId(""); setAppliedOwnerId(""); setWalletType(""); setTxType(""); }}
-                style={{
-                  background: "#fff3cd", border: "1px solid #ffc107", color: "#856404",
-                  borderRadius: "20px", fontSize: "12px", padding: "3px 12px", cursor: "pointer",
-                }}
-              >
-                Clear filters ×
-              </button>
-            )}
-          </div>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+              Clear filters
+            </button>
+          )}
         </div>
+      </div>
 
-        <div className="p-4 bg-white" style={{ minHeight: "50vh" }}>
-          <WalletLedgerTable
-            ownerId={appliedOwnerId}
-            walletType={walletType}
-            txType={txType}
-            fromDate={dateRange[0]}
-            toDate={dateRange[1]}
-            setExcelData={setExcelData}
-          />
-        </div>
+      {/* ── table card ── */}
+      <div style={{ background: T.surface, borderRadius: "14px", border: `1px solid ${T.border}`, boxShadow: "0 1px 3px rgba(15,23,42,0.04)", padding: "20px 20px 24px" }}>
+        <WalletLedgerTable
+          ownerId={appliedOwnerId}
+          walletType={walletType}
+          txType={txType}
+          fromDate={dateRange[0]}
+          toDate={dateRange[1]}
+          setExcelData={setExcelData}
+        />
       </div>
     </div>
   );
 }
 
-export default WalletLedger;
+function SearchInput({ value, onChange, onKeyDown, onClear, onSearch }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: "6px",
+      background: "#fff", border: `1.5px solid ${focused ? T.accent : T.border}`,
+      borderRadius: "10px", padding: "6px 10px",
+      minWidth: "260px", transition: "border-color .15s",
+      boxShadow: focused ? `0 0 0 3px ${T.accentLight}` : "none",
+    }}>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: focused ? T.accent : T.faint, flexShrink: 0 }}>
+        <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+      <input
+        value={value} onChange={onChange} onKeyDown={onKeyDown}
+        onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+        placeholder="Search by owner ID…"
+        style={{
+          border: "none", outline: "none", fontSize: "13px",
+          fontFamily: T.font, color: T.text, background: "transparent", width: "100%",
+          "::placeholder": { color: T.faint },
+        }}
+      />
+      {value && (
+        <button onClick={onClear} style={{ background: "none", border: "none", padding: "0 2px", cursor: "pointer", color: T.faint, fontSize: "16px", lineHeight: 1, display: "flex" }}>×</button>
+      )}
+      <button
+        onClick={onSearch}
+        style={{
+          background: T.accent, border: "none", borderRadius: "6px",
+          padding: "3px 10px", color: "#fff",
+          fontFamily: T.font, fontSize: "12px", fontWeight: 600,
+          cursor: "pointer", whiteSpace: "nowrap",
+        }}
+      >Go</button>
+    </div>
+  );
+}
+
+function SelectFilter({ value, onChange, options, width = "150px" }) {
+  return (
+    <select
+      value={value} onChange={onChange}
+      style={{
+        appearance: "none", background: `#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2394A3B8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center`,
+        border: `1.5px solid ${T.border}`, borderRadius: "10px",
+        padding: "7px 30px 7px 12px",
+        fontFamily: T.font, fontSize: "13px", fontWeight: 500, color: value ? T.text : T.muted,
+        cursor: "pointer", width, outline: "none",
+        transition: "border-color .15s",
+      }}
+      onFocus={e => { e.target.style.borderColor = T.accent; e.target.style.boxShadow = `0 0 0 3px ${T.accentLight}`; }}
+      onBlur={e => { e.target.style.borderColor = T.border; e.target.style.boxShadow = "none"; }}
+    >
+      {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
+  );
+}
