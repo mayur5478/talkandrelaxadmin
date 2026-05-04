@@ -44,6 +44,7 @@ function DailySummary() {
   const [fromDate, setFromDate] = useState(fmt8(thirtyAgo));
   const [toDate,   setToDate]   = useState(fmt8(today));
   const [applied,  setApplied]  = useState({ fromDate: fmt8(thirtyAgo), toDate: fmt8(today) });
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
   const { data, isLoading, isFetching, error } = useDailySummaryQuery(applied);
   const days    = data?.days    || [];
@@ -52,20 +53,29 @@ function DailySummary() {
   // Period totals
   const totals = days.reduce(
     (acc, d) => {
-      acc.recharge_count          += d.recharge_count;
-      acc.recharge_amount         += parseFloat(d.recharge_amount);
-      acc.session_count           += d.session_count;
-      acc.total_amount_deducted   += parseFloat(d.total_amount_deducted);
-      acc.total_listener_credit   += parseFloat(d.total_listener_credit);
+      acc.recharge_count              += d.recharge_count || 0;
+      acc.recharge_amount             += parseFloat(d.recharge_amount) || 0;
+      acc.session_count               += d.session_count || 0;
+      acc.total_amount_deducted       += parseFloat(d.total_amount_deducted) || 0;
+      acc.total_listener_credit       += parseFloat(d.total_listener_credit) || 0;
+      acc.total_gift_user_debit       += parseFloat(d.total_gift_user_debit) || 0;
+      acc.total_gift_listener_credit  += parseFloat(d.total_gift_listener_credit) || 0;
+      acc.total_adj_credits           += parseFloat(d.total_adj_credits) || 0;
+      acc.total_adj_debits            += parseFloat(d.total_adj_debits) || 0;
+      acc.total_salary_payout         += parseFloat(d.total_salary_payout) || 0;
       const ug = parseFloat(d.user_gap);
       const lg = parseFloat(d.listener_gap);
       if (!isNaN(ug)) acc.total_user_gap      += ug;
       if (!isNaN(lg)) acc.total_listener_gap  += lg;
       return acc;
     },
-    { recharge_count: 0, recharge_amount: 0, session_count: 0,
+    {
+      recharge_count: 0, recharge_amount: 0, session_count: 0,
       total_amount_deducted: 0, total_listener_credit: 0,
-      total_user_gap: 0, total_listener_gap: 0 }
+      total_gift_user_debit: 0, total_gift_listener_credit: 0,
+      total_adj_credits: 0, total_adj_debits: 0, total_salary_payout: 0,
+      total_user_gap: 0, total_listener_gap: 0,
+    }
   );
 
   const gapDays = days.filter(
@@ -134,6 +144,12 @@ function DailySummary() {
           {[7, 14, 30, 60].map((n) => (
             <button key={n} onClick={() => handleQuick(n)}>Last {n} days</button>
           ))}
+          <button
+            onClick={() => setShowBreakdown(!showBreakdown)}
+            className={showBreakdown ? "ds-breakdown-btn ds-breakdown-active" : "ds-breakdown-btn"}
+          >
+            {showBreakdown ? "Hide Breakdown ▲" : "Show Breakdown ▼"}
+          </button>
         </div>
       </div>
 
@@ -143,16 +159,20 @@ function DailySummary() {
         <>
           {/* Summary cards */}
           <div className="ds-cards">
-            <StatCard label="Total Recharges"        value={fmt(totals.recharge_amount)}       sub={`${fmtN(totals.recharge_count)} transactions`}        color="#6366f1" />
-            <StatCard label="Total Sessions"         value={fmtN(totals.session_count)}        sub={`${fmt(totals.total_amount_deducted)} deducted`}       color="#06b6d4" />
-            <StatCard label="Listener Earnings"      value={fmt(totals.total_listener_credit)} sub="Total credited"                                       color="#10b981" />
-            <StatCard label="Cumulative User Gap"    value={fmt(totals.total_user_gap)}        sub={`${gapDays} flagged day(s)`}                          color={Math.abs(totals.total_user_gap) >= GAP_THRESHOLD ? "#f43f5e" : "#94a3b8"} />
-            <StatCard label="Cumulative Listener Gap" value={fmt(totals.total_listener_gap)}  sub="Expected vs actual"                                    color={Math.abs(totals.total_listener_gap) >= GAP_THRESHOLD ? "#f59e0b" : "#94a3b8"} />
+            <StatCard label="Total Recharges"         value={fmt(totals.recharge_amount)}       sub={`${fmtN(totals.recharge_count)} transactions`}        color="#6366f1" />
+            <StatCard label="Total Sessions"          value={fmtN(totals.session_count)}        sub={`${fmt(totals.total_amount_deducted)} deducted`}       color="#06b6d4" />
+            <StatCard label="Listener Earnings"       value={fmt(totals.total_listener_credit)} sub="Session credits"                                      color="#10b981" />
+            <StatCard label="Gifts (User Paid)"       value={fmt(totals.total_gift_user_debit)} sub={`${fmt(totals.total_gift_listener_credit)} to listener`} color="#f59e0b" />
+            <StatCard label="Admin Adjustments"       value={fmt(totals.total_adj_credits)}     sub={`−${fmt(totals.total_adj_debits)} debits`}             color="#8b5cf6" />
+            <StatCard label="Salary Payouts"          value={fmt(totals.total_salary_payout)}   sub="Listener withdrawals"                                 color="#64748b" />
+            <StatCard label="Cumulative User Gap"     value={fmt(totals.total_user_gap)}        sub={`${gapDays} flagged day(s)`}                          color={Math.abs(totals.total_user_gap) >= GAP_THRESHOLD ? "#f43f5e" : "#94a3b8"} />
+            <StatCard label="Cumulative Listener Gap" value={fmt(totals.total_listener_gap)}    sub="Expected vs actual"                                   color={Math.abs(totals.total_listener_gap) >= GAP_THRESHOLD ? "#f59e0b" : "#94a3b8"} />
           </div>
 
           {/* Gap legend */}
           <div className="ds-gap-legend">
-            <strong>Gap</strong> = Actual wallet change − Expected change (recharges − deductions).
+            <strong>Gap formula — User:</strong> Recharges (incl. coupons) − Session deductions − Gift payments + Admin credits − Admin debits.<br/>
+            <strong>Gap formula — Listener:</strong> Session credits + Gift earnings − Salary payouts.<br/>
             <span className="ds-gap-badge ds-gap-ok"> ₹0 </span> No gap &nbsp;
             <span className="ds-gap-badge ds-gap-neg"> −₹X </span> More deducted than expected &nbsp;
             <span className="ds-gap-badge ds-gap-pos"> +₹X </span> Less deducted than expected
@@ -170,6 +190,13 @@ function DailySummary() {
                   <th>Deducted</th>
                   <th>Listener Credit</th>
                   <th>Dur (min)</th>
+                  {showBreakdown && <>
+                    <th className="ds-th-breakdown">Gift (User)</th>
+                    <th className="ds-th-breakdown">Gift (Listener)</th>
+                    <th className="ds-th-breakdown">Adj +</th>
+                    <th className="ds-th-breakdown">Adj −</th>
+                    <th className="ds-th-breakdown">Salary Payout</th>
+                  </>}
                   <th className="ds-th-snap">User Wallet Start</th>
                   <th className="ds-th-snap">User Wallet End</th>
                   <th className="ds-th-gap">User Gap</th>
@@ -181,7 +208,7 @@ function DailySummary() {
               </thead>
               <tbody>
                 {days.length === 0 ? (
-                  <tr><td colSpan={14} className="ds-empty">No data for selected range.</td></tr>
+                  <tr><td colSpan={showBreakdown ? 19 : 14} className="ds-empty">No data for selected range.</td></tr>
                 ) : (
                   [...days].reverse().map((d) => {
                     const hasUserGap     = d.user_gap !== null && Math.abs(parseFloat(d.user_gap)) >= GAP_THRESHOLD;
@@ -195,6 +222,13 @@ function DailySummary() {
                         <td className="ds-num ds-red">{fmt(d.total_amount_deducted)}</td>
                         <td className="ds-num ds-green">{fmt(d.total_listener_credit)}</td>
                         <td className="ds-num ds-muted">{d.total_duration_mins}</td>
+                        {showBreakdown && <>
+                          <td className="ds-num ds-breakdown">{fmt(d.total_gift_user_debit)}</td>
+                          <td className="ds-num ds-breakdown ds-green">{fmt(d.total_gift_listener_credit)}</td>
+                          <td className="ds-num ds-breakdown ds-green">{fmt(d.total_adj_credits)}</td>
+                          <td className="ds-num ds-breakdown ds-red">{fmt(d.total_adj_debits)}</td>
+                          <td className="ds-num ds-breakdown ds-muted">{fmt(d.total_salary_payout)}</td>
+                        </>}
                         <td className="ds-num ds-snap">{fmt(d.user_wallet_start)}</td>
                         <td className={`ds-num ds-snap ${d.user_wallet_end !== null && d.user_wallet_start !== null && parseFloat(d.user_wallet_end) >= parseFloat(d.user_wallet_start) ? "ds-green" : "ds-red"}`}>
                           {fmt(d.user_wallet_end)}

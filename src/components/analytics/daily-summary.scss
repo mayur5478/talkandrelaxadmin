@@ -74,6 +74,13 @@
         transition: all .15s;
         &:hover { background: #6366f1; color: #fff; border-color: #6366f1; }
       }
+      .ds-breakdown-btn {
+        background: #f0fdf4; border-color: #86efac; color: #166534;
+        &:hover { background: #dcfce7; border-color: #4ade80; color: #14532d; }
+        &.ds-breakdown-active {
+          background: #dcfce7; border-color: #4ade80; color: #14532d; font-weight: 600;
+        }
+      }
     }
   }
 
@@ -97,7 +104,7 @@
     font-size: 12px; color: #64748b;
     margin-bottom: 14px; padding: 10px 14px;
     background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;
-    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    line-height: 1.8;
   }
 
   // ─── Table ────────────────────────────────────────────────────────────────
@@ -117,8 +124,9 @@
         text-transform: uppercase; letter-spacing: .4px;
         border-bottom: 1px solid #e2e8f0; white-space: nowrap;
       }
-      .ds-th-snap { background: #f0f9ff; }
-      .ds-th-gap  { background: #fff7ed; }
+      .ds-th-snap      { background: #f0f9ff; }
+      .ds-th-gap       { background: #fff7ed; }
+      .ds-th-breakdown { background: #f0fdf4; }
     }
 
     tbody tr {
@@ -143,6 +151,7 @@
     .ds-muted     { color: #94a3b8; }
     .ds-source    { font-size: 11px; text-transform: capitalize; }
     .ds-na        { color: #cbd5e1; }
+    .ds-breakdown { background: #f0fdf430; }
     .ds-empty     { text-align: center; padding: 32px; color: #94a3b8; font-size: 14px; }
   }
 
