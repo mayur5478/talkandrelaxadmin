@@ -302,7 +302,242 @@
   font-weight: 600;
   text-transform: uppercase;
 
-  &--users     { background: #dbeafe; color: #1d4ed8; }
-  &--listeners { background: #d1fae5; color: #065f46; }
-  &--all       { background: #ede9fe; color: #5b21b6; }
+  &--users      { background: #dbeafe; color: #1d4ed8; }
+  &--listeners  { background: #d1fae5; color: #065f46; }
+  &--all        { background: #ede9fe; color: #5b21b6; }
+  &--selective  { background: #fef3c7; color: #92400e; }
+}
+
+// ── Mode tabs (Broadcast / Selective) ────────────────────
+.pn-mode-tabs {
+  display: flex;
+  gap: 0;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.pn-mode-tab {
+  flex: 1;
+  padding: 10px;
+  background: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  & + & { border-left: 1.5px solid #e5e7eb; }
+
+  &:hover:not(:disabled) {
+    background: #f9fafb;
+    color: #374151;
+  }
+
+  &--active {
+    background: #6366f1;
+    color: #fff !important;
+    font-weight: 600;
+  }
+
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+// ── Recipient selector ────────────────────────────────────
+.pn-recipient-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pn-search-role-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.pn-search-role-tab {
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: #6366f1; color: #6366f1; }
+
+  &--active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+  }
+}
+
+.pn-search-wrap {
+  position: relative;
+}
+
+.pn-search-input {
+  padding-right: 100px;
+}
+
+.pn-search-spinner {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+// ── Dropdown suggestions ──────────────────────────────────
+.pn-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 100;
+  list-style: none;
+  padding: 4px 0;
+  margin: 0;
+  max-height: 240px;
+  overflow-y: auto;
+
+  &__empty {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #9ca3af;
+    text-align: center;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.12s;
+
+    &:hover { background: #f5f3ff; }
+  }
+
+  &__name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__meta {
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+  }
+
+  &__no-token {
+    color: #f59e0b;
+    font-size: 13px;
+    cursor: help;
+  }
+}
+
+// ── Selected chips ────────────────────────────────────────
+.pn-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  min-height: 48px;
+}
+
+.pn-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+
+  &--user     { background: #dbeafe; color: #1e40af; }
+  &--listener { background: #d1fae5; color: #065f46; }
+
+  &__name { font-weight: 600; }
+  &__role {
+    font-size: 10px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+  &__warn {
+    color: #f59e0b;
+    cursor: help;
+    font-size: 12px;
+  }
+  &__remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 15px;
+    line-height: 1;
+    color: inherit;
+    opacity: 0.6;
+    padding: 0 0 0 2px;
+
+    &:hover { opacity: 1; }
+  }
+}
+
+.pn-clear-all {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #ef4444;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+
+  &:hover { color: #dc2626; }
+}
+
+.pn-no-selected {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+  padding: 8px 0;
+}
+
+// ── History recipients line ───────────────────────────────
+.pn-history-item {
+  &__recipients {
+    font-size: 12px;
+    color: #6366f1;
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ── Selected count label ──────────────────────────────────
+.pn-selected-count {
+  font-weight: 400;
+  color: #6366f1;
+  font-size: 12px;
+  margin-left: 4px;
 }

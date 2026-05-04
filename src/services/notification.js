@@ -41,6 +41,20 @@ export const notificationApi = createApi({
         body: payload,
       }),
     }),
+    searchRecipients: builder.query({
+      query: ({ q = "", role = "all" }) => ({
+        url: "admin/push-notification/search-recipients",
+        method: "GET",
+        params: { q, role },
+      }),
+    }),
+    sendToSelected: builder.mutation({
+      query: (payload) => ({
+        url: "admin/push-notification/send-to-selected",
+        method: "POST",
+        body: payload,
+      }),
+    }),
   }),
 });
 
@@ -49,4 +63,6 @@ export const {
   useSendToUsersMutation,
   useSendToListenersMutation,
   useSendToAllMutation,
+  useSearchRecipientsQuery,
+  useSendToSelectedMutation,
 } = notificationApi;
