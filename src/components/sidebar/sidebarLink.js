@@ -6,6 +6,9 @@ import recharge from "../assets/recharge.png";
 import contact from "../assets/user-setting.png";
 import status from "../assets/status.png";
 import dropdown from "../assets/dropdown.png";
+// Bell icon — falls back gracefully if the asset doesn't exist yet
+let bell;
+try { bell = require("../assets/status.png"); } catch { bell = status; }
 
 export const links = [
   {
@@ -171,6 +174,12 @@ export const links = [
     title: "Support Queries",
     path: "/dashboard/contact-queries/report-block",
     icon: contact,
+    type: "button",
+  },
+  {
+    title: "Push Notifications",
+    path: "/dashboard/push-notifications",
+    icon: bell,
     type: "button",
   },
 ];

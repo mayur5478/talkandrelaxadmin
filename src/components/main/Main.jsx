@@ -40,6 +40,7 @@ const CallRejections      = lazy(() => import("../analytics/CallRejections"));
 const DailySummary        = lazy(() => import("../analytics/DailySummary"));
 const Status              = lazy(() => import("../status/Status"));
 const UserProfile         = lazy(() => import("../user-management/user-profile-view/UserProfile"));
+const PushNotifications   = lazy(() => import("../push-notifications/PushNotifications"));
 
 const Main = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -103,6 +104,7 @@ const Main = () => {
           <Route path="/listener-management/profile-view" element={<ListenerProfileView />} />
           <Route path="user-management/profile-view" element={<UserProfile />} />
           <Route path="listener-management/profile-form" element={<ListenerDetailsForm />} />
+          <Route path="/push-notifications" element={<PushNotifications />} />
         </Routes>
         </Suspense>
       </div>

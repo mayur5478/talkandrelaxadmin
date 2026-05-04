@@ -6,6 +6,7 @@ import { authApi } from "../services/auth";
 import { rechargeApi } from "../services/recharge";
 import { contactApi } from "../services/contact";
 import { storyApi } from "../services/stories";
+import { notificationApi } from "../services/notification";
 export const store = configureStore({
   reducer: {
     [userApi.reducerPath]: userApi.reducer,
@@ -14,6 +15,7 @@ export const store = configureStore({
     [rechargeApi.reducerPath]: rechargeApi.reducer,
     [contactApi.reducerPath]: contactApi.reducer,
     [storyApi.reducerPath]: storyApi.reducer,
+    [notificationApi.reducerPath]: notificationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -23,6 +25,7 @@ export const store = configureStore({
       rechargeApi.middleware,
       contactApi.middleware,
       storyApi.middleware,
+      notificationApi.middleware,
     ]),
 });
 

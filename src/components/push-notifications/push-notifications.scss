@@ -1,0 +1,308 @@
+// Push Notifications page styles
+// Uses the same CSS custom property palette as the rest of the admin panel.
+
+.pn-page {
+  padding: 40px 30px;
+}
+
+.pn-header {
+  margin-bottom: 28px;
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black, #1a1a1a);
+    margin: 0 0 6px;
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+}
+
+// ── Layout ──────────────────────────────────────────────
+.pn-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+  }
+}
+
+// ── Card shell ──────────────────────────────────────────
+.pn-card {
+  background: var(--white, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0px 5px 20px 2px #00000014;
+  padding: 28px 24px;
+  flex: 1;
+
+  &__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--black, #1a1a1a);
+    margin: 0 0 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+}
+
+// ── Sidebar column ──────────────────────────────────────
+.pn-sidebar {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (max-width: 900px) {
+    width: 100%;
+  }
+}
+
+// ── Form fields ─────────────────────────────────────────
+.pn-field {
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.pn-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.pn-input,
+.pn-textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #111827;
+  background: #fafafa;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    background: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.pn-char-count {
+  position: absolute;
+  right: 4px;
+  bottom: -18px;
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+// ── Target audience buttons ──────────────────────────────
+.pn-target-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.pn-target-btn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.18s;
+
+  &:hover:not(:disabled) {
+    border-color: #6366f1;
+    color: #6366f1;
+  }
+
+  &--active {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff !important;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.pn-audience-count {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 6px 0 0;
+}
+
+// ── Error & Result ───────────────────────────────────────
+.pn-error {
+  color: #ef4444;
+  font-size: 13px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+}
+
+.pn-result {
+  border-radius: 8px;
+  border: 1px solid #d1fae5;
+  background: #f0fdf4;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #374151;
+
+    &--success { color: #16a34a; }
+    &--error   { color: #dc2626; }
+    &--warn    { color: #d97706; }
+  }
+
+  &__label { font-weight: 500; }
+  &__value { font-weight: 700; font-size: 15px; }
+}
+
+// ── Send button ──────────────────────────────────────────
+.pn-send-btn {
+  width: 100%;
+  padding: 12px;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, opacity 0.18s;
+  margin-top: 10px;
+
+  &:hover:not(:disabled) {
+    background: #4f46e5;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+// ── Stats card ───────────────────────────────────────────
+.pn-stats-card { }
+.pn-stats-loading { font-size: 13px; color: #9ca3af; }
+
+.pn-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:last-child { border-bottom: none; }
+
+  &--total {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 2px solid #e5e7eb;
+    border-bottom: none;
+    font-weight: 600;
+  }
+
+  &__label {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  &__value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #111827;
+
+    &--blue  { color: #3b82f6; }
+    &--green { color: #10b981; }
+  }
+}
+
+// ── History card ─────────────────────────────────────────
+.pn-history-card { }
+
+.pn-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pn-history-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+
+  &:last-child { border-bottom: none; }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__time {
+    font-size: 11px;
+    color: #9ca3af;
+    white-space: nowrap;
+  }
+
+  &__meta {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+  }
+}
+
+// ── Badges ───────────────────────────────────────────────
+.pn-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &--users     { background: #dbeafe; color: #1d4ed8; }
+  &--listeners { background: #d1fae5; color: #065f46; }
+  &--all       { background: #ede9fe; color: #5b21b6; }
+}
