@@ -3,6 +3,7 @@ import { getCookie } from "../cookie_helper/cookie";
 
 export const notificationApi = createApi({
   reducerPath: "notificationApi",
+  tagTypes: ["PushHistory"],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_SERVER_URL,
     prepareHeaders: (headers) => {
@@ -26,6 +27,7 @@ export const notificationApi = createApi({
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["PushHistory"],
     }),
     sendToListeners: builder.mutation({
       query: (payload) => ({
@@ -33,6 +35,7 @@ export const notificationApi = createApi({
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["PushHistory"],
     }),
     sendToAll: builder.mutation({
       query: (payload) => ({
@@ -40,6 +43,7 @@ export const notificationApi = createApi({
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["PushHistory"],
     }),
     searchRecipients: builder.query({
       query: ({ q = "", role = "all" }) => ({
@@ -54,6 +58,15 @@ export const notificationApi = createApi({
         method: "POST",
         body: payload,
       }),
+      invalidatesTags: ["PushHistory"],
+    }),
+    getPushHistory: builder.query({
+      query: ({ page = 1, pageSize = 20 } = {}) => ({
+        url: "admin/push-notification/history",
+        method: "GET",
+        params: { page, pageSize },
+      }),
+      providesTags: ["PushHistory"],
     }),
   }),
 });
@@ -65,4 +78,5 @@ export const {
   useSendToAllMutation,
   useSearchRecipientsQuery,
   useSendToSelectedMutation,
+  useGetPushHistoryQuery,
 } = notificationApi;
