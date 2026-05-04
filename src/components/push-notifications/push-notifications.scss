@@ -602,3 +602,37 @@
   min-width: 60px;
   text-align: center;
 }
+
+// ── Retry button ──────────────────────────────────────────
+.pn-retry-btn {
+  margin-top: 8px;
+  padding: 4px 14px;
+  border: 1.5px solid #6366f1;
+  border-radius: 6px;
+  background: #fff;
+  color: #6366f1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #6366f1;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pn-retry-result {
+  font-size: 12px;
+  margin: 5px 0 0;
+  padding: 4px 10px;
+  border-radius: 6px;
+
+  &--ok  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+  &--err { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+}

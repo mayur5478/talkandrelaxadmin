@@ -8,6 +8,7 @@ import {
   useSearchRecipientsQuery,
   useSendToSelectedMutation,
   useGetPushHistoryQuery,
+  useRetryNotificationMutation,
 } from "../../services/notification";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -167,11 +168,30 @@ function RecipientSelector({ selected, onAdd, onRemove }) {
 
 // ─── History panel ────────────────────────────────────────────────────────────
 function HistoryPanel() {
-  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPage, setHistoryPage]   = useState(1);
+  const [retryingId,  setRetryingId]    = useState(null);
+  const [retryResult, setRetryResult]   = useState({});   // { [id]: { sent, failed, total } }
+  const [retryError,  setRetryError]    = useState({});   // { [id]: errorMsg }
+
   const { data, isLoading, isFetching } = useGetPushHistoryQuery({ page: historyPage, pageSize: 10 });
+  const [retryNotification]             = useRetryNotificationMutation();
 
   const history    = data?.history || [];
   const pagination = data?.pagination || {};
+
+  const handleRetry = async (item) => {
+    setRetryingId(item.id);
+    setRetryResult((prev) => ({ ...prev, [item.id]: null }));
+    setRetryError((prev)  => ({ ...prev, [item.id]: null }));
+    try {
+      const res = await retryNotification(item.id).unwrap();
+      setRetryResult((prev) => ({ ...prev, [item.id]: res }));
+    } catch (err) {
+      setRetryError((prev) => ({ ...prev, [item.id]: err?.data?.message || "Retry failed." }));
+    } finally {
+      setRetryingId(null);
+    }
+  };
 
   return (
     <div className="pn-card pn-history-card">
@@ -202,10 +222,30 @@ function HistoryPanel() {
                 )}
                 <p className="pn-history-item__meta">
                   Sent {item.sent_count}/{item.total_recipients}
-                  {item.failed_count > 0 && <span className="pn-meta-fail"> · {item.failed_count} failed</span>}
+                  {item.failed_count  > 0 && <span className="pn-meta-fail"> · {item.failed_count} failed</span>}
                   {item.skipped_count > 0 && <span className="pn-meta-skip"> · {item.skipped_count} skipped</span>}
                   {item.sent_by && <span className="pn-meta-by"> · by {item.sent_by}</span>}
                 </p>
+
+                {/* Retry button */}
+                <button
+                  className="pn-retry-btn"
+                  onClick={() => handleRetry(item)}
+                  disabled={retryingId === item.id}
+                >
+                  {retryingId === item.id ? "Retrying…" : "↺ Retry"}
+                </button>
+
+                {/* Inline retry result */}
+                {retryResult[item.id] && (
+                  <p className="pn-retry-result pn-retry-result--ok">
+                    ✓ Retry sent {retryResult[item.id].sent}/{retryResult[item.id].total}
+                    {retryResult[item.id].failed > 0 && ` · ${retryResult[item.id].failed} failed`}
+                  </p>
+                )}
+                {retryError[item.id] && (
+                  <p className="pn-retry-result pn-retry-result--err">✗ {retryError[item.id]}</p>
+                )}
               </li>
             ))}
           </ul>
@@ -213,17 +253,9 @@ function HistoryPanel() {
           {/* Pagination */}
           {pagination.totalPages > 1 && (
             <div className="pn-pagination">
-              <button
-                className="pn-page-btn"
-                disabled={historyPage <= 1}
-                onClick={() => setHistoryPage((p) => p - 1)}
-              >‹ Prev</button>
+              <button className="pn-page-btn" disabled={historyPage <= 1} onClick={() => setHistoryPage((p) => p - 1)}>‹ Prev</button>
               <span className="pn-page-info">{historyPage} / {pagination.totalPages}</span>
-              <button
-                className="pn-page-btn"
-                disabled={historyPage >= pagination.totalPages}
-                onClick={() => setHistoryPage((p) => p + 1)}
-              >Next ›</button>
+              <button className="pn-page-btn" disabled={historyPage >= pagination.totalPages} onClick={() => setHistoryPage((p) => p + 1)}>Next ›</button>
             </div>
           )}
         </>

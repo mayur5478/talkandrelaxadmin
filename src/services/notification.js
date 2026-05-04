@@ -68,6 +68,13 @@ export const notificationApi = createApi({
       }),
       providesTags: ["PushHistory"],
     }),
+    retryNotification: builder.mutation({
+      query: (id) => ({
+        url: `admin/push-notification/retry/${id}`,
+        method: "POST",
+      }),
+      invalidatesTags: ["PushHistory"],
+    }),
   }),
 });
 
@@ -79,4 +86,5 @@ export const {
   useSearchRecipientsQuery,
   useSendToSelectedMutation,
   useGetPushHistoryQuery,
+  useRetryNotificationMutation,
 } = notificationApi;
