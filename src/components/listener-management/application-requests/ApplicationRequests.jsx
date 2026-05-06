@@ -83,6 +83,8 @@ function ApplicationRequests() {
       refetch();
     } catch (err) {
       console.error("Error sending onboarding form link:", err);
+      const msg = err?.data?.message || "Failed to send the form link. Please try again.";
+      alert(msg);
     } finally {
       setSelectedUser(null);
       setShowLinkModal(false);
@@ -202,28 +204,26 @@ function ApplicationRequests() {
               </div>
               <div>
                 <div className="actions">
-                  {request?.listener_request_status === "confirmation request" ||
-                   request?.listener_request_status === "profile in process" ? (
-                    <button
-                      className="form-btn form-btn-2"
-                      title="Send Form 2 (Profile & Documents)"
-                      disabled={isSendingForm2}
-                      onClick={() => handleSendFormLink(request?.id, request.fullName, 2)}
-                    >
-                      {request?.listener_request_status === "profile in process"
-                        ? "Resend Form 2"
-                        : "Send Form 2"}
-                    </button>
-                  ) : request?.listener_request_status !== "documents in review" ? (
-                    <button
-                      className="form-btn form-btn-1"
-                      title="Send Form 1 (Application)"
-                      disabled={isSendingForm1}
-                      onClick={() => handleSendFormLink(request?.id, request.fullName, 1)}
-                    >
-                      Send Form 1
-                    </button>
-                  ) : null}
+                  <button
+                    className="form-btn form-btn-1"
+                    title="Send Form 1 (Application)"
+                    disabled={isSendingForm1}
+                    onClick={() => handleSendFormLink(request?.id, request.fullName, 1)}
+                  >
+                    {request?.listener_request_status === "processing"
+                      ? "Resend Form 1"
+                      : "Send Form 1"}
+                  </button>
+                  <button
+                    className="form-btn form-btn-2"
+                    title="Send Form 2 (Profile & Documents)"
+                    disabled={isSendingForm2}
+                    onClick={() => handleSendFormLink(request?.id, request.fullName, 2)}
+                  >
+                    {request?.listener_request_status === "profile in process"
+                      ? "Resend Form 2"
+                      : "Send Form 2"}
+                  </button>
                   <img
                     onClick={() => haldleReject(request?.id)}
                     src={cancel}
