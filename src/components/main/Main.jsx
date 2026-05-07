@@ -8,6 +8,7 @@ import { getCookie } from "../../cookie_helper/cookie";
 // Lazy-load all route components — each becomes its own JS chunk
 // loaded only when the user navigates to that route.
 const Dashboard           = lazy(() => import("../dashboard/Dashboard"));
+const OverviewV2          = lazy(() => import("../v2/overview/Overview"));
 const Users               = lazy(() => import("../user-management/user-list/Users"));
 const ActiveUsers         = lazy(() => import("../user-management/active-users/ActiveUsers"));
 const RecentUsers         = lazy(() => import("../user-management/recent-users/RecentUsers"));
@@ -61,6 +62,7 @@ const Main = () => {
     <AppShell user={user?.user || user}>
       <Suspense fallback={<div className="tw-py-8 tw-text-center tw-text-fg-tertiary">Loading…</div>}>
         <Routes>
+          <Route path="/overview" element={<OverviewV2 />} />
           <Route path="/analytics" element={<Dashboard />} />
           <Route path="/user-management/users-list" element={<Users />} />
           <Route path="/user-management/active-users" element={<ActiveUsers />} />

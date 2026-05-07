@@ -32,6 +32,11 @@ export const navGroups = [
     items: [
       {
         title: 'Overview',
+        path: '/dashboard/overview',
+        icon: LayoutDashboard,
+      },
+      {
+        title: 'Legacy dashboard',
         path: '/dashboard/analytics',
         icon: LayoutDashboard,
       },
