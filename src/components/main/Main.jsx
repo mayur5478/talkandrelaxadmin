@@ -7,8 +7,10 @@ import { getCookie } from "../../cookie_helper/cookie";
 
 // Lazy-load all route components — each becomes its own JS chunk
 // loaded only when the user navigates to that route.
-const Dashboard           = lazy(() => import("../dashboard/Dashboard"));
-const OverviewV2          = lazy(() => import("../v2/overview/Overview"));
+const Dashboard                  = lazy(() => import("../dashboard/Dashboard"));
+const OverviewV2                 = lazy(() => import("../v2/overview/Overview"));
+const ApplicationRequestsV2      = lazy(() => import("../v2/listener-management/ApplicationRequests"));
+const ProfileApprovalsV2         = lazy(() => import("../v2/listener-management/ProfileApprovals"));
 const Users               = lazy(() => import("../user-management/user-list/Users"));
 const ActiveUsers         = lazy(() => import("../user-management/active-users/ActiveUsers"));
 const RecentUsers         = lazy(() => import("../user-management/recent-users/RecentUsers"));
@@ -69,8 +71,11 @@ const Main = () => {
           <Route path="/user-management/recent-users" element={<RecentUsers />} />
           <Route path="/user-management/soft-deleted-users" element={<SoftDeletedUsers />} />
           <Route path="/listener-management/listeners-list" element={<Listeners />} />
-          <Route path="/listener-management/listener-application-request" element={<ApplicationRequests />} />
-          <Route path="/listener-management/listeners-profile-approvals" element={<ProfileApproval />} />
+          <Route path="/listener-management/listener-application-request" element={<ApplicationRequestsV2 />} />
+          <Route path="/listener-management/listeners-profile-approvals" element={<ProfileApprovalsV2 />} />
+          {/* Legacy fallbacks — same components, accessible if a regression is found */}
+          <Route path="/legacy/listener-management/listener-application-request" element={<ApplicationRequests />} />
+          <Route path="/legacy/listener-management/listeners-profile-approvals" element={<ProfileApproval />} />
           <Route path="/listener-management/listeners-profile-approvals-docs" element={<Docs />} />
           <Route path="/payment-management/payment-list" element={<PaymentList />} />
           <Route path="/payment-management/edit-salary" element={<EditSalary />} />
