@@ -1,7 +1,6 @@
-import React, { lazy, Suspense, useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect } from "react";
 import "./main.scss";
-import Sidebar from "../sidebar/Sidebar";
-import Navbars from "../navbars/Navbars";
+import AppShell from "../../shell/AppShell";
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { useGetMeQuery } from "../../services/auth";
 import { getCookie } from "../../cookie_helper/cookie";
@@ -43,13 +42,6 @@ const UserProfile         = lazy(() => import("../user-management/user-profile-v
 const PushNotifications   = lazy(() => import("../push-notifications/PushNotifications"));
 
 const Main = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
-  const closeSidebar = () => {
-    setIsSidebarOpen(false);
-  };
   const {
     data: user,
     isLoading: isUserLoading,
@@ -66,11 +58,8 @@ const Main = () => {
   }, [user, navigate, isUserLoading, userError]);
 
   return (
-    <div className={`main-section ${!isSidebarOpen ? "menu-closed" : ""}`}>
-      <Sidebar isSidebarOpen={isSidebarOpen} closeSidebar={closeSidebar} />
-      <div id="main" className="main">
-        <Navbars toggleSidebar={toggleSidebar} />
-        <Suspense fallback={<div style={{padding:'2rem',textAlign:'center'}}>Loading...</div>}>
+    <AppShell user={user?.user || user}>
+      <Suspense fallback={<div className="tw-py-8 tw-text-center tw-text-fg-tertiary">Loading…</div>}>
         <Routes>
           <Route path="/analytics" element={<Dashboard />} />
           <Route path="/user-management/users-list" element={<Users />} />
@@ -106,9 +95,8 @@ const Main = () => {
           <Route path="listener-management/profile-form" element={<ListenerDetailsForm />} />
           <Route path="/push-notifications" element={<PushNotifications />} />
         </Routes>
-        </Suspense>
-      </div>
-    </div>
+      </Suspense>
+    </AppShell>
   );
 };
 

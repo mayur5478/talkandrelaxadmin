@@ -1,0 +1,107 @@
+/*
+ * Talk and Relax Admin — v2 design tokens (Step 1, approved).
+ *
+ * These are NEW variables (--color-*, --border-radius-*, --shadow-*) that
+ * coexist with the existing index.css tokens (--primary, --background, etc.)
+ * The legacy tokens stay in place so the current pages keep rendering;
+ * the v2 shell + future v2 pages use only the variables defined here.
+ *
+ * Imported once from index.css.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-background-primary:   #ffffff;
+  --color-background-secondary: #f5f6f7;
+  --color-background-tertiary:  #f1f3f5;
+
+  --color-background-info:      #e8f0fe;
+  --color-background-success:   #e6f6ec;
+  --color-background-warning:   #fdf3df;
+  --color-background-danger:    #fde7e7;
+
+  --color-text-primary:    #0f172a;
+  --color-text-secondary:  #475569;
+  --color-text-tertiary:   #94a3b8;
+
+  --color-text-info:    #185fa5;
+  --color-text-success: #15803d;
+  --color-text-warning: #b45309;
+  --color-text-danger:  #b91c1c;
+
+  --color-border-tertiary: #e6e8eb;
+
+  /* Chart palette (data-viz only — UI chrome stays blue-only) */
+  --color-chart-1: #185fa5;
+  --color-chart-2: #f59e0b;
+  --color-chart-3: #10b981;
+  --color-chart-4: #8b5cf6;
+  --color-chart-5: #ef4444;
+
+  /* Tooltip pill (Recharts custom Tooltip) */
+  --color-tooltip-bg: #0f172a;
+  --color-tooltip-fg: #ffffff;
+
+  --border-radius-sm: 6px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+
+  --shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.04);
+  --shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.05), 0 1px 2px -1px rgb(15 23 42 / 0.04);
+  --shadow-md: 0 4px 6px -1px rgb(15 23 42 / 0.06), 0 2px 4px -2px rgb(15 23 42 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -4px rgb(15 23 42 / 0.04);
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 250ms;
+}
+
+.dark {
+  --color-background-primary:   #0f1216;
+  --color-background-secondary: #161a20;
+  --color-background-tertiary:  #0a0d11;
+
+  --color-background-info:      #14223a;
+  --color-background-success:   #0f2419;
+  --color-background-warning:   #2a1f08;
+  --color-background-danger:    #2a1212;
+
+  --color-text-primary:    #f1f5f9;
+  --color-text-secondary:  #cbd5e1;
+  --color-text-tertiary:   #64748b;
+
+  --color-text-info:    #5fa8ff;
+  --color-text-success: #4ade80;
+  --color-text-warning: #fbbf24;
+  --color-text-danger:  #f87171;
+
+  --color-border-tertiary: #1f242c;
+
+  --color-chart-1: #5fa8ff;
+  --color-chart-2: #fbbf24;
+  --color-chart-3: #4ade80;
+  --color-chart-4: #a78bfa;
+  --color-chart-5: #f87171;
+
+  --color-tooltip-bg: #f1f5f9;
+  --color-tooltip-fg: #0f1216;
+
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.40), 0 1px 2px -1px rgb(0 0 0 / 0.30);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.30);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.55), 0 4px 6px -4px rgb(0 0 0 / 0.30);
+}
+
+/* Anything inside the v2 shell uses tabular-nums by default. The legacy
+ * pages render outside the shell so they're unaffected. */
+.appshell-v2,
+.appshell-v2 .nums { font-variant-numeric: tabular-nums; }
+
+/* Subtle scrollbar inside the v2 shell only — the global scrollbar style
+ * in index.css still applies to legacy pages. */
+.appshell-v2 ::-webkit-scrollbar { width: 6px; height: 6px; }
+.appshell-v2 ::-webkit-scrollbar-thumb { background: var(--color-border-tertiary); border-radius: 6px; }
