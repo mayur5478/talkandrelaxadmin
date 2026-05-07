@@ -3,6 +3,7 @@ import { ThemeProvider } from './ThemeProvider';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import CommandMenu from './CommandMenu';
+import { ToastProvider } from '../components/v2/ui/toast';
 
 /**
  * Top-level shell for every authenticated v2 page.
@@ -27,30 +28,32 @@ export default function AppShell({ user, badges, children }) {
 
   return (
     <ThemeProvider>
-      <div className="appshell-v2 tw-min-h-screen tw-bg-bg-tertiary tw-text-fg-secondary">
-        <div className="tw-flex tw-min-h-screen">
-          <Sidebar
-            open={sidebarOpen}
-            onClose={() => setSidebarOpen(false)}
-            badges={badges}
-          />
-          <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
-            <Topbar
-              onMenuClick={() => setSidebarOpen(true)}
-              onSearchOpen={() => setSearchOpen(true)}
-              user={user}
+      <ToastProvider>
+        <div className="appshell-v2 tw-min-h-screen tw-bg-bg-tertiary tw-text-fg-secondary">
+          <div className="tw-flex tw-min-h-screen">
+            <Sidebar
+              open={sidebarOpen}
+              onClose={() => setSidebarOpen(false)}
+              badges={badges}
             />
-            <main
-              id="main-content"
-              tabIndex={-1}
-              className="tw-flex-1 tw-min-w-0 tw-p-4 md:tw-p-6"
-            >
-              {children}
-            </main>
+            <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
+              <Topbar
+                onMenuClick={() => setSidebarOpen(true)}
+                onSearchOpen={() => setSearchOpen(true)}
+                user={user}
+              />
+              <main
+                id="main-content"
+                tabIndex={-1}
+                className="tw-flex-1 tw-min-w-0 tw-p-4 md:tw-p-6"
+              >
+                {children}
+              </main>
+            </div>
           </div>
+          <CommandMenu open={searchOpen} onOpenChange={setSearchOpen} />
         </div>
-        <CommandMenu open={searchOpen} onOpenChange={setSearchOpen} />
-      </div>
+      </ToastProvider>
     </ThemeProvider>
   );
 }
