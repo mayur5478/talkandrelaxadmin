@@ -1,52 +1,57 @@
 import React from 'react';
 
-const WalletList = ({ title, wallets, color = "indigo" }) => {
+const WalletList = ({ wallets }) => {
+  if (!wallets || wallets.length === 0) {
+    return (
+      <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-10 tw-gap-1">
+        <span className="tw-text-[13px] tw-text-fg-tertiary">No wallet data yet</span>
+        <span className="tw-text-[11px] tw-text-fg-tertiary tw-opacity-60">
+          Data will appear as wallets are credited.
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className="modern-card p-4 h-100 shadow-sm border-0">
-      <div className="d-flex flex-column gap-2 mb-0">
-        {wallets && wallets.length > 0 ? (
-          wallets.map((w, index) => (
-            <div 
-              key={w.id || index} 
-              className="d-flex justify-content-between align-items-center p-3 rounded-4 border border-light-subtle bg-light hover-shadow-sm transition-all"
+    <div className="tw-flex tw-flex-col tw-gap-[6px] tw-pt-2">
+      {wallets.map((w, index) => (
+        <div
+          key={w.id || index}
+          className="tw-flex tw-items-center tw-justify-between tw-px-3 tw-py-3 tw-rounded-lg tw-border tw-border-hairline tw-border-tertiary tw-bg-bg-secondary hover:tw-bg-bg-tertiary tw-transition-colors tw-duration-fast"
+        >
+          {/* Rank + user info */}
+          <div className="tw-flex tw-items-center tw-gap-3 tw-min-w-0">
+            <div
+              className="tw-flex tw-items-center tw-justify-center tw-rounded-full tw-text-white tw-text-[13px] tw-font-bold tw-shrink-0"
               style={{
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                cursor: 'pointer'
+                width: 34,
+                height: 34,
+                background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
               }}
             >
-              <div className="d-flex align-items-center gap-3">
-                <div 
-                   className={`d-flex align-items-center justify-content-center rounded-circle text-white shadow-sm`}
-                   style={{ 
-                     width: '40px', 
-                     height: '40px', 
-                     fontSize: '14px', 
-                     fontWeight: '700',
-                     background: `linear-gradient(135deg, var(--primary), var(--secondary))`
-                   }}
-                >
-                  {index + 1}
-                </div>
-                <div>
-                  <div className="fw-bold text-dark" style={{ fontSize: '15px' }}>{w.userName}</div>
-                  <div className="text-muted small text-truncate" style={{ maxWidth: '180px' }}>{w.email}</div>
-                </div>
+              {index + 1}
+            </div>
+            <div className="tw-min-w-0">
+              <div className="tw-text-[13px] tw-font-semibold tw-text-fg-primary tw-truncate leading-tight">
+                {w.userName}
               </div>
-              <div className="text-end">
-                <div className="fw-bold text-success" style={{ fontSize: '16px' }}>
-                   ₹{parseFloat(w.balance || 0).toFixed(2)}
-                </div>
-                <div className="text-muted x-small" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Balance</div>
+              <div className="tw-text-[11px] tw-text-fg-tertiary tw-truncate tw-max-w-[160px] leading-tight tw-mt-[2px]">
+                {w.email}
               </div>
             </div>
-          ))
-        ) : (
-          <div className="text-center py-5">
-             <div className="text-muted mb-2">No data yet</div>
-             <div className="small text-muted opacity-50">Data will appear as wallets are credited.</div>
           </div>
-        )}
-      </div>
+
+          {/* Balance */}
+          <div className="tw-text-right tw-shrink-0 tw-pl-2">
+            <div className="tw-text-[14px] tw-font-bold tw-text-fg-success tw-tabular-nums leading-tight">
+              ₹{parseFloat(w.balance || 0).toFixed(2)}
+            </div>
+            <div className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-wider tw-text-fg-tertiary tw-mt-[2px] leading-tight">
+              Balance
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

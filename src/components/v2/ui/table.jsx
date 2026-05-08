@@ -63,24 +63,25 @@ export function TR({ className, isLast, children, ...rest }) {
  * The sort state shape is { key: string, dir: 'asc' | 'desc' | null }.
  */
 export function Th({ align = 'left', sortable, sortKey, sort, onSort, className, children }) {
+  const isActive = sortable && sort != null && sortKey != null && sort.key === sortKey;
+
   const ariaSort =
-    sortable && sort?.key === sortKey
+    isActive
       ? sort.dir === 'asc' ? 'ascending' : sort.dir === 'desc' ? 'descending' : 'none'
       : sortable ? 'none' : undefined;
 
   const cycle = () => {
     if (!sortable || !onSort) return;
     let dir = 'asc';
-    if (sort?.key === sortKey) {
+    if (isActive) {
       dir = sort.dir === 'asc' ? 'desc' : sort.dir === 'desc' ? null : 'asc';
     }
     onSort(dir ? { key: sortKey, dir } : { key: null, dir: null });
   };
 
-  const Icon =
-    sort?.key === sortKey
-      ? sort.dir === 'asc' ? ChevronUp : sort.dir === 'desc' ? ChevronDown : ChevronsUpDown
-      : ChevronsUpDown;
+  const Icon = isActive
+    ? sort.dir === 'asc' ? ChevronUp : sort.dir === 'desc' ? ChevronDown : ChevronsUpDown
+    : ChevronsUpDown;
 
   return (
     <th
@@ -104,7 +105,7 @@ export function Th({ align = 'left', sortable, sortKey, sort, onSort, className,
           )}
         >
           <span>{children}</span>
-          <Icon size={12} aria-hidden className={sort?.key === sortKey ? 'tw-text-fg-primary' : ''} />
+          <Icon size={12} aria-hidden className={isActive ? 'tw-text-fg-primary' : ''} />
         </button>
       ) : (
         children

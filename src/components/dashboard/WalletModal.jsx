@@ -1,68 +1,75 @@
 import React from 'react';
-import { Modal, Table, Button, Badge, Spinner } from 'react-bootstrap';
+import {
+  Modal, ModalBody, ModalFooter,
+  Button,
+  Spinner,
+  ErrorBanner,
+  Table, THead, TBody, TR, Th, Td,
+  Pill,
+} from '../v2/ui';
 import { useAllWalletsQuery } from '../../services/auth';
 
 const WalletModal = ({ show, handleClose, title, type = 'user' }) => {
-  const { data, isLoading, error } = useAllWalletsQuery({ type, limit: 100 }, { skip: !show });
+  const { data, isLoading, error } = useAllWalletsQuery(
+    { type, limit: 100 },
+    { skip: !show },
+  );
   const wallets = data?.wallets || [];
 
   return (
-    <Modal show={show} onHide={handleClose} size="lg" centered className="modern-modal">
-      <Modal.Header closeButton className="border-0 px-4 pt-4">
-        <Modal.Title className="fw-bold h4">{title}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body className="px-4 pb-4">
+    <Modal open={show} onClose={handleClose} title={title} size="xl">
+      <ModalBody className="tw-p-0">
         {isLoading ? (
-          <div className="text-center py-5">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-2 text-muted">Loading full list...</p>
+          <div className="tw-flex tw-flex-col tw-items-center tw-justify-center tw-py-16 tw-gap-3">
+            <Spinner size={24} className="tw-text-fg-info" />
+            <span className="tw-text-[13px] tw-text-fg-tertiary">Loading full list…</span>
           </div>
         ) : error ? (
-          <div className="text-center py-5 text-danger">
-            Error loading data. Please try again.
+          <div className="tw-p-4">
+            <ErrorBanner title="Failed to load wallets" message="Check your connection and try again." />
           </div>
         ) : (
-          <div className="table-responsive">
-            <Table hover align="middle" className="mb-0">
-              <thead className="bg-light">
-                <tr>
-                  <th className="border-0 text-muted small text-uppercase fw-bold px-3 py-3">Rank</th>
-                  <th className="border-0 text-muted small text-uppercase fw-bold px-3 py-3">Name</th>
-                  <th className="border-0 text-muted small text-uppercase fw-bold px-3 py-3">Email</th>
-                  <th className="border-0 text-muted small text-uppercase fw-bold px-3 py-3 text-end">Wallet Balance</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="tw-max-h-[60vh] tw-overflow-y-auto">
+            <Table>
+              <THead>
+                <TR>
+                  <Th className="tw-pl-4">#</Th>
+                  <Th>Name</Th>
+                  <Th>Email</Th>
+                  <Th align="right" className="tw-pr-4">Balance</Th>
+                </TR>
+              </THead>
+              <TBody>
                 {wallets.length > 0 ? (
                   wallets.map((wallet, index) => (
-                    <tr key={wallet.id || index}>
-                      <td className="px-3 py-3">
-                        <Badge bg={index < 3 ? 'warning' : 'light'} text={index < 3 ? 'dark' : 'secondary'} className="rounded-pill px-3">
+                    <TR key={wallet.id || index} isLast={index === wallets.length - 1}>
+                      <Td className="tw-pl-4 tw-w-12">
+                        <Pill tone={index < 3 ? 'warning' : 'neutral'}>
                           #{index + 1}
-                        </Badge>
-                      </td>
-                      <td className="px-3 py-3 fw-bold">{wallet.userName}</td>
-                      <td className="px-3 py-3 text-secondary">{wallet.email}</td>
-                      <td className="px-3 py-3 text-end fw-bold text-success">
-                        ₹{parseFloat(wallet.balance).toFixed(2)}
-                      </td>
-                    </tr>
+                        </Pill>
+                      </Td>
+                      <Td className="tw-font-semibold tw-text-fg-primary">{wallet.userName}</Td>
+                      <Td className="tw-text-fg-tertiary">{wallet.email}</Td>
+                      <Td align="right" className="tw-pr-4 tw-font-bold tw-text-fg-success">
+                        ₹{parseFloat(wallet.balance || 0).toFixed(2)}
+                      </Td>
+                    </TR>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan="4" className="text-center py-5 text-muted">No records found</td>
-                  </tr>
+                  <TR isLast>
+                    <Td colSpan={4} className="tw-text-center tw-py-10 tw-text-fg-tertiary">
+                      No records found
+                    </Td>
+                  </TR>
                 )}
-              </tbody>
+              </TBody>
             </Table>
           </div>
         )}
-      </Modal.Body>
-      <Modal.Footer className="border-0 px-4 pb-4">
-        <Button variant="secondary" onClick={handleClose} className="rounded-3 px-4">
-          Close
-        </Button>
-      </Modal.Footer>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="ghost" onClick={handleClose}>Close</Button>
+      </ModalFooter>
     </Modal>
   );
 };

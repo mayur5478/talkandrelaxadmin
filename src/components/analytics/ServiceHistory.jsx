@@ -1,16 +1,32 @@
 import React, { useState, useRef } from "react";
+import { Download, RefreshCw, Search } from "lucide-react";
+import { motion } from "framer-motion";
 import Services from "../payment-management/payment-list/services/Services";
 import MultiDatePicker from "../user-management/user-list/date-picker/MultiDatePicker";
-import { Button } from "react-bootstrap";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import moment from "moment";
+import {
+  Card, CardHeader, CardTitle,
+  Button,
+  Spinner,
+} from "../v2/ui";
+
+const fadeUp = { hidden: { y: 16, opacity: 0 }, visible: { y: 0, opacity: 1, transition: { duration: 0.3 } } };
+
+const inputCls =
+  "tw-w-full tw-bg-bg-secondary tw-text-fg-primary tw-text-[13px] " +
+  "tw-border tw-border-hairline tw-border-tertiary tw-rounded-md " +
+  "tw-pl-9 tw-pr-3 tw-py-2 tw-outline-none " +
+  "focus:tw-ring-2 focus:tw-ring-fg-info tw-transition-shadow tw-duration-fast " +
+  "placeholder:tw-text-fg-tertiary";
 
 function ServiceHistory() {
-  const [searchUser, setSearchUser] = useState("");
+  const [searchUser,     setSearchUser]     = useState("");
   const [searchListener, setSearchListener] = useState("");
-  const [dateRange, setDateRange] = useState([]);
+  const [dateRange,      setDateRange]      = useState([]);
   const [excelSessionData, setExcelSessionData] = useState([]);
+  const [exporting, setExporting] = useState(false);
   const servicesRefetchRef = useRef(null);
 
   const exportToExcel = async () => {
@@ -18,108 +34,132 @@ function ServiceHistory() {
       alert("No data available to export");
       return;
     }
+    setExporting(true);
+    try {
+      const workbook  = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Service History");
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Service History");
+      worksheet.columns = [
+        { header: "Sr. No",             key: "srNo",           width: 10 },
+        { header: "Date",               key: "date",           width: 20 },
+        { header: "Status",             key: "status",         width: 15 },
+        { header: "Type",               key: "type",           width: 15 },
+        { header: "User",               key: "user",           width: 25 },
+        { header: "Listener",           key: "listener",       width: 25 },
+        { header: "State",              key: "state",          width: 20 },
+        { header: "Duration (Min)",     key: "duration",       width: 15 },
+        { header: "Net Amount",         key: "net_amount",     width: 15 },
+        { header: "GST (18%)",          key: "gst",            width: 15 },
+        { header: "Total Amount",       key: "total",          width: 15 },
+        { header: "Listener Credit",    key: "listener_credit",width: 15 },
+        { header: "Admin Credit",       key: "admin_credit",   width: 15 },
+        { header: "User Wallet Balance",key: "wallet_balance", width: 18 },
+        { header: "End Reason",          key: "end_reason",    width: 30 },
+      ];
 
-    worksheet.columns = [
-      { header: "Sr. No", key: "srNo", width: 10 },
-      { header: "Date", key: "date", width: 20 },
-      { header: "Status", key: "status", width: 15 },
-      { header: "Type", key: "type", width: 15 },
-      { header: "User", key: "user", width: 25 },
-      { header: "Listener", key: "listener", width: 25 },
-      { header: "State", key: "state", width: 20 },
-      { header: "Duration (Min)", key: "duration", width: 15 },
-      { header: "Net Amount", key: "net_amount", width: 15 },
-      { header: "GST (18%)", key: "gst", width: 15 },
-      { header: "Total Amount", key: "total", width: 15 },
-      { header: "Listener Credit", key: "listener_credit", width: 15 },
-      { header: "Admin Credit", key: "admin_credit", width: 15 },
-      { header: "User Wallet Balance", key: "wallet_balance", width: 18 },
-    ];
-
-    excelSessionData.forEach((s, index) => {
-      const totalAmount = parseFloat(s.total_amount) || 0;
-      const netAmount = totalAmount / 1.18;
-      const gstAmount = totalAmount - netAmount;
-
-      worksheet.addRow({
-        srNo: index + 1,
-        date: moment(s.createdAt).format("DD/MM/YYYY, hh:mm A"),
-        status: s.transaction_status,
-        type: s.service_type,
-        user: s.username,
-        listener: s.listenerName,
-        state: s.user_state || "N/A",
-        duration: s.totalDuration,
-        net_amount: netAmount.toFixed(2),
-        gst: gstAmount.toFixed(2),
-        total: totalAmount.toFixed(2),
-        listener_credit: s.listener_credit,
-        admin_credit: s.admin_credit,
-        wallet_balance: s.user_wallet_balance || '0.00'
+      excelSessionData.forEach((s, index) => {
+        const totalAmount = parseFloat(s.total_amount) || 0;
+        const netAmount   = totalAmount / 1.18;
+        const gstAmount   = totalAmount - netAmount;
+        worksheet.addRow({
+          srNo:           index + 1,
+          date:           moment(s.createdAt).format("DD/MM/YYYY, hh:mm A"),
+          status:         s.transaction_status,
+          type:           s.service_type,
+          user:           s.username,
+          listener:       s.listenerName,
+          state:          s.user_state || "N/A",
+          duration:       s.totalDuration,
+          net_amount:     netAmount.toFixed(2),
+          gst:            gstAmount.toFixed(2),
+          total:          totalAmount.toFixed(2),
+          listener_credit:s.listener_credit,
+          admin_credit:   s.admin_credit,
+          wallet_balance: s.user_wallet_balance || "0.00",
+          end_reason:     s.end_reason || s.endReason || "",
+        });
       });
-    });
 
-    const buffer = await workbook.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    saveAs(blob, `service_history_${new Date().getTime()}.xlsx`);
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob   = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      saveAs(blob, `service_history_${Date.now()}.xlsx`);
+    } finally {
+      setExporting(false);
+    }
   };
 
   return (
-    <div className="service-history-page px-4 py-4">
-      <div className="welcome-banner mb-4 p-4 rounded-4 bg-white shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center">
+    <div className="tw-p-6 tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible"
+        className="tw-flex tw-items-end tw-justify-between tw-flex-wrap tw-gap-4">
         <div>
-          <h3 className="fw-bold mb-1">Service History</h3>
-          <p className="text-muted mb-0">Detailed logs of all call and chat sessions.</p>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Service History</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">
+            Detailed logs of all call and chat sessions.
+          </p>
         </div>
-        <div className="d-flex gap-3 mt-3 mt-md-0">
-          <Button variant="outline-primary" className="rounded-3 px-4" onClick={exportToExcel}>
+        <div className="tw-flex tw-items-center tw-gap-3">
+          <MultiDatePicker onChange={setDateRange} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportToExcel}
+            disabled={exporting}
+            className="tw-flex tw-items-center tw-gap-2"
+          >
+            {exporting ? <Spinner size={13} /> : <Download size={13} aria-hidden />}
             Export Excel
           </Button>
-          <MultiDatePicker onChange={setDateRange} />
         </div>
-      </div>
+      </motion.div>
 
-      <div className="modern-card mb-4 p-4">
-        <div className="row g-3 align-items-center">
-            <div className="col-md-5">
-              <div className="search-bar border rounded-3 px-3 py-2 bg-white d-flex align-items-center">
-                  <input
-                    type="text"
-                    className="border-0 bg-transparent w-100"
-                    placeholder="Filter by User name..."
-                    value={searchUser}
-                    onChange={(e) => setSearchUser(e.target.value)}
-                    style={{ outline: 'none', fontSize: '14px' }}
-                  />
-                  <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%2F%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%2F%3E%3C/svg%3E" alt="search" />
-              </div>
+      {/* Filters */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <Card className="tw-p-4">
+          <div className="tw-flex tw-flex-wrap tw-gap-3 tw-items-center"
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', alignItems: 'center' }}>
+            {/* User search */}
+            <div className="tw-relative">
+              <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary tw-pointer-events-none" aria-hidden />
+              <input
+                type="text"
+                className={inputCls}
+                placeholder="Filter by User name…"
+                value={searchUser}
+                onChange={(e) => setSearchUser(e.target.value)}
+              />
             </div>
-            <div className="col-md-5">
-              <div className="search-bar border rounded-3 px-3 py-2 bg-white d-flex align-items-center">
-                   <input
-                    type="text"
-                    className="border-0 bg-transparent w-100"
-                    placeholder="Filter by Listener name..."
-                    value={searchListener}
-                    onChange={(e) => setSearchListener(e.target.value)}
-                    style={{ outline: 'none', fontSize: '14px' }}
-                  />
-                   <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%2F%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%2F%3E%3C/svg%3E" alt="search" />
-              </div>
-            </div>
-            <div className="col-md-2">
-                <Button className="w-100 rounded-3 py-2" onClick={() => servicesRefetchRef.current?.()}>
-                  Refresh
-                </Button>
-            </div>
-        </div>
-      </div>
 
-      <div className="modern-card p-0 overflow-auto shadow-sm">
-        <div className="p-4" style={{ minHeight: '60vh' }}>
+            {/* Listener search */}
+            <div className="tw-relative">
+              <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary tw-pointer-events-none" aria-hidden />
+              <input
+                type="text"
+                className={inputCls}
+                placeholder="Filter by Listener name…"
+                value={searchListener}
+                onChange={(e) => setSearchListener(e.target.value)}
+              />
+            </div>
+
+            {/* Refresh */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => servicesRefetchRef.current?.()}
+              className="tw-flex tw-items-center tw-gap-2 tw-whitespace-nowrap"
+            >
+              <RefreshCw size={13} aria-hidden />
+              Refresh
+            </Button>
+          </div>
+        </Card>
+      </motion.div>
+
+      {/* Table */}
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <Card flush>
           <Services
             searchUser={searchUser}
             searchListener={searchListener}
@@ -127,8 +167,8 @@ function ServiceHistory() {
             setExcelSessionData={setExcelSessionData}
             onRefetch={servicesRefetchRef}
           />
-        </div>
-      </div>
+        </Card>
+      </motion.div>
     </div>
   );
 }

@@ -30,7 +30,7 @@ export function TabsList({ ariaLabel = 'Tabs', children, className }) {
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={cn('tw-inline-flex tw-border-b tw-border-hairline tw-border-tertiary tw-gap-4', className)}
+      className={cn('tw-flex tw-w-full tw-border-b tw-border-hairline tw-border-tertiary tw-gap-4', className)}
     >
       {children}
     </div>
@@ -53,7 +53,10 @@ export function Tab({ value: tabValue, children }) {
       tabIndex={active ? 0 : -1}
       onClick={() => ctx.onChange?.(tabValue)}
       className={cn(
-        'tw-px-1 tw-py-2 tw-text-small tw-font-medium',
+        /* bootstrap reset */
+        'tw-bg-transparent tw-border-0 tw-shadow-none tw-appearance-none tw-outline-none',
+        /* sizing & text */
+        'tw-px-3 tw-py-2 tw-text-[13px] tw-font-medium tw-whitespace-nowrap tw-cursor-pointer',
         'tw-transition-colors tw-duration-fast tw-ease-out-soft',
         'focus:tw-outline-none focus-visible:tw-ring-2 focus-visible:tw-ring-fg-info tw-rounded-sm',
         active
