@@ -157,11 +157,22 @@ function OnboardingForm() {
       if (audioFile) fd.append("audioFile", audioFile);
 
       const res = await fetch(`${API_BASE}onboarding/form-1/${token}`, { method: "POST", body: fd });
-      const data = await res.json();
+      // ── ROBUST ERROR PARSING ──
+      // The proxy in front of the API can return non-JSON (HTML 413/502/524) on
+      // upload failures. Try JSON first; on parse failure, surface a usable message.
+      let data = {};
+      try { data = await res.json(); }
+      catch (parseErr) {
+        const txt = await res.clone().text().catch(() => "");
+        if (res.status === 413) throw new Error("Upload too large — files exceed the server's size limit. Compress images and retry.");
+        if (res.status === 504 || res.status === 524) throw new Error("Upload timed out (slow connection). Try again on Wi-Fi.");
+        throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${txt.slice(0, 120)}`);
+      }
       if (res.ok) { setSubmitted(true); }
-      else { setSubmitError(data.message || "Submission failed. Please try again."); }
-    } catch {
-      setSubmitError("Network error. Please check your connection and try again.");
+      else { setSubmitError(data.message || `Submission failed (HTTP ${res.status}). Please try again.`); }
+    } catch (err) {
+      console.error("[submitForm1]", err);
+      setSubmitError(err?.message || "Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -180,22 +191,73 @@ function OnboardingForm() {
     setSubmitting(true);
     setSubmitError("");
     try {
+      // ── CLIENT-SIDE COMPRESSION (Fix for proxy size-limit "Network error") ──
+      // Phone-camera JPGs are often 2-5 MB each; with 5 files + form data, the
+      // multipart payload can exceed the production nginx/CDN body-size limit and
+      // be rejected with HTML (413/524) before reaching Express. We downscale each
+      // image to <= 1600 px on its longest edge and re-encode at JPEG quality 0.82,
+      // which preserves Aadhaar/PAN legibility while typically dropping size by 5-10x.
+      const compressed = {};
+      for (const [k, v] of Object.entries(f2Files)) {
+        compressed[k] = v ? await compressImage(v).catch(() => v) : v;
+      }
+
       const fd = new FormData();
       Object.entries(f2).forEach(([k, v]) => {
         if (Array.isArray(v)) fd.append(k, JSON.stringify(v));
         else fd.append(k, v);
       });
-      Object.entries(f2Files).forEach(([k, v]) => { if (v) fd.append(k, v); });
+      Object.entries(compressed).forEach(([k, v]) => { if (v) fd.append(k, v); });
 
       const res = await fetch(`${API_BASE}onboarding/form-2/${token}`, { method: "POST", body: fd });
-      const data = await res.json();
+      // ── ROBUST ERROR PARSING ──
+      // Same rationale as submitForm1 — surface a useful error rather than silently
+      // collapsing every failure mode into "Network error".
+      let data = {};
+      try { data = await res.json(); }
+      catch (parseErr) {
+        const txt = await res.clone().text().catch(() => "");
+        if (res.status === 413) throw new Error("Upload too large — files exceed the server's size limit. Compress images and retry.");
+        if (res.status === 504 || res.status === 524) throw new Error("Upload timed out (slow connection). Try again on Wi-Fi.");
+        throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${txt.slice(0, 120)}`);
+      }
       if (res.ok) { setSubmitted(true); }
-      else { setSubmitError(data.message || "Submission failed. Please try again."); }
-    } catch {
-      setSubmitError("Network error. Please check your connection and try again.");
+      else { setSubmitError(data.message || `Submission failed (HTTP ${res.status}). Please try again.`); }
+    } catch (err) {
+      console.error("[submitForm2]", err);
+      setSubmitError(err?.message || "Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Downscale an image File to <= 1600px on the longest side, JPEG q=0.82.
+  // Returns a new File. Falls through unchanged if the input isn't an image.
+  const compressImage = async (file) => {
+    if (!file || !file.type || !file.type.startsWith("image/")) return file;
+    const MAX_EDGE = 1600;
+    const QUALITY = 0.82;
+    const dataUrl = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result);
+      r.onerror = rej;
+      r.readAsDataURL(file);
+    });
+    const img = await new Promise((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = rej;
+      im.src = dataUrl;
+    });
+    const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale);
+    const h = Math.round(img.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w; canvas.height = h;
+    canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+    const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", QUALITY));
+    if (!blob || blob.size >= file.size) return file; // don't upscale a small file
+    return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
   };
 
   if (loading) return (
