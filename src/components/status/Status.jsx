@@ -1,17 +1,19 @@
 import React, { useState } from "react";
-import { Form } from "react-bootstrap";
-
-import viewIcon from "../assets/view.png";
-import deleteIcon from "../assets/delete.png";
-import rightIcon from "../assets/right.png";
-import wrongIcon from "../assets/cancel.png";
-import searchIcon from "../assets/search.png";
-import sort from "../assets/sort.png";
-import frontIcon from "../assets/front.png";
-import backIcon from "../assets/back.png";
-import forwardIcon from "../assets/forward.png";
-import backwardIcon from "../assets/backward.png";
 import "./status.scss";
+import { Search, Eye, Check, Trash2 } from "lucide-react";
+import {
+  Card,
+  IconButton,
+  Pill,
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../v2/ui";
 
 import {
   useGetStoriesQuery,
@@ -37,7 +39,6 @@ function Status() {
 
   const [approveStory, { isLoading: isApproving }] = useApproveStoryMutation();
 
-  // Modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedStory, setSelectedStory] = useState(null);
 
@@ -53,6 +54,7 @@ function Status() {
       console.error("Approval failed:", error);
     }
   };
+
   const handleDelete = async () => {
     if (!selectedDeleteStory) return;
     try {
@@ -64,191 +66,128 @@ function Status() {
   };
 
   return (
-    <div className="status-main">
-      <div className="top-section">
-        <div className="left-section">
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search User"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1); // reset page when searching
-              }}
-            />
-            <img src={searchIcon} alt="Search" className="search-icon" />
-          </div>
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Status (Stories)</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Review and moderate listener stories</p>
         </div>
-
-        <div className="right-section"></div>
       </div>
 
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Listener Name <img className="sort" src={sort} alt="Sort Icon" />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Upload Time</p>
-          </div>
-          <div>
-            <p className="heading-text">Status</p>
-          </div>
-          <div>
-            <p className="heading-text">Action</p>
-          </div>
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search User"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
+      </div>
 
+      {/* Table card */}
+      <Card flush>
         {isLoading ? (
-          <div className="table-body">
-            <p>Loading stories...</p>
-          </div>
-        ) : isError ? (
-          <div className="table-body">
-            <p>Error fetching stories</p>
-          </div>
-        ) : stories.length === 0 ? (
-          <div className="table-body">
-            <p>No stories found</p>
-          </div>
+          <TableSkeleton rows={8} cols={5} />
         ) : (
-          stories.map((story, index) => (
-            <div className="table-body" key={story.id}>
-              <div>
-                <p className="heading-text">
-                  {(page - 1) * pageSize + index + 1}
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  {story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown"}
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  {new Date(story.createdAt).toLocaleString()}
-                </p>
-              </div>
-              <div>
-                <p
-                  className={`heading-text ${
-                    story?.is_approved ? "green-text" : "red-text"
-                  }`}
-                >
-                  {story?.is_approved ? "Approved" : "Pending"}
-                </p>
-              </div>
-              <div>
-                <div className="actions">
-                  {/* View Story */}
-                  <a
-                    href={story?.story}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <img src={viewIcon} alt="View Icon" />
-                  </a>
-
-                  {/* Approve */}
-                  <img
-                    src={rightIcon}
-                    alt="Approve Story"
-                    onClick={() => {
-                      setSelectedStory({
-                        listenerId: story.listenerId,
-                        name:
-                          story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown",
-                      });
-                      setShowModal(true);
-                    }}
-                  />
-
-                  {/* Reject */}
-                  {/* <img src={wrongIcon} alt="Reject Story" /> */}
-
-                  {/* Delete */}
-                  <img
-                    onClick={() => {
-                      setSelectedDeleteStory({
-                        id: story.id,
-                        name:
-                          story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown",
-                      });
-                      setShowDeleteModal(true);
-                    }}
-                    src={deleteIcon}
-                    alt="Delete Story"
-                  />
-                </div>
-              </div>
-            </div>
-          ))
+          <>
+            <Table>
+              <THead>
+                <TR>
+                  <Th>Sr. No</Th>
+                  <Th>Listener Name</Th>
+                  <Th>Upload Time</Th>
+                  <Th>Status</Th>
+                  <Th>Action</Th>
+                </TR>
+              </THead>
+              <TBody>
+                {isError ? (
+                  <TR>
+                    <Td colSpan={5} className="tw-text-center tw-text-fg-tertiary">Error fetching stories</Td>
+                  </TR>
+                ) : stories.length === 0 ? (
+                  <TR>
+                    <Td colSpan={5} className="tw-text-center tw-text-fg-tertiary">No stories found</Td>
+                  </TR>
+                ) : (
+                  stories.map((story, index) => (
+                    <TR key={story.id} isLast={index === stories.length - 1}>
+                      <Td>{(page - 1) * pageSize + index + 1}</Td>
+                      <Td className="tw-text-fg-primary tw-font-medium">
+                        {story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown"}
+                      </Td>
+                      <Td>{new Date(story.createdAt).toLocaleString()}</Td>
+                      <Td>
+                        {story?.is_approved ? (
+                          <Pill tone="success">Approved</Pill>
+                        ) : (
+                          <Pill tone="warning">Pending</Pill>
+                        )}
+                      </Td>
+                      <Td>
+                        <div className="tw-flex tw-items-center tw-gap-1">
+                          <a
+                            href={story?.story}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="tw-inline-flex tw-items-center tw-justify-center tw-w-7 tw-h-7 tw-rounded-md hover:tw-bg-bg-secondary tw-text-fg-secondary tw-transition-colors"
+                            aria-label="View Story"
+                          >
+                            <Eye size={14} />
+                          </a>
+                          <IconButton
+                            size="sm"
+                            aria-label="Approve Story"
+                            onClick={() => {
+                              setSelectedStory({
+                                listenerId: story.listenerId,
+                                name: story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown",
+                              });
+                              setShowModal(true);
+                            }}
+                          >
+                            <Check size={14} />
+                          </IconButton>
+                          <IconButton
+                            size="sm"
+                            aria-label="Delete Story"
+                            onClick={() => {
+                              setSelectedDeleteStory({
+                                id: story.id,
+                                name: story?.listenerStoryData?.display_name || story?.listenerStoryData?.nick_name || "Unknown",
+                              });
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <Trash2 size={14} />
+                          </IconButton>
+                        </div>
+                      </Td>
+                    </TR>
+                  ))
+                )}
+              </TBody>
+            </Table>
+            <Pagination
+              page={page}
+              totalPages={pagination.totalPages}
+              totalRecords={pagination.total}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSize={(v) => { setPageSize(v); setPage(1); }}
+            />
+          </>
         )}
+      </Card>
 
-        {/* Pagination */}
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Pages:</p>
-            <Form.Select
-              aria-label="Items Per Page"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(parseInt(e.target.value));
-                setPage(1);
-              }}
-            >
-              {[5, 10, 15, 20, 25, 30].map((size) => (
-                <option key={size} value={size}>
-                  {size}
-                </option>
-              ))}
-            </Form.Select>
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>{(page - 1) * pageSize + 1}</p>-
-              <p>{Math.min(page * pageSize, pagination.total)}</p>
-              <p>of</p>
-              <p>{pagination.total}</p>
-            </div>
-            <div className="pagination-controls">
-              <img
-                src={backwardIcon}
-                alt="First Page"
-                onClick={() => setPage(1)}
-              />
-              <img
-                src={backIcon}
-                alt="Previous Page"
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              />
-              <img
-                src={frontIcon}
-                alt="Next Page"
-                onClick={() =>
-                  setPage((p) =>
-                    p < pagination.totalPages ? p + 1 : pagination.totalPages
-                  )
-                }
-              />
-              <img
-                src={forwardIcon}
-                alt="Last Page"
-                onClick={() => setPage(pagination.totalPages)}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Approve Modal */}
       <AcceptRequest
         show={showModal}
         onHide={() => setShowModal(false)}

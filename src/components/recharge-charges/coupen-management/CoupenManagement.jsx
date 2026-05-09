@@ -1,16 +1,21 @@
 // src/components/CoupenManagement.js
 import React, { useState } from "react";
-import { Button, Form } from "react-bootstrap";
-
 import "./coupenManagement.scss";
-import editIcon from "../../assets/pencil.png";
-import deleteIcon from "../../assets/delete.png";
-import search from "../../assets/search.png";
-import sort from "../../assets/sort.png";
-import frontIcon from "../../assets/front.png";
-import backIcon from "../../assets/back.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
+import { Search, PencilLine, Trash2 } from "lucide-react";
+import {
+  Card,
+  Button,
+  IconButton,
+  Pill,
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../../v2/ui";
 import {
   useCoupensListQuery,
   useCreateCoupenMutation,
@@ -30,7 +35,6 @@ function CoupenManagement() {
   const [show, setShow] = useState(false);
   const [usersModal, setUsersModal] = useState({ open: false, coupenId: null, coupenTitle: "" });
   const [usersPage, setUsersPage] = useState(1);
-  // Use the coupensList query
   const { data, error, isLoading, refetch } = useCoupensListQuery({
     page,
     limit,
@@ -51,238 +55,160 @@ function CoupenManagement() {
     useCreateCoupenMutation();
   const [updateMutation, { isLoading: isUpdateLoading }] =
     useEditCoupenMutation();
-    const handleSubmit = async (formData) => {
-      try {
-        if (id && initialData) {
-          await updateMutation(formData).unwrap();
-        } else {
-          await createMutation(formData).unwrap();
-        }
-    
-        refetch();     // Refresh list after success
-        setShow(false);
-      } catch (error) {
-        console.error("Submit Error:", error);
+  const handleSubmit = async (formData) => {
+    try {
+      if (id && initialData) {
+        await updateMutation(formData).unwrap();
+      } else {
+        await createMutation(formData).unwrap();
       }
-    };
-      const [deleteCoupen, { isLoading: isDeleteLoading }] =
-        useDeleteCoupenMutation();
-      const [deleteDes, setDeleteDes] = useState("");
-      const [selectedUserDelete, setSelectedUserDelete] = useState(null);
-      const [showDeleteModal, setShowDeleteModal] = useState(false);
-      const handleDelete = (coupenId) => {
-        setSelectedUserDelete(coupenId);
-        setShowDeleteModal(true);
-        setDeleteDes("You Are Attempting To remove Coupen in your system");
-      };
-      const confirmDelete = async () => {
-        try {
-          await deleteCoupen(selectedUserDelete).unwrap();
-          refetch();
-        } catch (err) {
-          console.error("Error toggling account freeze:", err);
-        } finally {
-          setShowDeleteModal(false);
-          setSelectedUserDelete(null);
-        }
-      };
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error fetching data</div>;
+      refetch();
+      setShow(false);
+    } catch (error) {
+      console.error("Submit Error:", error);
+    }
+  };
+  const [deleteCoupen, { isLoading: isDeleteLoading }] =
+    useDeleteCoupenMutation();
+  const [deleteDes, setDeleteDes] = useState("");
+  const [selectedUserDelete, setSelectedUserDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const handleDelete = (coupenId) => {
+    setSelectedUserDelete(coupenId);
+    setShowDeleteModal(true);
+    setDeleteDes("You Are Attempting To remove Coupen in your system");
+  };
+  const confirmDelete = async () => {
+    try {
+      await deleteCoupen(selectedUserDelete).unwrap();
+      refetch();
+    } catch (err) {
+      console.error("Error toggling account freeze:", err);
+    } finally {
+      setShowDeleteModal(false);
+      setSelectedUserDelete(null);
+    }
+  };
+
+  if (isLoading) return <TableSkeleton rows={8} cols={9} />;
+  if (error) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching data</div>;
+
+  const getCouponStatusTone = (coupen) => {
+    const today = new Date().toISOString().split('T')[0];
+    const expireDay = coupen.expire_date ? coupen.expire_date.split('T')[0] : '';
+    const limitReached = coupen.user_limit != null && coupen.user_limit > 0 && coupen.user_count >= coupen.user_limit;
+    if (!coupen.isActive) return { tone: "neutral", label: "Inactive" };
+    if (expireDay && expireDay < today) return { tone: "danger", label: "Expired" };
+    if (limitReached) return { tone: "warning", label: "Limit Reached" };
+    return { tone: "success", label: "Active" };
+  };
 
   return (
-    <div className="coupen-management-main">
-      <div className="top-section">
-        <div className="left-section">
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search User"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <img src={search} alt="Search" className="search-icon" />
-          </div>
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Coupon Management</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Manage discount coupons</p>
         </div>
-
-        <div className="right-section">
-          <Button className="edit-btn" onClick={() => setShow(true)}>
-            + Create Coupen
+        <div className="tw-flex tw-items-center tw-gap-2">
+          <Button size="sm" onClick={() => setShow(true)}>
+            + Create Coupon
           </Button>
         </div>
       </div>
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Coupen Name <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Minimum Amount <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              % off <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">On Amount</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Expire Date <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Usage</p>
-          </div>
-          <div>
-            <p className="heading-text">Status</p>
-          </div>
-          <div>
-            <p className="heading-text">Action</p>
-          </div>
-        </div>
-        <div>
-          {data.data.map((coupen, index) => (
-            <div key={coupen.id} className="table-body">
-              <div>
-                <p className="heading-text">{index + 1}</p>
-              </div>
-              <div>
-                {" "}
-                <p className="heading-text">{coupen.title}</p>
-              </div>
-              <div>
-                {" "}
-                <p className="heading-text">{coupen.minimum_amount}</p>
-              </div>
-              <div>
-                {" "}
-                <p className="heading-text">{coupen.percentage}%</p>
-              </div>
-              <div>
-                {" "}
-                <p className="heading-text">{coupen.instruction}</p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  {new Date(coupen.expire_date).toLocaleDateString()}
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  {coupen.user_count} / {coupen.user_limit}
-                </p>
-              </div>
-              <div>
-                {(() => {
-                  const today = new Date().toISOString().split('T')[0];
-                  const expireDay = coupen.expire_date ? coupen.expire_date.split('T')[0] : '';
-                  const limitReached = coupen.user_limit != null && coupen.user_limit > 0 && coupen.user_count >= coupen.user_limit;
-                  if (!coupen.isActive) {
-                    return <span className="coupen-status inactive">Inactive</span>;
-                  } else if (expireDay && expireDay < today) {
-                    return <span className="coupen-status expired">Expired</span>;
-                  } else if (limitReached) {
-                    return <span className="coupen-status limit-reached">Limit Reached</span>;
-                  } else {
-                    return <span className="coupen-status active">Active</span>;
-                  }
-                })()}
-              </div>
-              <div>
-                <div className="actions">
-                  <button
-                    className="coupen-users-btn"
-                    onClick={() => { setUsersModal({ open: true, coupenId: coupen.id, coupenTitle: coupen.title }); setUsersPage(1); }}
-                  >
-                    Users ({coupen.user_count})
-                  </button>
-                  <img
-                    onClick={() => {
-                      setShow(true);
-                      handleSetValue(
-                        {
-                          title: coupen.title,
-                          minimum_amount: coupen.minimum_amount,
-                          expire_date: coupen.expire_date,
-                          user_limit: coupen.user_limit,
-                          percentage: coupen.percentage,
-                        },
-                        coupen.id
-                      );
-                    }}
-                    src={editIcon}
-                    alt="Edit"
-                  />
-                  <img onClick={() => handleDelete(coupen.id)} src={deleteIcon} alt="Delete" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
 
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Page:</p>
-            <Form.Select
-              aria-label="Default select example"
-              value={limit}
-              onChange={(e) => setLimit(e.target.value)}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="25">25</option>
-              <option value="30">30</option>
-            </Form.Select>
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>{(page - 1) * limit + 1}</p>-
-              <p>{Math.min(page * limit, data.meta.total)}</p>
-              <p>of</p>
-              <p>{data.meta.total}</p>
-            </div>
-            <div className="pagination-controls">
-              <img
-                src={backwardIcon}
-                alt="First Page"
-                onClick={() => setPage(1)}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={backIcon}
-                alt="Previous Page"
-                onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={frontIcon}
-                alt="Next Page"
-                onClick={() =>
-                  setPage((prev) => Math.min(prev + 1, data.meta.totalPages))
-                }
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={forwardIcon}
-                alt="Last Page"
-                onClick={() => setPage(data.meta.totalPages)}
-                style={{ cursor: "pointer" }}
-              />
-            </div>
-          </div>
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
       </div>
+
+      {/* Table card */}
+      <Card flush>
+        <Table>
+          <THead>
+            <TR>
+              <Th>Sr. No</Th>
+              <Th>Coupon Name</Th>
+              <Th>Minimum Amount</Th>
+              <Th>% off</Th>
+              <Th>On Amount</Th>
+              <Th>Expire Date</Th>
+              <Th>Usage</Th>
+              <Th>Status</Th>
+              <Th>Action</Th>
+            </TR>
+          </THead>
+          <TBody>
+            {data.data.map((coupen, index) => {
+              const { tone, label } = getCouponStatusTone(coupen);
+              return (
+                <TR key={coupen.id} isLast={index === data.data.length - 1}>
+                  <Td>{index + 1}</Td>
+                  <Td className="tw-text-fg-primary tw-font-medium">{coupen.title}</Td>
+                  <Td>{coupen.minimum_amount}</Td>
+                  <Td>{coupen.percentage}%</Td>
+                  <Td>{coupen.instruction}</Td>
+                  <Td>{new Date(coupen.expire_date).toLocaleDateString()}</Td>
+                  <Td>{coupen.user_count} / {coupen.user_limit}</Td>
+                  <Td><Pill tone={tone}>{label}</Pill></Td>
+                  <Td>
+                    <div className="tw-flex tw-items-center tw-gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setUsersModal({ open: true, coupenId: coupen.id, coupenTitle: coupen.title }); setUsersPage(1); }}
+                      >
+                        Users ({coupen.user_count})
+                      </Button>
+                      <IconButton
+                        size="sm"
+                        aria-label="Edit"
+                        onClick={() => {
+                          setShow(true);
+                          handleSetValue(
+                            {
+                              title: coupen.title,
+                              minimum_amount: coupen.minimum_amount,
+                              expire_date: coupen.expire_date,
+                              user_limit: coupen.user_limit,
+                              percentage: coupen.percentage,
+                            },
+                            coupen.id
+                          );
+                        }}
+                      >
+                        <PencilLine size={14} />
+                      </IconButton>
+                      <IconButton size="sm" aria-label="Delete" onClick={() => handleDelete(coupen.id)}>
+                        <Trash2 size={14} />
+                      </IconButton>
+                    </div>
+                  </Td>
+                </TR>
+              );
+            })}
+          </TBody>
+        </Table>
+        <Pagination
+          page={page}
+          totalPages={data.meta.totalPages}
+          totalRecords={data.meta.total}
+          pageSize={limit}
+          onPageChange={setPage}
+          onPageSize={(v) => { setLimit(v); setPage(1); }}
+        />
+      </Card>
+
       <Coupen
         show={show}
         onHide={() => setShow(false)}
@@ -291,14 +217,14 @@ function CoupenManagement() {
         isSubmitting={id !== "" ? isUpdateLoading : isCreateLoading}
         id={id}
       />
-       <DeleteModal
-              show={showDeleteModal}
-              onHide={() => setShowDeleteModal(false)}
-              des={deleteDes}
-              onConfirm={confirmDelete}
-              isLoading={isDeleteLoading}
-              modal_type="coupen"
-            />
+      <DeleteModal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
+        des={deleteDes}
+        onConfirm={confirmDelete}
+        isLoading={isDeleteLoading}
+        modal_type="coupen"
+      />
 
       {/* Coupon Users Modal */}
       {usersModal.open && (
@@ -306,7 +232,7 @@ function CoupenManagement() {
           <div className="coupen-users-modal" onClick={(e) => e.stopPropagation()}>
             <div className="coupen-users-modal-header">
               <p className="export-modal-title">Users who used: {usersModal.coupenTitle}</p>
-              <button className="coupen-users-close" onClick={() => setUsersModal({ open: false, coupenId: null, coupenTitle: "" })}>✕</button>
+              <button className="coupen-users-close" onClick={() => setUsersModal({ open: false, coupenId: null, coupenTitle: "" })}>x</button>
             </div>
             <div className="coupen-users-modal-body">
               {isUsersLoading ? (
@@ -330,10 +256,10 @@ function CoupenManagement() {
                       {usersData.data.map((row, idx) => (
                         <tr key={row.id}>
                           <td>{(usersPage - 1) * 10 + idx + 1}</td>
-                          <td>{row.userData?.fullName || "—"}</td>
-                          <td>{row.userData?.mobile_number || "—"}</td>
-                          <td>₹{row.amount}</td>
-                          <td>{row.discount_percentage}% (₹{row.discount_amount})</td>
+                          <td>{row.userData?.fullName || "-"}</td>
+                          <td>{row.userData?.mobile_number || "-"}</td>
+                          <td>Rs.{row.amount}</td>
+                          <td>{row.discount_percentage}% (Rs.{row.discount_amount})</td>
                           <td>{new Date(row.createdAt).toLocaleDateString()}</td>
                         </tr>
                       ))}

@@ -1,22 +1,25 @@
 import React, { useRef, useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  IconButton,
+  Pill,
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../../v2/ui";
+import { Search, Eye, Trash2, Undo2, RotateCcw } from "lucide-react";
 import {
   useListenerDeleteMutation,
   useListenerListQuery,
   useListenerSoftDeleteMutation,
-} from "../../../services/listener"; // Import the API hook
+} from "../../../services/listener";
 import DatePicker from "../../user-management/user-list/date-picker/DatePicker";
-import sort from "../../assets/sort.png";
-import viewIcon from "../../assets/view.png";
-import frontIcon from "../../assets/front.png";
-import backIcon from "../../assets/back.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
-import eraser from "../../assets/eraser.png";
-import deleteIcon from "../../assets/delete.png";
-import replyImage from "../../assets/reply.png";
-import actionIcon from "../../assets/action.png";
-import search from "../../assets/search.png";
 import "./listeners.scss";
 import RemoveListener from "../../common/remove-listener/RemoveListener";
 import { useNavigate } from "react-router-dom";
@@ -59,13 +62,12 @@ function Listeners() {
   const [selectedUserDelete, setSelectedUserDelete] = useState(null);
   const [userNameDelete, setUserNameDelete] = useState(null);
   const [selectedMobileNumber, setSelectedMobileNumber] = useState(null);
-  const [dateRange, setDateRange] = useState([]); 
+  const [dateRange, setDateRange] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetTarget, setResetTarget] = useState({ id: "", name: "" });
   const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
   const navigate = useNavigate();
-
 
   const { data, isLoading, isError, refetch } = useListenerListQuery({
     page,
@@ -219,7 +221,6 @@ function Listeners() {
   };
   const tableRef = useRef(null);
 
-
   const handleMouseDown = (e) => {
     const table = tableRef.current;
     table.isDown = true;
@@ -232,7 +233,7 @@ function Listeners() {
     if (!table.isDown) return;
     e.preventDefault();
     const x = e.pageX - table.offsetLeft;
-    const walk = (x - table.startX) * 2; // scroll speed
+    const walk = (x - table.startX) * 2;
     table.scrollLeft = table.scrollLeft - walk;
   };
 
@@ -252,7 +253,6 @@ function Listeners() {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Listeners");
 
-    // Define headers
     const headers = [
       { header: "Sr. No", key: "srNo" },
       { header: "Full Name", key: "fullName" },
@@ -271,7 +271,6 @@ function Listeners() {
       width: h.header.length + 10,
     }));
 
-    // Add rows
     users.forEach((user, index) => {
       worksheet.addRow({
         srNo: index + 1,
@@ -288,7 +287,6 @@ function Listeners() {
       });
     });
 
-    // Style header
     const headerRow = worksheet.getRow(1);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -306,7 +304,6 @@ function Listeners() {
       };
     });
 
-    // Auto-size columns
     worksheet.columns.forEach((col) => {
       let maxLength = 0;
       col.eachCell({ includeEmpty: true }, (cell) => {
@@ -316,7 +313,6 @@ function Listeners() {
       col.width = maxLength + 2;
     });
 
-    // Export to Excel
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -325,288 +321,166 @@ function Listeners() {
   };
 
   return (
-    <div className="listeners-main">
-      <div className="top-section">
-        <div className="left-section">
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Listener Management</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Manage all registered listeners</p>
+        </div>
+        <div className="tw-flex tw-items-center tw-gap-2">
           <Button
-            onClick={() =>
-              exportUsersToExcel(data?.data?.users, "listener.xlsx")
-            }
+            variant="secondary"
+            size="sm"
+            onClick={() => exportUsersToExcel(data?.data?.users, "listener.xlsx")}
           >
-            Excel
+            Export Excel
           </Button>
           <Button
-            className={`archived-user-btn ${showArchived ? "pressed" : ""}`}
+            variant={showArchived ? "secondary" : "ghost"}
+            size="sm"
             onClick={() => {
               setShowArchived((prev) => !prev);
               setPage(1);
             }}
           >
-            Archived Listener
+            {showArchived ? "Active Listeners" : "Archived Listeners"}
           </Button>
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search Listener"
-              value={searchParams}
-              onChange={handleSearch}
-            />
-            <img src={search} alt="Search" className="search-icon" />
-          </div>
-        </div>
-        <div className="right-section">
-          <Button 
-            className="me-2 text-white border-0" 
-            style={{ backgroundColor: '#e11d48' }} // Red for danger/reset
+          <Button
+            variant="danger"
+            size="sm"
             onClick={handleGlobalReset}
             disabled={isResetAllLoading}
           >
-            {isResetAllLoading ? 'Resetting...' : '⚠️ Clear All Stuck States'}
+            {isResetAllLoading ? 'Resetting...' : '⚠ Clear All Stuck States'}
           </Button>
-          <MultiDatePicker onChange={setDateRange} />
-          <Button className="edit-btn"  onClick={() => setShow(true)}>➕ Create Session</Button>
+          <Button variant="secondary" size="sm" onClick={() => setShow(true)}>
+            + Create Session
+          </Button>
         </div>
-
       </div>
 
-      <div
-        className="table table-container"
-        ref={tableRef}
-        onMouseDown={handleMouseDown}
-        onMouseLeave={handleMouseUp}
-        onMouseUp={handleMouseUp}
-        onMouseMove={handleMouseMove}
-      >
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Full Name <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Email ID</p>
-          </div>
-          <div>
-            <p className="heading-text">Contact Number</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Registration Date <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Wallet Balance <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Account Freeze <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Wallet Freeze <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Devices</p>
-          </div>
-          <div>
-            <p className="heading-text">Action</p>
-          </div>
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search Listener"
+            value={searchParams}
+            onChange={handleSearch}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
+        <MultiDatePicker onChange={setDateRange} />
+      </div>
 
+      {/* Table card */}
+      <Card flush>
         {isLoading ? (
-          <p>Loading...</p>
-        ) : isError ? (
-          <p>Error fetching data</p>
+          <TableSkeleton rows={8} cols={10} />
         ) : (
-          data?.data?.users.map((user, index) => (
-            <div className="table-body" key={user.id}>
-              <div>
-                <p className="heading-text">
-                 {pageSize === "all"
-                  ? index + 1
-                  : (page - 1) * pageSize + index + 1}
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">{user?.display_name}</p>
-              </div>
-              <div>
-                <p className="heading-text">{user.email}</p>
-              </div>
-              <div>
-                <p className="heading-text">{user.mobile_number || "N/A"}</p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  {moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")}
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">{user?.balance}</p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  <div className="material-switch pull-right">
-                    <input
-                      id={`switch-${user.id}`}
-                      name={`switch-${user.id}`}
-                      type="checkbox"
-                      checked={user?.account_freeze === true ? true : false}
-                      onChange={() => handleToggle(user.id, user.fullName)}
-                    />
-                    <label
-                      htmlFor={`switch-${user.id}`}
-                      className="label-default"
-                    ></label>
-                  </div>
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  <div className="material-switch pull-right">
-                    <input
-                      id={`wallet-switch-${user.id}`}
-                      name={`wallet-switch-${user.id}`}
-                      type="checkbox"
-                      checked={user?.wallet_freeze === true ? true : false}
-                      onChange={() =>
-                        handleWalletToggle(user.id, user.fullName)
-                      }
-                    />
-                    <label
-                      htmlFor={`wallet-switch-${user.id}`}
-                      className="label-default"
-                    ></label>
-                  </div>
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">{user?.device_type}</p>
-              </div>
-              <div>
-                <div className="actions">
-                  <img src={actionIcon} alt={actionIcon} />
-                  <img
-                    src={viewIcon}
-                    alt={viewIcon}
-                    onClick={() => handleView(user?.id)}
-                  />
-                  {user?.is_soft_delete === false ? (
-                    <>
-                      <img
-                        onClick={() =>
-                          handleSoftDelete(user.id, user.fullName, true, user.mobile_number)
-                        }
-                        src={deleteIcon}
-                        alt={eraser}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      <img
-                        onClick={() =>
-                          handleSoftDelete(user.id, user.fullName, false, user.mobile_number)
-                        }
-                        src={replyImage}
-                        alt="reply"
-                      />
-                    </>
-                  )}
-
-
-
-                  <img
-                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 2v6h-6'%2F%3E%3Cpath d='M3 12a9 9 0 0 1 15-6.7L21 8'%2F%3E%3Cpath d='M3 22v-6h6'%2F%3E%3Cpath d='M21 12a9 9 0 0 1-15 6.7L3 16'%2F%3E%3C%2Fsvg%3E"
-                    onClick={() => handleResetStateClick(user.id, user.display_name)}
-                    title="Reset Stuck States"
-                    alt="Reset"
-                    className="reset-icon mx-1"
-                  />
-
-                  {/* <img
-                    onClick={() => handleDelete(user.id, user.fullName)}
-                    src={deleteIcon}
-                    alt={deleteIcon}
-                  /> */}
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Pages:</p>
-            <Form.Select
-              aria-label="Items per page"
-              value={pageSize}
-              onChange={handlePageSizeChange}
+          <>
+            <div
+              ref={tableRef}
+              onMouseDown={handleMouseDown}
+              onMouseLeave={handleMouseUp}
+              onMouseUp={handleMouseUp}
+              onMouseMove={handleMouseMove}
+              className="tw-overflow-x-auto"
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-              <option value="200">200</option>
-              <option value="all">All</option>
-            </Form.Select>
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>{pageSize === "all" ? 1 : (page - 1) * pageSize + 1}</p>-
-              <p>
-                {pageSize === "all"
-                  ? data?.data?.users?.length
-                  : Math.min(
-                      page * pageSize,
-                      data?.data?.pagination?.totalRecords || 0
-                    )}
-              </p>
-              <p>of</p>
-              <p>{data?.data?.pagination?.totalRecords || 0}</p>
+              <Table>
+                <THead>
+                  <TR>
+                    <Th>Sr. No</Th>
+                    <Th>Full Name</Th>
+                    <Th>Email ID</Th>
+                    <Th>Contact Number</Th>
+                    <Th>Registration Date</Th>
+                    <Th>Wallet Balance</Th>
+                    <Th>Account Freeze</Th>
+                    <Th>Wallet Freeze</Th>
+                    <Th>Devices</Th>
+                    <Th>Action</Th>
+                  </TR>
+                </THead>
+                <TBody>
+                  {isError ? (
+                    <TR>
+                      <Td colSpan={10} className="tw-text-center tw-text-fg-tertiary">Error fetching data</Td>
+                    </TR>
+                  ) : (
+                    data?.data?.users.map((user, index) => (
+                      <TR key={user.id} isLast={index === (data?.data?.users?.length - 1)}>
+                        <Td>
+                          {pageSize === "all"
+                            ? index + 1
+                            : (page - 1) * pageSize + index + 1}
+                        </Td>
+                        <Td className="tw-text-fg-primary tw-font-medium">{user?.display_name}</Td>
+                        <Td>{user.email}</Td>
+                        <Td>{user.mobile_number || "N/A"}</Td>
+                        <Td>{moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")}</Td>
+                        <Td>{user?.balance}</Td>
+                        <Td>
+                          <label className="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={user?.account_freeze === true}
+                              onChange={() => handleToggle(user.id, user.fullName)}
+                              className="tw-sr-only tw-peer"
+                            />
+                            <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
+                          </label>
+                        </Td>
+                        <Td>
+                          <label className="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={user?.wallet_freeze === true}
+                              onChange={() => handleWalletToggle(user.id, user.fullName)}
+                              className="tw-sr-only tw-peer"
+                            />
+                            <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
+                          </label>
+                        </Td>
+                        <Td>{user?.device_type}</Td>
+                        <Td>
+                          <div className="tw-flex tw-items-center tw-gap-1">
+                            <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
+                              <Eye size={14} />
+                            </IconButton>
+                            {user?.is_soft_delete === false ? (
+                              <IconButton size="sm" aria-label="Archive" onClick={() => handleSoftDelete(user.id, user.fullName, true, user.mobile_number)}>
+                                <Trash2 size={14} />
+                              </IconButton>
+                            ) : (
+                              <IconButton size="sm" aria-label="Restore" onClick={() => handleSoftDelete(user.id, user.fullName, false, user.mobile_number)}>
+                                <Undo2 size={14} />
+                              </IconButton>
+                            )}
+                            <IconButton size="sm" aria-label="Reset Stuck States" onClick={() => handleResetStateClick(user.id, user.display_name)}>
+                              <RotateCcw size={14} />
+                            </IconButton>
+                          </div>
+                        </Td>
+                      </TR>
+                    ))
+                  )}
+                </TBody>
+              </Table>
             </div>
-            <div className="pagination-controls">
-              <img
-                src={backwardIcon}
-                alt="Backward"
-                onClick={() => setPage(1)}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={backIcon}
-                alt="Back"
-                onClick={() => handlePageChange("prev")}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={frontIcon}
-                alt="Front"
-                onClick={() => handlePageChange("next")}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={forwardIcon}
-                alt="Forward"
-                onClick={() =>
-                  setPage(
-                    Math.ceil(data?.data?.pagination?.totalRecords / pageSize)
-                  )
-                }
-                style={{ cursor: "pointer" }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+            <Pagination
+              page={page}
+              totalPages={data?.data?.pagination?.totalPages}
+              totalRecords={data?.data?.pagination?.totalRecords}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSize={(v) => { setPageSize(v); setPage(1); }}
+            />
+          </>
+        )}
+      </Card>
 
       {/* Modals */}
       <ExportExcel
@@ -645,16 +519,15 @@ function Listeners() {
         isDeleteUserLoading={isDeleteUserLoading}
         type="listener"
       />
-        <CreateSession show={show} handleClose={() => setShow(false)} />
-      <ResetStateModal 
-        show={showResetModal} 
+      <CreateSession show={show} handleClose={() => setShow(false)} />
+      <ResetStateModal
+        show={showResetModal}
         handleClose={() => setShowResetModal(false)}
         userId={resetTarget.id}
         userName={resetTarget.name}
         refetch={refetch}
       />
     </div>
-
   );
 }
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Button, Tab, Tabs } from "react-bootstrap";
 import "./payment.scss";
+import { Card, CardHeader, CardTitle, Button, Tabs, TabsList, Tab, TabPanel } from "../../v2/ui";
+import { Search } from "lucide-react";
 import RechargeTable from "./recharge-table/RechargeTable";
 import Gift from "./gift/Gift";
 import Payout from "./payout/Payout";
@@ -72,16 +73,17 @@ function PaymentList() {
   };
 
   return (
-    <div className="payment-main px-4 py-4">
-      <div className="welcome-banner mb-4 p-4 rounded-4 bg-white shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center">
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
         <div>
-          <h3 className="fw-bold mb-1">Financial Management</h3>
-          <p className="text-muted mb-0">Monitor recharges, gifts, and platform payouts.</p>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Financial Management</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Monitor recharges, gifts, and platform payouts.</p>
         </div>
-        <div className="d-flex gap-3 mt-3 mt-md-0">
-          <Button 
-            variant="outline-primary" 
-            className="rounded-3 px-4"
+        <div className="tw-flex tw-items-center tw-gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => exportToExcel(excelData)}
           >
             Export to Excel
@@ -90,35 +92,28 @@ function PaymentList() {
         </div>
       </div>
 
-      <div className="modern-card p-0 overflow-auto shadow-sm">
-        <div className="px-4 pt-3 border-bottom bg-light">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-            <Tabs
-              id="payment-tabs"
-              activeKey={key}
-              onSelect={handleTabChange}
-              className="border-0 mb-3 mb-md-0 d-flex flex-row"
-            >
-              <Tab eventKey="Recharge" title="User Recharges" />
-              <Tab eventKey="Gift" title="Gift Transactions" />
-              <Tab eventKey="Payout" title="Salary Payouts" />
-            </Tabs>
-            
-            <div className="search-bar border rounded-3 px-3 py-1 mb-3 mb-md-0 bg-white" style={{ minWidth: '300px' }}>
-                <input
-                  type="text"
-                  className="border-0 bg-transparent w-100 py-1"
-                  placeholder="Search records..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ outline: 'none', fontSize: '14px' }}
-                />
-            </div>
-          </div>
+      {/* Toolbar: search */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search records..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
+      </div>
 
-        <div className="p-4 bg-white" style={{ minHeight: '50vh' }}>
-          {key === "Recharge" && (
+      <Card flush>
+        <Tabs value={key} onChange={handleTabChange}>
+          <TabsList ariaLabel="Payment sections">
+            <Tab value="Recharge">User Recharges</Tab>
+            <Tab value="Gift">Gift Transactions</Tab>
+            <Tab value="Payout">Salary Payouts</Tab>
+          </TabsList>
+          <TabPanel value="Recharge">
             <RechargeTable
               searchTerm={searchTerm}
               fromDate={dateRange[0]}
@@ -126,23 +121,23 @@ function PaymentList() {
               dateRange={dateRange}
               setExcelData={setExcelData}
             />
-          )}
-          {key === "Gift" && (
+          </TabPanel>
+          <TabPanel value="Gift">
             <Gift
               searchTerm={searchTerm}
               fromDate={dateRange[0]}
               toDate={dateRange[1]}
             />
-          )}
-          {key === "Payout" && (
+          </TabPanel>
+          <TabPanel value="Payout">
             <Payout
               searchTerm={searchTerm}
               fromDate={dateRange[0]}
               toDate={dateRange[1]}
             />
-          )}
-        </div>
-      </div>
+          </TabPanel>
+        </Tabs>
+      </Card>
     </div>
   );
 }

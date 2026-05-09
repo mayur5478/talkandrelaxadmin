@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Table, Spinner, Badge, Pagination } from "react-bootstrap";
 import { useGetManualAdjustmentsQuery } from "../../../services/recharge";
+import {
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pill,
+  Pagination,
+  Spinner,
+} from "../../v2/ui";
 
 const ManualRechargeTable = ({ searchTerm, fromDate, toDate, setExcelData }) => {
   const [page, setPage] = useState(1);
@@ -18,18 +29,13 @@ const ManualRechargeTable = ({ searchTerm, fromDate, toDate, setExcelData }) => 
   }, [data, setExcelData]);
 
   if (isLoading) {
-    return (
-      <div className="text-center py-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-2">Loading adjusting records...</p>
-      </div>
-    );
+    return <TableSkeleton rows={8} cols={7} />;
   }
 
   if (isError) {
     return (
-      <div className="text-center py-5 text-danger">
-        <p>Error loading manual recharge records. Please try again later.</p>
+      <div className="tw-text-center tw-py-8 tw-text-fg-tertiary">
+        Error loading manual recharge records. Please try again later.
       </div>
     );
   }
@@ -37,113 +43,98 @@ const ManualRechargeTable = ({ searchTerm, fromDate, toDate, setExcelData }) => 
   const adjustments = data?.data || [];
   const pagination = data?.pagination || { totalPages: 1 };
 
-  // Filter local results based on searchTerm if search is active
   const filteredData = adjustments.filter((item) => {
     const fullName = item?.userData?.fullName?.toLowerCase() || "";
     const reason = item?.reason?.toLowerCase() || "";
     const search = searchTerm.toLowerCase();
-    
+
     const matchesSearch = fullName.includes(search) || reason.includes(search);
-    
-    // Date filtering
+
     let matchesDate = true;
     if (fromDate && toDate) {
       const itemDate = new Date(item.createdAt);
       matchesDate = itemDate >= new Date(fromDate) && itemDate <= new Date(toDate);
     }
-    
+
     return matchesSearch && matchesDate;
   });
 
-  const handlePageChange = (newPage) => {
-    setPage(newPage);
-  };
-
   return (
     <>
-      <div className="table-responsive">
-        <Table hover className="align-middle">
-          <thead className="bg-light">
-            <tr>
-              <th className="border-0">User / Listener</th>
-              <th className="border-0">Role</th>
-              <th className="border-0">Amount</th>
-              <th className="border-0">Type</th>
-              <th className="border-0">Reason</th>
-              <th className="border-0">Processing Admin</th>
-              <th className="border-0">Date</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="tw-overflow-x-auto">
+        <Table>
+          <THead>
+            <TR>
+              <Th>User / Listener</Th>
+              <Th>Role</Th>
+              <Th>Amount</Th>
+              <Th>Type</Th>
+              <Th>Reason</Th>
+              <Th>Processing Admin</Th>
+              <Th>Date</Th>
+            </TR>
+          </THead>
+          <TBody>
             {filteredData.length > 0 ? (
-              filteredData.map((item) => (
-                <tr key={item.id}>
-                  <td>
-                    <div className="fw-semibold text-dark">{item?.userData?.fullName || "N/A"}</div>
-                    <small className="text-muted">{item?.userData?.mobile_number || "No Phone"}</small>
-                  </td>
-                  <td>
-                    <Badge bg={item?.userData?.role === 'listener' ? 'info' : 'secondary'} className="text-capitalize">
+              filteredData.map((item, index) => (
+                <TR key={item.id} isLast={index === filteredData.length - 1}>
+                  <Td>
+                    <div className="tw-font-medium tw-text-fg-primary">{item?.userData?.fullName || "N/A"}</div>
+                    <div className="tw-text-[12px] tw-text-fg-tertiary">{item?.userData?.mobile_number || "No Phone"}</div>
+                  </Td>
+                  <Td>
+                    <Pill tone={item?.userData?.role === 'listener' ? 'info' : 'neutral'}>
                       {item?.userData?.role || 'N/A'}
-                    </Badge>
-                  </td>
-                  <td>
-                    <span className={item.type === "credit" ? "text-success fw-bold" : "text-danger fw-bold"}>
-                      {item.type === "credit" ? "+" : "-"} ₹{item.amount || 0}
+                    </Pill>
+                  </Td>
+                  <Td>
+                    <span className={item.type === "credit" ? "tw-text-success tw-font-semibold" : "tw-text-danger tw-font-semibold"}>
+                      {item.type === "credit" ? "+" : "-"} Rs.{item.amount || 0}
                     </span>
-                  </td>
-                  <td>
-                    <Badge pill bg={item.type === "credit" ? "success" : "danger"} className="px-3">
+                  </Td>
+                  <Td>
+                    <Pill tone={item.type === "credit" ? "success" : "danger"}>
                       {item.type?.toUpperCase()}
-                    </Badge>
-                  </td>
-                  <td style={{ maxWidth: '250px' }}>
-                    <div className="text-truncate" title={item.reason}>
+                    </Pill>
+                  </Td>
+                  <Td>
+                    <div className="tw-text-fg-secondary tw-max-w-[250px] tw-truncate" title={item.reason}>
                       {item.reason || "Manual adjustment"}
                     </div>
-                  </td>
-                  <td>
-                    <small className="text-muted">{item.admin_id || "System"}</small>
-                  </td>
-                  <td>
-                    <div className="text-dark small">
+                  </Td>
+                  <Td>
+                    <span className="tw-text-fg-tertiary tw-text-[12px]">{item.admin_id || "System"}</span>
+                  </Td>
+                  <Td>
+                    <div className="tw-text-fg-primary tw-text-[12px]">
                       {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}
                     </div>
-                    <small className="text-muted">
-                        {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
-                    </small>
-                  </td>
-                </tr>
+                    <div className="tw-text-fg-tertiary tw-text-[11px]">
+                      {item.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ""}
+                    </div>
+                  </Td>
+                </TR>
               ))
             ) : (
-              <tr>
-                <td colSpan="7" className="text-center py-4 text-muted">
+              <TR>
+                <Td colSpan={7} className="tw-text-center tw-text-fg-tertiary tw-py-8">
                   No records found matching your criteria.
-                </td>
-              </tr>
+                </Td>
+              </TR>
             )}
-          </tbody>
+          </TBody>
         </Table>
       </div>
 
       {pagination.totalPages > 1 && (
-        <div className="d-flex justify-content-center mt-4">
-          <Pagination size="sm">
-            <Pagination.First onClick={() => handlePageChange(1)} disabled={page === 1} />
-            <Pagination.Prev onClick={() => handlePageChange(page - 1)} disabled={page === 1} />
-            {[...Array(pagination.totalPages)].map((_, i) => (
-              <Pagination.Item
-                key={i + 1}
-                active={i + 1 === page}
-                onClick={() => handlePageChange(i + 1)}
-              >
-                {i + 1}
-              </Pagination.Item>
-            ))}
-            <Pagination.Next onClick={() => handlePageChange(page + 1)} disabled={page === pagination.totalPages} />
-            <Pagination.Last onClick={() => handlePageChange(pagination.totalPages)} disabled={page === pagination.totalPages} />
-          </Pagination>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={pagination.totalPages}
+          totalRecords={pagination.totalRecords || filteredData.length}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSize={() => {}}
+        />
       )}
     </>
   );

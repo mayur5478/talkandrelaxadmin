@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Button, Form } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  IconButton,
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../../v2/ui";
+import { Search, Eye } from "lucide-react";
 import DatePicker from "../user-list/date-picker/DatePicker";
-import sort from "../../assets/sort.png";
-import viewIcon from "../../assets/view.png";
-import frontIcon from "../../assets/front.png";
-import backIcon from "../../assets/back.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
-import search from "../../assets/search.png";
 import "./recentUsers.scss";
 import { useRecentUserListQuery } from "../../../services/user";
 import moment from "moment";
@@ -17,7 +23,6 @@ import ResetStateModal from "../../common/reset-state/ResetStateModal";
 function RecentUsers() {
   const [searchParams, setSearchParams] = useState("");
   const [selectedDate, setSelectedDate] = useState(null);
-  const [modalShow, setModalShow] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [showResetModal, setShowResetModal] = useState(false);
@@ -34,26 +39,12 @@ function RecentUsers() {
     searchParams: searchParams ? searchParams : "",
     date: selectedDate ? selectedDate.toISOString().split("T")[0] : "",
   });
-  console.log("data", data);
   const navigate = useNavigate();
   useEffect(() => {
     if (error) {
       console.error("Error fetching data:", error);
     }
   }, [error]);
-
-  const handlePageChange = (direction) => {
-    if (direction === "next" && page < data?.data?.pagination?.totalPages) {
-      setPage((prev) => prev + 1);
-    } else if (direction === "prev" && page > 1) {
-      setPage((prev) => prev - 1);
-    }
-  };
-
-  const handlePageSizeChange = (e) => {
-    setPageSize(Number(e.target.value));
-    setPage(1);
-  };
 
   const handleSearchChange = (e) => {
     setSearchParams(e.target.value);
@@ -64,167 +55,97 @@ function RecentUsers() {
     setSelectedDate(date);
     setPage(1);
   };
+
   const handleView = (id) => {
     navigate(`/dashboard/user-management/profile-view?id=${id}`);
   };
+
   return (
-    <div className="recent-users">
-      <div className="top-section">
-        <div className="left-section">
-          <Button onClick={() => setModalShow(true)}>Excel</Button>
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search User"
-              value={searchParams}
-              onChange={handleSearchChange}
-            />
-            <img src={search} alt="Search" className="search-icon" />
-          </div>
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Recent Users</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Users with recent recharge activity</p>
         </div>
-        <div className="right-section">
+        <div className="tw-flex tw-items-center tw-gap-2">
           <DatePicker onChange={handleDateChange} />
         </div>
       </div>
 
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Full Name <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Wallet Balance <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Recharge Amount <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Gift Amount <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Recharge Date <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Action</p>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div>Loading...</div>
-        ) : error ? (
-          <div>Error fetching data</div>
-        ) : (
-          <>
-            {data?.data?.users?.map((user, index) => (
-              <div className="table-body" key={user?.id}>
-                <div>
-                  <p className="heading-text">
-                    {(page - 1) * pageSize + index + 1}
-                  </p>
-                </div>
-                <div>
-                  <p className="heading-text">{user.fullName}</p>
-                </div>
-                <div>
-                  <p className="heading-text">{user.wallet_balance}</p>
-                </div>
-                <div>
-                  <p className="heading-text">
-                    {user.totalRechargeAmount || 0.0}
-                  </p>
-                </div>
-                <div>
-                  <p className="heading-text">{user.totalGiftAmount || 0.0}</p>
-                </div>
-                <div>
-                  <p className="heading-text">
-                    {user.firstRechargeDate === null
-                      ? "-"
-                      : moment(user.firstRechargeDate).format(
-                          "DD/MM/YYYY, hh:mm A"
-                        )}{" "}
-                  </p>
-                </div>
-                <div>
-                  <div className="actions">
-                    <img   onClick={() => handleView(user?.id)} src={viewIcon} alt={viewIcon} />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Pages:</p>
-            <Form.Select value={pageSize} onChange={handlePageSizeChange}>
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="25">25</option>
-              <option value="30">30</option>
-            </Form.Select>
-          </div>
-
-          <div className="pagination-details">
-          <div className="pagination-numbers">
-              <p>{(page - 1) * pageSize + 1}</p>-
-              <p>
-                {Math.min(
-                  page * pageSize,
-                  data?.data?.pagination?.totalRecords || 0
-                )}
-              </p>
-              <p>of</p>
-              <p>{data?.data?.pagination?.totalRecords || 0}</p>
-            </div>
-            <div className="pagination-controls">
-              <img
-                src={backwardIcon}
-                alt={backwardIcon}
-                onClick={() => setPage(1)}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={backIcon}
-                alt={backIcon}
-                onClick={() => handlePageChange("prev")}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={frontIcon}
-                alt={frontIcon}
-                onClick={() => handlePageChange("next")}
-                style={{ cursor: "pointer" }}
-              />
-              <img
-                src={forwardIcon}
-                alt={forwardIcon}
-                onClick={() =>
-                  setPage(data?.data?.pagination?.totalPages || page)
-                }
-                style={{ cursor: "pointer" }}
-              />
-            </div>
-          </div>
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search User"
+            value={searchParams}
+            onChange={handleSearchChange}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
       </div>
+
+      {/* Table card */}
+      <Card flush>
+        {isLoading ? (
+          <TableSkeleton rows={8} cols={7} />
+        ) : (
+          <>
+            <Table>
+              <THead>
+                <TR>
+                  <Th>Sr. No</Th>
+                  <Th>Full Name</Th>
+                  <Th>Wallet Balance</Th>
+                  <Th>Recharge Amount</Th>
+                  <Th>Gift Amount</Th>
+                  <Th>Recharge Date</Th>
+                  <Th>Action</Th>
+                </TR>
+              </THead>
+              <TBody>
+                {error ? (
+                  <TR>
+                    <Td colSpan={7} className="tw-text-center tw-text-fg-tertiary">Error fetching data</Td>
+                  </TR>
+                ) : (
+                  data?.data?.users?.map((user, index) => (
+                    <TR key={user?.id} isLast={index === (data?.data?.users?.length - 1)}>
+                      <Td>{(page - 1) * pageSize + index + 1}</Td>
+                      <Td className="tw-text-fg-primary tw-font-medium">{user.fullName}</Td>
+                      <Td>{user.wallet_balance}</Td>
+                      <Td>{user.totalRechargeAmount || 0.0}</Td>
+                      <Td>{user.totalGiftAmount || 0.0}</Td>
+                      <Td>
+                        {user.firstRechargeDate === null
+                          ? "-"
+                          : moment(user.firstRechargeDate).format("DD/MM/YYYY, hh:mm A")}
+                      </Td>
+                      <Td>
+                        <div className="tw-flex tw-items-center tw-gap-1">
+                          <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
+                            <Eye size={14} />
+                          </IconButton>
+                        </div>
+                      </Td>
+                    </TR>
+                  ))
+                )}
+              </TBody>
+            </Table>
+            <Pagination
+              page={page}
+              totalPages={data?.data?.pagination?.totalPages}
+              totalRecords={data?.data?.pagination?.totalRecords}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSize={(v) => { setPageSize(v); setPage(1); }}
+            />
+          </>
+        )}
+      </Card>
     </div>
   );
 }

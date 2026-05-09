@@ -16,11 +16,13 @@ export const links = [
     path: "/dashboard/analytics",
     icon: dashboard,
     type: "button",
+    group: null,
   },
   {
     title: "User Management",
     icon: users,
     type: "dropdown",
+    group: "MANAGEMENT",
     children: [
       {
         title: "User List",
@@ -48,6 +50,7 @@ export const links = [
     title: "Listener Management",
     icon: listeners,
     type: "dropdown",
+    group: "MANAGEMENT",
     children: [
       {
         title: "Listeners",
@@ -70,6 +73,7 @@ export const links = [
     title: "Financial Management",
     icon: payment,
     type: "dropdown",
+    group: "FINANCIAL",
     children: [
       {
         title: "Recharges & Gifts",
@@ -113,29 +117,34 @@ export const links = [
     icon: payment,
     path: "/dashboard/business-insights",
     type: "button",
+    group: "FINANCIAL",
   },
   {
     title: "Daily Summary",
     icon: dashboard,
     path: "/dashboard/daily-summary",
     type: "button",
+    group: "FINANCIAL",
   },
   {
     title: "Service History",
     icon: recharge,
     path: "/dashboard/service-history",
     type: "button",
+    group: "OPERATIONS",
   },
   {
     title: "Call Rejections",
     icon: status,
     path: "/dashboard/rejections",
     type: "button",
+    group: "OPERATIONS",
   },
   {
     title: "Platform Controls",
     icon: recharge,
     type: "dropdown",
+    group: "OPERATIONS",
     children: [
       {
         title: "Recharge Plans",
@@ -169,17 +178,20 @@ export const links = [
     path: "/dashboard/status",
     icon: status,
     type: "button",
+    group: "CONTENT",
   },
   {
     title: "Support Queries",
     path: "/dashboard/contact-queries/report-block",
     icon: contact,
     type: "button",
+    group: "CONTENT",
   },
   {
     title: "Push Notifications",
     path: "/dashboard/push-notifications",
     icon: bell,
     type: "button",
+    group: "CONTENT",
   },
 ];

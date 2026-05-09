@@ -1,56 +1,43 @@
-import React, { useState } from 'react'
-import { Button, Tab, Tabs } from 'react-bootstrap'
-import search from "../../assets/search.png";
-import "./penalty.scss"
+import React, { useState } from 'react';
+import "./penalty.scss";
+import { Card, Tabs, TabsList, Tab, TabPanel } from "../../v2/ui";
 import Leave from './Leave';
 import MissedSession from './MissedSession';
 import Policy from './Policy';
 
-
-
 function PenaltyManage() {
-    const [modalShow, setModalShow] = useState(false);
-    const [key, setKey] = useState('Leave Penalty');
+  const [key, setKey] = useState('Leave Penalty');
+
   return (
-    <div className="penalty-main">
-    {/* Top Section */}
-    <div className="top-section">
-      <div className="left-section">
-      <Tabs
-          id="controlled-tab-example"
-          activeKey={key}
-          onSelect={(k) => setKey(k)} // Set the selected tab key
-          className="tabs"
-        >
-          <Tab eventKey="Leave Penalty" title="Leave Penalty"></Tab>
-          <Tab eventKey="Missed Session Penalty" title="Missed Session Penalty"></Tab>
-          <Tab eventKey="Policy Break Penalty" title="Policy Break Penalty"></Tab>
-        </Tabs>
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Penalty Management</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Manage leave, missed session and policy penalties</p>
+        </div>
       </div>
 
-    
+      <Card flush>
+        <Tabs value={key} onChange={setKey}>
+          <TabsList ariaLabel="Penalty sections">
+            <Tab value="Leave Penalty">Leave Penalty</Tab>
+            <Tab value="Missed Session Penalty">Missed Session Penalty</Tab>
+            <Tab value="Policy Break Penalty">Policy Break Penalty</Tab>
+          </TabsList>
+          <TabPanel value="Leave Penalty">
+            <Leave />
+          </TabPanel>
+          <TabPanel value="Missed Session Penalty">
+            <MissedSession />
+          </TabPanel>
+          <TabPanel value="Policy Break Penalty">
+            <Policy />
+          </TabPanel>
+        </Tabs>
+      </Card>
     </div>
-
-    {/* Tab Content in Table Section */}
-    <div className="table">
-      {key === "Leave Penalty" && (
-        <div className="tab-content">
-    <Leave/>
-        </div>
-      )}
-      {key === "Missed Session Penalty" && (
-        <div className="tab-content">
-       <MissedSession/>
-        </div>
-      )}
-      {key === "Policy Break Penalty" && (
-        <div className="tab-content">
-       <Policy/>
-        </div>
-      )}
-    </div>
-  </div>
-  )
+  );
 }
 
-export default PenaltyManage
+export default PenaltyManage;

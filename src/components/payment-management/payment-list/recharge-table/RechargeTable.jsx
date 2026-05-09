@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Form } from "react-bootstrap";
-import { useRechargeListQuery } from "../../../../services/listener"; // Adjust the import path as necessary
-import sort from "../../../assets/sort.png";
-import frontIcon from "../../../assets/front.png";
-import backIcon from "../../../assets/back.png";
-import forwardIcon from "../../../assets/forward.png";
-import backwardIcon from "../../../assets/backward.png";
+import { useRechargeListQuery } from "../../../../services/listener";
 import "./recharge.scss";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
+import {
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pill,
+  Pagination,
+} from "../../../v2/ui";
 
 function RechargeTable({ searchTerm, dateRange, setExcelData }) {
   const [page, setPage] = useState(1);
@@ -27,24 +32,17 @@ function RechargeTable({ searchTerm, dateRange, setExcelData }) {
     page,
     limit: pageSize,
     search: debouncedSearch,
-    fromDate: dateRange[0]?.toISOString(),
-    toDate: dateRange[1]?.toISOString(),
+    fromDate: dateRange?.[0]?.toISOString(),
+    toDate: dateRange?.[1]?.toISOString(),
   });
   useEffect(() => {
     if (data?.data?.recharges) {
       setExcelData(data.data.recharges);
     }
   }, [data]);
-  console.log("ddata", data);
 
   const total = data?.data?.total || 0;
   const totalPages = data?.data?.totalPages || 1;
-
-  const handlePageSizeChange = (event) => {
-    const value = event.target.value;
-    setPageSize(value === "all" ? "all" : Number(value));
-    setPage(1);
-  };
 
   const navigate = useNavigate();
   const handleView = (id) => {
@@ -54,169 +52,77 @@ function RechargeTable({ searchTerm, dateRange, setExcelData }) {
     if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error fetching recharge data: {error.message}</div>;
-  console.log("page", page);
-  console.log(pageSize);
+  if (isLoading) return <TableSkeleton rows={8} cols={11} />;
+  if (error) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching recharge data: {error.message}</div>;
 
   return (
-    <div className="recharge-main-2">
-      <div className="table-headings">
-        <div>
-          <p className="heading-text">Sr. No</p>
-        </div>
-        <div>
-          <p className="heading-text">
-            Transition ID <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text">
-            Payment ID <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text">
-            Name <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text">
-            Recharge Amount <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text">
-            Net Recharge <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text">
-            GST (₹) <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text">Country</p>
-        </div>
-        <div>
-          <p className="heading-text">State</p>
-        </div>
-        <div>
-          <p className="heading-text">
-            Transaction Status <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-        <div>
-          <p className="heading-text extra-space">
-            Transaction Date <img className="sort" src={sort} alt={sort} />
-          </p>
-        </div>
-      </div>
-
-      {data?.data?.recharges.map((recharge, index) => (
-        <div key={recharge.id} className="table-body">
-          <div>
-            <p className="heading-text">
-              {page && pageSize !== "all"
-                ? (page - 1) * pageSize + index + 1
-                : index + 1}
-            </p>
-          </div>
-          <div>
-            <p className="transaction-id">{recharge.transaction_id}</p>
-          </div>
-          <div>
-            <p className="transaction-id">{recharge.razorpay_payment_id || 'N/A'}</p>
-          </div>
-          <div>
-            <p
-              onClick={() => handleView(recharge?.user_id)}
-              className="heading-text name"
-            >
-              {recharge.name}
-            </p>
-          </div>
-          <div>
-            <p className="heading-text fw-bold">₹{recharge.recharge_amount}</p>
-          </div>
-          <div>
-            <p className="heading-text">₹{recharge.net_recharge}</p>
-          </div>
-          <div>
-            <p className="heading-text text-muted">₹{recharge.gst_amount}</p>
-          </div>
-          <div>
-            <p className="heading-text">{recharge.country}</p>
-          </div>
-          <div>
-            <p className="heading-text">{recharge.state}</p>
-          </div>
-          <div>
-            <p
-              className={`heading-text ${
-                recharge.status === "pending" || recharge.status === "failed"
-                  ? "red-text"
-                  : "green-text"
-              }`}
-            >
-              {recharge.status?.toUpperCase()}
-            </p>
-          </div>
-          <div>
-            <p className="heading-text text-muted small">
-              {moment(recharge.transaction_date).format("DD/MM/YYYY")} <br/>
-              <span className="fw-bold text-dark">{moment(recharge.transaction_date).format("hh:mm A")}</span>
-            </p>
-          </div>
-        </div>
-      ))}
-
-
-      <div className="pagination">
-        <div className="pagination-dropdown">
-          <p>Items Per Page:</p>
-          <Form.Select
-            aria-label="Default select example"
-            onChange={handlePageSizeChange}
-          >
-            <option value="10">10</option>
-            <option value="20">20</option>
-            <option value="30">30</option>
-            <option value="50">50</option>
-            <option value="all">All</option>
-          </Form.Select>
-        </div>
-        <div className="pagination-details">
-          <div className="pagination-numbers">
-            <p>{(page - 1) * pageSize + 1}</p>-
-            <p>{Math.min(page * pageSize, total)}</p>
-            <p>of</p>
-            <p>{total}</p>
-          </div>
-          <div className="pagination-controls">
-            <img
-              src={backwardIcon}
-              alt="First"
-              onClick={() => handlePageChange(1)}
-            />
-            <img
-              src={backIcon}
-              alt="Previous"
-              onClick={() => handlePageChange(page - 1)}
-            />
-            <img
-              src={frontIcon}
-              alt="Next"
-              onClick={() => handlePageChange(page + 1)}
-            />
-            <img
-              src={forwardIcon}
-              alt="Last"
-              onClick={() => handlePageChange(totalPages)}
-            />
-          </div>
-        </div>
-      </div>
+    <div className="tw-overflow-x-auto">
+      <Table>
+        <THead>
+          <TR>
+            <Th>Sr. No</Th>
+            <Th>Transaction ID</Th>
+            <Th>Payment ID</Th>
+            <Th>Name</Th>
+            <Th>Recharge Amount</Th>
+            <Th>Net Recharge</Th>
+            <Th>GST (Rs.)</Th>
+            <Th>Country</Th>
+            <Th>State</Th>
+            <Th>Transaction Status</Th>
+            <Th>Transaction Date</Th>
+          </TR>
+        </THead>
+        <TBody>
+          {data?.data?.recharges.map((recharge, index) => (
+            <TR key={recharge.id} isLast={index === data.data.recharges.length - 1}>
+              <Td>
+                {page && pageSize !== "all"
+                  ? (page - 1) * pageSize + index + 1
+                  : index + 1}
+              </Td>
+              <Td className="tw-font-mono tw-text-[12px]">{recharge.transaction_id}</Td>
+              <Td className="tw-font-mono tw-text-[12px]">{recharge.razorpay_payment_id || 'N/A'}</Td>
+              <Td>
+                <span
+                  onClick={() => handleView(recharge?.user_id)}
+                  className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline"
+                >
+                  {recharge.name}
+                </span>
+              </Td>
+              <Td className="tw-font-medium">Rs.{recharge.recharge_amount}</Td>
+              <Td>Rs.{recharge.net_recharge}</Td>
+              <Td className="tw-text-fg-secondary">Rs.{recharge.gst_amount}</Td>
+              <Td>{recharge.country}</Td>
+              <Td>{recharge.state}</Td>
+              <Td>
+                {recharge.status === "pending" || recharge.status === "failed" ? (
+                  <Pill tone="danger">{recharge.status?.toUpperCase()}</Pill>
+                ) : (
+                  <Pill tone="success">{recharge.status?.toUpperCase()}</Pill>
+                )}
+              </Td>
+              <Td>
+                <div className="tw-text-fg-primary tw-text-[12px]">
+                  {moment(recharge.transaction_date).format("DD/MM/YYYY")}
+                </div>
+                <div className="tw-text-fg-tertiary tw-text-[11px]">
+                  {moment(recharge.transaction_date).format("hh:mm A")}
+                </div>
+              </Td>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalRecords={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSize={(v) => { setPageSize(v); setPage(1); }}
+      />
     </div>
   );
 }

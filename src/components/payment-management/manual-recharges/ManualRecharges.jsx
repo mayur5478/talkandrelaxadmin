@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Button } from "react-bootstrap";
 import "./manual-recharges.scss";
+import { Card, Button } from "../../v2/ui";
+import { Search } from "lucide-react";
 import ManualRechargeTable from "./ManualRechargeTable";
 import MultiDatePicker from "../../user-management/user-list/date-picker/MultiDatePicker";
 import ExcelJS from "exceljs";
@@ -51,16 +52,17 @@ function ManualRecharges() {
   };
 
   return (
-    <div className="payment-main px-4 py-4">
-      <div className="welcome-banner mb-4 p-4 rounded-4 bg-white shadow-sm d-flex flex-column flex-md-row justify-content-between align-items-center">
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
         <div>
-          <h3 className="fw-bold mb-1">Manual Recharges & Adjustments</h3>
-          <p className="text-muted mb-0">View all manual credits and debits processed by the platform.</p>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Manual Recharges & Adjustments</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">View all manual credits and debits processed by the platform.</p>
         </div>
-        <div className="d-flex gap-3 mt-3 mt-md-0">
-          <Button 
-            variant="outline-primary" 
-            className="rounded-3 px-4"
+        <div className="tw-flex tw-items-center tw-gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => exportToExcel(excelData)}
           >
             Export to Excel
@@ -69,31 +71,28 @@ function ManualRecharges() {
         </div>
       </div>
 
-      <div className="modern-card p-0 overflow-auto shadow-sm">
-        <div className="px-4 pt-3 border-bottom bg-light">
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
-             <div className="search-bar border rounded-3 px-3 py-1 bg-white" style={{ minWidth: '300px' }}>
-                <input
-                  type="text"
-                  className="border-0 bg-transparent w-100 py-1"
-                  placeholder="Search by name or reason..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{ outline: 'none', fontSize: '14px' }}
-                />
-            </div>
-          </div>
-        </div>
-
-        <div className="p-4 bg-white" style={{ minHeight: '50vh' }}>
-            <ManualRechargeTable
-              searchTerm={searchTerm}
-              fromDate={dateRange[0]}
-              toDate={dateRange[1]}
-              setExcelData={setExcelData}
-            />
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search by name or reason..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
       </div>
+
+      <Card flush>
+        <ManualRechargeTable
+          searchTerm={searchTerm}
+          fromDate={dateRange[0]}
+          toDate={dateRange[1]}
+          setExcelData={setExcelData}
+        />
+      </Card>
     </div>
   );
 }

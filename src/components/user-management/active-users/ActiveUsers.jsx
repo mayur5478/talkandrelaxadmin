@@ -1,13 +1,19 @@
 import React, { useState } from "react";
-import { Button, Form } from "react-bootstrap";
+import {
+  Card,
+  Button,
+  IconButton,
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../../v2/ui";
+import { Search, Eye, RotateCcw } from "lucide-react";
 import DatePicker from "../user-list/date-picker/DatePicker";
-import sort from "../../assets/sort.png";
-import viewIcon from "../../assets/view.png";
-import frontIcon from "../../assets/front.png";
-import backIcon from "../../assets/back.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
-import search from "../../assets/search.png";
 import "./activeUsers.scss";
 import { useActiveUserListQuery } from "../../../services/user";
 import moment from "moment";
@@ -15,17 +21,17 @@ import { useNavigate } from "react-router-dom";
 import MultiDatePicker from "../user-list/date-picker/MultiDatePicker";
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
-import { useResetUserStateMutation, useResetAllStuckStatesMutation } from "../../../services/auth";
+import { useResetAllStuckStatesMutation } from "../../../services/auth";
 import ResetStateModal from "../../common/reset-state/ResetStateModal";
 import Swal from "sweetalert2";
 
 function ActiveUsers() {
-  const [page, setPage] = useState(1); // Current page
-  const [pageSize, setPageSize] = useState(10); // Items per page
-  const [searchQuery, setSearchQuery] = useState(""); // Search query
-  const [selectedDate, setSelectedDate] = useState(null); // Selected date range
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
   const [dateRange, setDateRange] = useState([]);
-  
+
   const [showArchived, setShowArchived] = useState(false);
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetTarget, setResetTarget] = useState({ id: "", name: "" });
@@ -42,11 +48,6 @@ function ActiveUsers() {
     setPage(1);
   };
 
-  const sortIcon = (column) => {
-    if (sortBy !== column) return <img className="sort" src={sort} alt="Sort" />;
-    return <span style={{ fontSize: "12px", marginLeft: "4px" }}>{sortOrder === "ASC" ? "▲" : "▼"}</span>;
-  };
-
   const { data, error, isLoading, refetch } = useActiveUserListQuery({
     page,
     pageSize,
@@ -60,8 +61,6 @@ function ActiveUsers() {
   const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
   const navigate = useNavigate();
 
-
-  // Handle page change
   const handlePageChange = (direction) => {
     if (pageSize === "all") return;
     if (direction === "next" && page < data?.data?.pagination?.totalPages)
@@ -69,27 +68,20 @@ function ActiveUsers() {
     if (direction === "prev" && page > 1) setPage((prev) => prev - 1);
   };
 
-  // Handle page size change
- const handlePageSizeChange = (e) => {
-    const value = e.target.value;
-    setPageSize(value === "all" ? "all" : Number(value));
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
     setPage(1);
   };
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value); // Update the search query
-    setPage(1); // Reset to the first page
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setPage(1);
   };
 
-  // Handle date picker change
-  const handleDateChange = (date) => {
-    setSelectedDate(date); // Update the selected date
-    setPage(1); // Reset to the first page
-  };
   const handleView = (id) => {
     navigate(`/dashboard/user-management/profile-view?id=${id}`);
   };
+
   const exportUsersToExcel = async () => {
     const users = data?.data?.users || [];
     if (!Array.isArray(users) || users.length === 0) return;
@@ -129,7 +121,6 @@ function ActiveUsers() {
       });
     });
 
-    // Style headers
     const headerRow = worksheet.getRow(1);
     headerRow.eachCell((cell) => {
       cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -147,7 +138,6 @@ function ActiveUsers() {
       };
     });
 
-    // Auto-size columns
     worksheet.columns.forEach((col) => {
       let maxLength = 0;
       col.eachCell({ includeEmpty: true }, (cell) => {
@@ -185,19 +175,24 @@ function ActiveUsers() {
       try {
         await resetAllStuckStates().unwrap();
         Swal.fire('Reset!', 'All stuck states have been cleared.', 'success');
-        // ActiveUsers list should refresh automatically if data changes, but we refetch as a safety
       } catch (err) {
         Swal.fire('Error', err?.data?.message || 'Global reset failed', 'error');
       }
     }
   };
 
-
   return (
-    <div className="active-users">
-      <div className="top-section">
-        <div className="left-section">
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Active Users</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Users with recent activity</p>
+        </div>
+        <div className="tw-flex tw-items-center tw-gap-2">
           <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               if (data?.data?.users && data?.data?.users.length > 0) {
                 exportUsersToExcel();
@@ -206,208 +201,105 @@ function ActiveUsers() {
               }
             }}
           >
-            Excel
+            Export Excel
           </Button>
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search User"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            <img src={search} alt="Search" className="search-icon" />
-          </div>
-        </div>
-        <div className="right-section">
-          <Button 
-            className="me-2 text-white border-0" 
-            style={{ backgroundColor: '#e11d48' }} // Red for danger/reset
+          <Button
+            variant="danger"
+            size="sm"
             onClick={handleGlobalReset}
             disabled={isResetAllLoading}
           >
-            {isResetAllLoading ? 'Resetting...' : '⚠️ Clear All Stuck States'}
+            {isResetAllLoading ? 'Resetting...' : '⚠ Clear All Stuck States'}
           </Button>
-          <MultiDatePicker onChange={setDateRange} />
         </div>
-
       </div>
 
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Full Name <img className="sort" src={sort} alt="Sort" />
-            </p>
-          </div>
-          <div
-            onClick={() => handleSort("wallet_balance")}
-            style={{ cursor: "pointer", userSelect: "none" }}
-          >
-            <p className="heading-text">
-              Wallet Balance {sortIcon("wallet_balance")}
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Recharge Amount
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Gift Amount
-            </p>
-          </div>
-          <div
-            onClick={() => handleSort("createdAt")}
-            style={{ cursor: "pointer", userSelect: "none" }}
-          >
-            <p className="heading-text">
-              Registration Date {sortIcon("createdAt")}
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Action</p>
-          </div>
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search User"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
+        <MultiDatePicker onChange={setDateRange} />
+      </div>
 
+      {/* Table card */}
+      <Card flush>
         {isLoading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p>Error: {error.message}</p>
+          <TableSkeleton rows={8} cols={7} />
         ) : (
-          data?.data?.users?.map((user, index) => (
-            <div className="table-body" key={user.id}>
-              <div>
-                <p className="heading-text">
-                 {pageSize === "all"
-                  ? index + 1
-                  : (page - 1) * pageSize + index + 1}
-                </p>
-              </div>
-              <div>
-                <p className="heading-text">{user.fullName}</p>
-              </div>
-              <div>
-                <p className="heading-text">{user.wallet_balance}</p>
-              </div>
-              <div>
-                <p className="heading-text">{user.totalRechargeAmount}</p>
-              </div>
-              <div>
-                <p className="heading-text">{user.totalGiftAmount}</p>
-              </div>
-              <div>
-                <p className="heading-text">
-                  {moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")}
-                </p>
-              </div>
-              <div>
-                <div className="actions">
-                  <img
-                    src={viewIcon}
-                    onClick={() => handleView(user?.id)}
-                    alt="View"
-                  />
-                  <img
-                    src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 2v6h-6'%2F%3E%3Cpath d='M3 12a9 9 0 0 1 15-6.7L21 8'%2F%3E%3Cpath d='M3 22v-6h6'%2F%3E%3Cpath d='M21 12a9 9 0 0 1-15 6.7L3 16'%2F%3E%3C%2Fsvg%3E"
-                    onClick={() => handleResetStateClick(user.id, user.fullName)}
-                    title="Reset Stuck States"
-                    alt="Reset"
-                    className="reset-icon mx-1"
-                    style={{ width: '22px', height: '22px', cursor: 'pointer' }}
-                  />
-
-                </div>
-              </div>
-            </div>
-          ))
+          <>
+            <Table>
+              <THead>
+                <TR>
+                  <Th>Sr. No</Th>
+                  <Th sortable sortKey="fullName" sort={{ key: sortBy, order: sortOrder }} onSort={() => handleSort("fullName")}>Full Name</Th>
+                  <Th sortable sortKey="wallet_balance" sort={{ key: sortBy, order: sortOrder }} onSort={() => handleSort("wallet_balance")}>Wallet Balance</Th>
+                  <Th>Recharge Amount</Th>
+                  <Th>Gift Amount</Th>
+                  <Th sortable sortKey="createdAt" sort={{ key: sortBy, order: sortOrder }} onSort={() => handleSort("createdAt")}>Registration Date</Th>
+                  <Th>Action</Th>
+                </TR>
+              </THead>
+              <TBody>
+                {error ? (
+                  <TR>
+                    <Td colSpan={7} className="tw-text-center tw-text-fg-tertiary">Error loading users</Td>
+                  </TR>
+                ) : (
+                  data?.data?.users?.map((user, index) => (
+                    <TR key={user.id} isLast={index === (data?.data?.users?.length - 1)}>
+                      <Td>
+                        {pageSize === "all"
+                          ? index + 1
+                          : (page - 1) * pageSize + index + 1}
+                      </Td>
+                      <Td className="tw-text-fg-primary tw-font-medium">{user.fullName}</Td>
+                      <Td>{user.wallet_balance}</Td>
+                      <Td>{user.totalRechargeAmount}</Td>
+                      <Td>{user.totalGiftAmount}</Td>
+                      <Td>{moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")}</Td>
+                      <Td>
+                        <div className="tw-flex tw-items-center tw-gap-1">
+                          <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
+                            <Eye size={14} />
+                          </IconButton>
+                          <IconButton size="sm" aria-label="Reset Stuck States" onClick={() => handleResetStateClick(user.id, user.fullName)}>
+                            <RotateCcw size={14} />
+                          </IconButton>
+                        </div>
+                      </Td>
+                    </TR>
+                  ))
+                )}
+              </TBody>
+            </Table>
+            <Pagination
+              page={page}
+              totalPages={data?.data?.pagination?.totalPages}
+              totalRecords={data?.data?.pagination?.totalRecords}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSize={(v) => { setPageSize(v); setPage(1); }}
+            />
+          </>
         )}
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Page:</p>
-            <Form.Select
-              value={pageSize}
-              onChange={handlePageSizeChange}
-              aria-label="Items Per Page"
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="20">20</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-              <option value="all">All</option>
-            </Form.Select>
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>{pageSize === "all" ? 1 : (page - 1) * pageSize + 1}</p>-
-              <p>
-                {pageSize === "all"
-                  ? data?.data?.users?.length
-                  : Math.min(
-                      page * pageSize,
-                      data?.data?.pagination?.totalRecords || 0
-                    )}
-              </p>
-              <p>of</p>
-              <p>
-                {data?.data?.pagination?.totalRecords ||
-                  data?.data?.users?.length ||
-                  0}
-              </p>
-            </div>
-            <div className="pagination-controls">
-              <img
-                src={backwardIcon}
-                onClick={() => pageSize !== "all" && setPage(1)}
-                style={{
-                  cursor: pageSize === "all" ? "not-allowed" : "pointer",
-                }}
-              />
-              <img
-                src={backIcon}
-                onClick={() => handlePageChange("prev")}
-                style={{
-                  cursor: pageSize === "all" ? "not-allowed" : "pointer",
-                }}
-              />
-              <img
-                src={frontIcon}
-                onClick={() => handlePageChange("next")}
-                style={{
-                  cursor: pageSize === "all" ? "not-allowed" : "pointer",
-                }}
-              />
-              <img
-                src={forwardIcon}
-                onClick={() =>
-                  pageSize !== "all" &&
-                  setPage(
-                    Math.ceil(data?.data?.pagination?.totalRecords / pageSize)
-                  )
-                }
-                style={{
-                  cursor: pageSize === "all" ? "not-allowed" : "pointer",
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-      <ResetStateModal 
-        show={showResetModal} 
+      </Card>
+
+      <ResetStateModal
+        show={showResetModal}
         handleClose={() => setShowResetModal(false)}
         userId={resetTarget.id}
         userName={resetTarget.name}
         refetch={refetch}
       />
-
     </div>
-
   );
 }
 

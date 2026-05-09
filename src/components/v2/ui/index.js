@@ -33,3 +33,4 @@ export * from './toast';
 export * from './dropdown';
 export * from './tabs';
 export * from './tooltip';
+export * from './pagination';

@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
-import sort from "../../../assets/sort.png";
-import frontIcon from "../../../assets/front.png";
-import backIcon from "../../../assets/back.png";
-import forwardIcon from "../../../assets/forward.png";
-import backwardIcon from "../../../assets/backward.png";
-import { Form } from "react-bootstrap";
 import "./rejections.scss";
 import { useGetSessionRejectionsQuery } from "../../../../services/auth";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
+import { Search } from "lucide-react";
+import {
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../../../v2/ui";
 
 function Rejections({ fromDate, toDate }) {
   const [page, setPage] = useState(1);
@@ -18,7 +23,6 @@ function Rejections({ fromDate, toDate }) {
   const [typeFilter, setTypeFilter] = useState("all");
   const navigate = useNavigate();
 
-  // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
   }, [fromDate, toDate, search, typeFilter]);
@@ -45,129 +49,110 @@ function Rejections({ fromDate, toDate }) {
     setSearch(searchInput.trim());
   };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error fetching rejections: {error.message}</div>;
+  if (isLoading) return <TableSkeleton rows={8} cols={8} />;
+  if (error) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching rejections: {error.message}</div>;
 
   const total = data?.pagination?.total || 0;
   const rejections = data?.data || [];
 
-  const columnStyles = [
-    { width: "5%" },   // Sr. No
-    { width: "18%" },  // Date
-    { width: "8%" },   // Type
-    { width: "15%" },  // User
-    { width: "15%" },  // Listener
-    { width: "12%" },  // Rejected By
-    { width: "12%" },  // Reason
-    { width: "15%" },  // Request ID
-  ];
-
   return (
-    <div className="rejections-main">
-      <div className="rejections-filters mb-3 d-flex gap-3 flex-wrap align-items-center">
-        <form onSubmit={handleSearchSubmit} className="d-flex gap-2">
-          <Form.Control
-            type="text"
-            placeholder="Search user or listener..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            style={{ minWidth: 220 }}
-          />
-          <button type="submit" className="btn btn-sm btn-primary">Search</button>
+    <div className="tw-flex tw-flex-col tw-gap-3">
+      {/* Filters */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <form onSubmit={handleSearchSubmit} className="tw-flex tw-gap-2">
+          <div className="tw-relative">
+            <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+            <input
+              type="text"
+              placeholder="Search user or listener..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary tw-min-w-[220px]"
+            />
+          </div>
+          <button type="submit" className="tw-h-8 tw-px-3 tw-text-[13px] tw-bg-bg-secondary tw-text-fg-primary tw-border tw-border-tertiary tw-rounded-md hover:tw-bg-bg-primary">
+            Search
+          </button>
           {search && (
-            <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => { setSearch(""); setSearchInput(""); }}>
+            <button
+              type="button"
+              className="tw-h-8 tw-px-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-secondary tw-border tw-border-tertiary tw-rounded-md"
+              onClick={() => { setSearch(""); setSearchInput(""); }}
+            >
               Clear
             </button>
           )}
         </form>
-        <Form.Select
+        <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          style={{ width: 150 }}
+          className="tw-h-8 tw-px-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-tertiary tw-rounded-md tw-outline-none tw-min-w-[130px]"
         >
           <option value="all">All Types</option>
           <option value="audio">Audio</option>
           <option value="video">Video</option>
           <option value="chat">Chat</option>
-        </Form.Select>
+        </select>
       </div>
 
-      <div className="table-headings">
-        <div style={columnStyles[0]}><p className="heading-text">Sr#</p></div>
-        <div style={columnStyles[1]}><p className="heading-text">Date <img className="sort" src={sort} alt="sort" /></p></div>
-        <div style={columnStyles[2]}><p className="heading-text">Type</p></div>
-        <div style={columnStyles[3]}><p className="heading-text">User</p></div>
-        <div style={columnStyles[4]}><p className="heading-text">Listener</p></div>
-        <div style={columnStyles[5]}><p className="heading-text">By</p></div>
-        <div style={columnStyles[6]}><p className="heading-text">Reason</p></div>
-        <div style={columnStyles[7]}><p className="heading-text">Request ID</p></div>
+      <div className="tw-overflow-x-auto">
+        <Table>
+          <THead>
+            <TR>
+              <Th>Sr#</Th>
+              <Th>Date</Th>
+              <Th>Type</Th>
+              <Th>User</Th>
+              <Th>Listener</Th>
+              <Th>By</Th>
+              <Th>Reason</Th>
+              <Th>Request ID</Th>
+            </TR>
+          </THead>
+          <TBody>
+            {rejections.length === 0 ? (
+              <TR>
+                <Td colSpan={8} className="tw-text-center tw-text-fg-tertiary">No rejections found</Td>
+              </TR>
+            ) : (
+              rejections.map((r, index) => (
+                <TR key={r.id} isLast={index === rejections.length - 1}>
+                  <Td>{(page - 1) * pageSize + index + 1}</Td>
+                  <Td>{moment(r.rejectedAt).format("DD/MM/YYYY, hh:mm A")}</Td>
+                  <Td>{r.type}</Td>
+                  <Td>
+                    <span
+                      onClick={() => handleViewUser(r.userId)}
+                      className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline"
+                    >
+                      {r.userData?.fullName || "Unknown"}
+                    </span>
+                  </Td>
+                  <Td>
+                    <span
+                      onClick={() => handleViewListener(r.listenerId)}
+                      className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline"
+                    >
+                      {r.listenerData?.fullName || "Listener"}
+                    </span>
+                  </Td>
+                  <Td>{r.rejectedBy}</Td>
+                  <Td>{r.reason}</Td>
+                  <Td className="tw-font-mono tw-text-[12px]">{r.requestId || "N/A"}</Td>
+                </TR>
+              ))
+            )}
+          </TBody>
+        </Table>
       </div>
-
-      {rejections.map((r, index) => (
-        <div key={r.id} className="table-body">
-          <div style={columnStyles[0]}>
-            <p className="heading-text">{(page - 1) * pageSize + index + 1}</p>
-          </div>
-          <div style={columnStyles[1]}>
-            <p className="heading-text">{moment(r.rejectedAt).format("DD/MM/YYYY, hh:mm A")}</p>
-          </div>
-          <div style={columnStyles[2]}>
-            <p className="heading-text">{r.type}</p>
-          </div>
-          <div style={columnStyles[3]}>
-            <p className="heading-text name" onClick={() => handleViewUser(r.userId)}>
-              {r.userData?.fullName || "Unknown"}
-            </p>
-          </div>
-          <div style={columnStyles[4]}>
-            <p className="heading-text name" onClick={() => handleViewListener(r.listenerId)}>
-              {r.listenerData?.fullName || "Listener"}
-            </p>
-          </div>
-          <div style={columnStyles[5]}>
-            <p className="heading-text">{r.rejectedBy}</p>
-          </div>
-          <div style={columnStyles[6]}>
-            <p className="heading-text">{r.reason}</p>
-          </div>
-          <div style={columnStyles[7]}>
-            <p className="heading-text small">{r.requestId || "N/A"}</p>
-          </div>
-        </div>
-      ))}
-
-      <div className="pagination">
-        <div className="pagination-dropdown">
-          <p>Items Per Pages:</p>
-          <Form.Select
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(parseInt(e.target.value));
-              setPage(1);
-            }}
-          >
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </Form.Select>
-        </div>
-        <div className="pagination-details">
-          <div className="pagination-numbers">
-            <p>{(page - 1) * pageSize + 1}</p>-
-            <p>{Math.min(page * pageSize, total)}</p>
-            <p>of</p>
-            <p>{total}</p>
-          </div>
-
-          <div className="pagination-controls">
-            <img onClick={() => setPage(1)} src={backwardIcon} alt="First" />
-            <img onClick={() => setPage((prev) => Math.max(prev - 1, 1))} src={backIcon} alt="Prev" />
-            <img onClick={() => setPage((prev) => Math.min(prev + 1, Math.ceil(total / pageSize)))} src={frontIcon} alt="Next" />
-            <img onClick={() => setPage(Math.ceil(total / pageSize))} src={forwardIcon} alt="Last" />
-          </div>
-        </div>
-      </div>
+      <Pagination
+        page={page}
+        totalPages={Math.ceil(total / pageSize)}
+        totalRecords={total}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSize={(v) => { setPageSize(v); setPage(1); }}
+      />
     </div>
   );
 }

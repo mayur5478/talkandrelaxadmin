@@ -1,154 +1,90 @@
 import React, { useState } from "react";
-import { Button, Col, Form, Row } from "react-bootstrap";
-import search from "../../assets/search.png";
-import sort from "../../assets/sort.png";
 import "./gst.scss";
+import { Card, Button, Table, THead, TBody, TR, Th, Td, Pagination } from "../../v2/ui";
+import { Search } from "lucide-react";
 import { details } from "./gstCardDetails.js";
-import frontIcon from "../../assets/front.png";
-import backIcon from "../../assets/back.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
 import DatePicker from "../../user-management/user-list/date-picker/DatePicker";
 import ExportExcel from "../../common/export-modal/ExportExcel";
-import DashboardCards from "../../common/dashboard-card/DashboardCards.jsx";
+
 function Gst() {
   const [modalShow, setModalShow] = useState(false);
   return (
-    <div className="gst-main">
-      <div className="top-section">
-        <div className="left-section">
-          <Button onClick={() => setModalShow(true)}>Excel</Button>
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search User"
-            />
-            <img src={search} alt="Search" className="search-icon" />
-          </div>
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">GST List</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">GST collected from transactions</p>
         </div>
-        <div className="right-section">
+        <div className="tw-flex tw-items-center tw-gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setModalShow(true)}>
+            Export Excel
+          </Button>
           <DatePicker />
         </div>
       </div>
-      <Row className="row-class" >
-{details ? details.map((ele) => (
-    <Col sm={12} md={4} lg={4}><DashboardCards  title={ele.title}
-    amount={ele.amount} 
-    icon={ele.icon}
-    growthClass={ele.growthClass}
-    backgroundClass={ele.backgroundClass}
-    type="gst" /></Col>
-)) : ""
 
-}
-      </Row>
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Transaction ID <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Payment ID <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Name <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Description <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Gst <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Type <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Transaction Status <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Transaction Date <img className="sort" src={sort} alt={sort} />
-            </p>
-          </div>
-        </div>
-        <div className="table-body">
-          <div>
-            <p className="heading-text">01</p>
-          </div>
-          <div>
-            <p className="heading-text">44920</p>
-          </div>
-          <div>
-            <p className="heading-text">pay_sdfs4dsds4ds</p>
-          </div>
-          <div>
-            <p className="heading-text">Mohan Tonar</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Recharge Amount Credited to Wallet 200 rupees.
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">30.00</p>
-          </div>
-          <div>
-            <p className="heading-text">Recharge</p>
-          </div>
-          <div>
-            <p className="heading-text green-text">Recieved</p>
-          </div>
-          <div>
-            <p className="heading-text">10/12/2021, 04:24 am</p>
-          </div>
-        </div>
-
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Pages:</p>{" "}
-            <Form.Select aria-label="Default select example">
-              <option></option>
-              <option value="1">5</option>
-              <option value="2">10</option>
-              <option value="3">15</option>
-              <option value="2">20</option>
-              <option value="3">25</option>
-              <option value="3">30</option>
-            </Form.Select>{" "}
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>1</p>-<p>10</p>
-              <p>of</p>
-              <p>90</p>
-            </div>
-            <div className="pagination-controls">
-              <img src={backwardIcon} alt={backwardIcon} />
-              <img src={backIcon} alt={backIcon} />
-              <img src={frontIcon} alt={frontIcon} />
-              <img src={forwardIcon} alt={forwardIcon} />
-            </div>
-          </div>
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search User"
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
       </div>
+
+      {/* Summary cards */}
+      {details && details.length > 0 && (
+        <div className="tw-grid tw-grid-cols-1 tw-gap-3 md:tw-grid-cols-3">
+          {details.map((ele, i) => (
+            <Card key={i}>
+              <div className="tw-flex tw-items-center tw-justify-between">
+                <div>
+                  <p className="tw-text-small tw-text-fg-tertiary tw-mb-1">{ele.title}</p>
+                  <p className="tw-text-fg-primary tw-font-semibold tw-text-lg tw-m-0">{ele.amount}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Table card */}
+      <Card flush>
+        <Table>
+          <THead>
+            <TR>
+              <Th>Sr. No</Th>
+              <Th>Transaction ID</Th>
+              <Th>Payment ID</Th>
+              <Th>Name</Th>
+              <Th>Description</Th>
+              <Th>GST</Th>
+              <Th>Type</Th>
+              <Th>Transaction Status</Th>
+              <Th>Transaction Date</Th>
+            </TR>
+          </THead>
+          <TBody>
+            <TR isLast>
+              <Td>01</Td>
+              <Td>44920</Td>
+              <Td>pay_sdfs4dsds4ds</Td>
+              <Td className="tw-text-fg-primary tw-font-medium">Mohan Tonar</Td>
+              <Td>Recharge Amount Credited to Wallet 200 rupees.</Td>
+              <Td>30.00</Td>
+              <Td>Recharge</Td>
+              <Td><span className="tw-text-success">Received</span></Td>
+              <Td>10/12/2021, 04:24 am</Td>
+            </TR>
+          </TBody>
+        </Table>
+        <Pagination page={1} totalPages={1} totalRecords={1} pageSize={10} onPageChange={() => {}} onPageSize={() => {}} />
+      </Card>
+
       <ExportExcel show={modalShow} onHide={() => setModalShow(false)} />
     </div>
   );

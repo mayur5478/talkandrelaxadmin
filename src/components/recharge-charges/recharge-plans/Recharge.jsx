@@ -1,14 +1,19 @@
 import React, { useState } from "react";
-import { Button, Form } from "react-bootstrap";
 import "./recharge.scss";
-import editIcon from "../../assets/pencil.png";
-import deleteIcon from "../../assets/delete.png";
-import search from "../../assets/search.png";
-import sort from "../../assets/sort.png";
-import frontIcon from "../../assets/front.png";
-import backIcon from "../../assets/back.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
+import { Search, PencilLine, Trash2 } from "lucide-react";
+import {
+  Card,
+  Button,
+  IconButton,
+  Table,
+  THead,
+  TBody,
+  TR,
+  Th,
+  Td,
+  TableSkeleton,
+  Pagination,
+} from "../../v2/ui";
 import {
   useCreateRechargePlanMutation,
   useDeleteRechargePlanMutation,
@@ -25,7 +30,6 @@ import Commission from "../../common/admin-commision/Commission";
 import { useGetMeQuery } from "../../../services/auth";
 
 function Recharge() {
-  // ** State Hooks **
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -44,9 +48,7 @@ function Recharge() {
   } = useGetMeQuery(null, {
     skip: !localStorage.getItem("token"),
   });
-console.log("user",user);
 
-  // ** Data Fetching **
   const {
     data,
     error: fetchError,
@@ -57,7 +59,6 @@ console.log("user",user);
     useRechargePlansHighlightMutation();
   const [deletePlan, { isLoading: isDeleteLoading }] =
     useDeleteRechargePlanMutation();
-  // ** Event Handlers **
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
     setPage(1);
@@ -115,11 +116,9 @@ console.log("user",user);
     try {
       await createMutation(formData);
       refetch();
-
       setShow(false);
     } catch (error) {
       console.error("Submit Error:", error);
-    } finally {
     }
   };
 
@@ -127,11 +126,9 @@ console.log("user",user);
     try {
       await editMutation(formData);
       refetch();
-
       setShowEdit(false);
     } catch (error) {
       console.error("Submit Error:", error);
-    } finally {
     }
   };
 
@@ -160,150 +157,110 @@ console.log("user",user);
       setShowCommission(false);
     } catch (error) {
       console.error("Submit Error:", error);
-    } finally {
     }
   };
 
-  // ** Render States **
-  if (isLoading) return <div>Loading...</div>;
-  if (fetchError) return <div>Error fetching plans</div>;
+  if (isLoading) return <TableSkeleton rows={8} cols={6} />;
+  if (fetchError) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching plans</div>;
 
   return (
-    <div className="recharge-main">
-      <div className="top-section">
-        <div className="left-section">
-          <div className="search-bar">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search User"
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-            <img src={search} alt="Search" className="search-icon" />
-          </div>
+    <div className="tw-flex tw-flex-col tw-gap-4">
+      {/* Page header */}
+      <div className="tw-flex tw-items-center tw-justify-between tw-flex-wrap tw-gap-3">
+        <div>
+          <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Recharge Plans</h1>
+          <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">Manage available recharge plans</p>
         </div>
-        <div className="right-section">
-          <Button className="edit-btn">
-            <img src={editIcon} alt="Edit GST" /> GST (%)
+        <div className="tw-flex tw-items-center tw-gap-2">
+          <Button variant="ghost" size="sm">
+            GST (%)
           </Button>
-          <Button className="edit-btn" onClick={() => setShowCommission(true)}>
-            <img src={editIcon} alt="Edit Admin Commission" /> Admin Commission
+          <Button variant="secondary" size="sm" onClick={() => setShowCommission(true)}>
+            Admin Commission
           </Button>
-          <Button className="edit-btn" onClick={() => setShow(true)}>
+          <Button size="sm" onClick={() => setShow(true)}>
             + Recharge Plan
           </Button>
         </div>
       </div>
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Recharge Amount <img className="sort" src={sort} alt="Sort" />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">GST Amount</p>
-          </div>
-          <div>
-            <p className="heading-text">Net Amount</p>
-          </div>
-          <div>
-            <p className="heading-text">Highlight Plans</p>
-          </div>
-          <div>
-            <p className="heading-text">Action</p>
-          </div>
+
+      {/* Toolbar */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <div className="tw-relative tw-flex-1 tw-min-w-[200px] tw-max-w-xs">
+          <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary" />
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchTerm}
+            onChange={handleSearch}
+            className="tw-w-full tw-h-8 tw-pl-9 tw-pr-3 tw-text-[13px] tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info placeholder:tw-text-fg-tertiary"
+          />
         </div>
-        {data.data.plans.map((plan, index) => (
-          <div key={plan.id} className="table-body">
-            <div>
-              <p className="heading-text">{index + 1}</p>
-            </div>
-            <div>
-              <p className="heading-text">{plan.payable_amount}</p>
-            </div>
-            <div>
-              <p className="heading-text">{plan.gst_amount}</p>
-            </div>
-            <div>
-              <p className="heading-text">{plan.net_amount}</p>
-            </div>
-            <div>
-              <p className="heading-text">
-                <div className="material-switch pull-right">
-                  <input
-                    id={`highlight-switch-${plan.id}`}
-                    type="checkbox"
-                    checked={plan.isHighlight}
-                    onChange={() => handleToggle(plan.id, plan.isHighlight)}
-                  />
-                  <label
-                    htmlFor={`highlight-switch-${plan.id}`}
-                    className="label-default"
-                  ></label>
-                </div>
-              </p>
-            </div>
-            <div className="actions">
-              <img
-                onClick={() => {
-                  setShowEdit(true);
-                  handleValue(plan.payable_amount, plan.id);
-                }}
-                src={editIcon}
-                alt="Edit"
-              />
-              <img
-                onClick={() => handleDelete(plan.id)}
-                src={deleteIcon}
-                alt="Delete"
-              />
-            </div>
-          </div>
-        ))}
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Pages:</p>
-            <Form.Select
-              aria-label="Items per page"
-              value={pageSize}
-              onChange={handlePageSizeChange}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-            </Form.Select>
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>{(page - 1) * pageSize + 1}</p>-<p>{page * pageSize}</p>
-              <p>of</p>
-              <p>{data?.data?.total}</p>
-            </div>
-            <div className="pagination-controls">
-              <img
-                onClick={handlePreviousPage}
-                src={backwardIcon}
-                alt={backwardIcon}
-              />
-          
-              <img onClick={handlePreviousPage} src={backIcon} alt={backIcon} />
-              <img onClick={handleNextPage} src={frontIcon} alt={frontIcon} />
-              <img
-                onClick={handleNextPage}
-                src={forwardIcon}
-                alt={forwardIcon}
-              />
-            </div>
-          </div>
-        </div>
-        {error && <div className="error-message">{error}</div>}
       </div>
+
+      {/* Table card */}
+      <Card flush>
+        <Table>
+          <THead>
+            <TR>
+              <Th>Sr. No</Th>
+              <Th>Recharge Amount</Th>
+              <Th>GST Amount</Th>
+              <Th>Net Amount</Th>
+              <Th>Highlight Plans</Th>
+              <Th>Action</Th>
+            </TR>
+          </THead>
+          <TBody>
+            {data.data.plans.map((plan, index) => (
+              <TR key={plan.id} isLast={index === data.data.plans.length - 1}>
+                <Td>{index + 1}</Td>
+                <Td className="tw-font-medium">{plan.payable_amount}</Td>
+                <Td>{plan.gst_amount}</Td>
+                <Td>{plan.net_amount}</Td>
+                <Td>
+                  <label className="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={plan.isHighlight}
+                      onChange={() => handleToggle(plan.id, plan.isHighlight)}
+                      className="tw-sr-only tw-peer"
+                    />
+                    <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
+                  </label>
+                </Td>
+                <Td>
+                  <div className="tw-flex tw-items-center tw-gap-1">
+                    <IconButton
+                      size="sm"
+                      aria-label="Edit"
+                      onClick={() => {
+                        setShowEdit(true);
+                        handleValue(plan.payable_amount, plan.id);
+                      }}
+                    >
+                      <PencilLine size={14} />
+                    </IconButton>
+                    <IconButton size="sm" aria-label="Delete" onClick={() => handleDelete(plan.id)}>
+                      <Trash2 size={14} />
+                    </IconButton>
+                  </div>
+                </Td>
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+        <Pagination
+          page={page}
+          totalPages={data?.data?.totalPages}
+          totalRecords={data?.data?.total}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSize={(v) => { setPageSize(v); setPage(1); }}
+        />
+        {error && <div className="tw-p-3 tw-text-danger tw-text-[13px]">{error}</div>}
+      </Card>
+
       <Highlight
         show={showHighlightModal}
         onHide={() => setShowHighlightModal(false)}
@@ -321,16 +278,16 @@ console.log("user",user);
       <CreatePlan
         show={show}
         onHide={() => setShow(false)}
-        type={type} // "Recharge" or "Gift"
-        isEdit={false} // or true if editing
+        type={type}
+        isEdit={false}
         onSubmit={handleSubmit}
         isSubmitting={isCreateLoading}
       />
       <EditPlan
         show={showEdit}
         onHide={() => setShowEdit(false)}
-        type={type} // "Recharge" or "Gift"
-        isEdit={false} // or true if editing
+        type={type}
+        isEdit={false}
         onSubmit={handleSubmitEdit}
         isSubmitting={isEditLoading}
         initialData={{ recharge_amount: value }}
