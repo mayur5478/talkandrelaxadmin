@@ -96,8 +96,18 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.55), 0 4px 6px -4px rgb(0 0 0 / 0.30);
 }
 
-/* Anything inside the v2 shell uses tabular-nums by default. The legacy
- * pages render outside the shell so they're unaffected. */
+/* ── Typography ───────────────────────────────────────────────────────── */
+
+/* Apply Inter throughout the v2 shell. The legacy pages already use Outfit
+ * via the body rule in index.css; we prefer Inter for the admin UI because
+ * its tabular figures and tight metrics suit data-dense dashboards. */
+.appshell-v2 {
+  font-family: 'Inter', 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-feature-settings: 'cv11', 'ss01'; /* Inter stylistic sets */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .appshell-v2,
 .appshell-v2 .nums { font-variant-numeric: tabular-nums; }
 

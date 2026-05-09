@@ -338,7 +338,7 @@ const Dashboard = () => {
     >
       {/* ── Page header ── */}
       <motion.div variants={item}>
-        <div className="tw-flex tw-items-center tw-justify-between tw-gap-4 tw-flex-wrap">
+        <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-center tw-justify-between tw-gap-3">
           <div>
             <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Dashboard</h1>
             <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">
@@ -346,7 +346,7 @@ const Dashboard = () => {
             </p>
           </div>
 
-          <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+          <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap sm:tw-flex-nowrap">
             {/* Backfill Leaves */}
             <button
               type="button"
@@ -397,8 +397,7 @@ const Dashboard = () => {
       {/* ── KPI strip — 5 cards ── */}
       <motion.div
         variants={item}
-        className="tw-grid tw-gap-3"
-        style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}
+        className="tw-grid tw-gap-3 tw-grid-cols-2 sm:tw-grid-cols-3 lg:tw-grid-cols-5"
       >
         <KpiPlain
           icon={<Users size={14} aria-hidden />}
@@ -451,8 +450,7 @@ const Dashboard = () => {
       {/* ── Financial breakdown — 3 equal-height columns ── */}
       <motion.div
         variants={item}
-        className="tw-grid tw-gap-3"
-        style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', alignItems: 'stretch' }}
+        className="tw-grid tw-gap-3 tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-items-stretch"
       >
         {/* Col 1 — Today's Performance */}
         <Card className="tw-p-5 tw-flex tw-flex-col tw-h-full">
@@ -533,8 +531,7 @@ const Dashboard = () => {
       {/* ── Top Wallets ── */}
       <motion.div
         variants={item}
-        className="tw-grid tw-gap-3"
-        style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}
+        className="tw-grid tw-gap-3 tw-grid-cols-1 lg:tw-grid-cols-2"
       >
         {/* High-Value Users */}
         <Card className="tw-p-4">

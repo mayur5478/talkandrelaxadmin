@@ -3,9 +3,7 @@ module.exports = {
   // Tailwind only scans the new shell + future v2 pages so it never
   // touches the existing react-bootstrap / scss classes.
   content: [
-    './src/shell/**/*.{js,jsx,ts,tsx}',
-    './src/components/v2/**/*.{js,jsx,ts,tsx}',
-    './src/lib/**/*.{js,jsx,ts,tsx}',
+    './src/**/*.{js,jsx,ts,tsx}',
     './public/index.html',
   ],
   darkMode: ['class'],
@@ -66,6 +64,9 @@ module.exports = {
         body:  ['14px', { lineHeight: '20px', fontWeight: '400' }],
         small: ['13px', { lineHeight: '18px', fontWeight: '400' }],
         eyebrow: ['11px', { lineHeight: '14px', fontWeight: '500' }],
+      },
+      fontFamily: {
+        sans: ['Inter', 'Outfit', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       fontWeight: { normal: '400', medium: '500' },
       boxShadow: {
