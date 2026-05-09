@@ -66,7 +66,7 @@ module.exports = {
         eyebrow: ['11px', { lineHeight: '14px', fontWeight: '500' }],
       },
       fontFamily: {
-        sans: ['Inter', 'Outfit', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        sans: ['Plus Jakarta Sans', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
       },
       fontWeight: { normal: '400', medium: '500' },
       boxShadow: {

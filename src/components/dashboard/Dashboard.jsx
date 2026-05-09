@@ -38,14 +38,26 @@ import {
 
 /* ───────────────────────── animation variants ──────────────────────── */
 
+const spring = { type: 'spring', stiffness: 380, damping: 28 };
+
 const container = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
+  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
 };
 
 const item = {
-  hidden: { y: 16, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.35 } },
+  hidden: { y: 18, opacity: 0, scale: 0.98 },
+  visible: { y: 0, opacity: 1, scale: 1, transition: spring },
+};
+
+const kpiContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
+};
+
+const kpiItem = {
+  hidden: { y: 24, opacity: 0, scale: 0.96 },
+  visible: { y: 0, opacity: 1, scale: 1, transition: spring },
 };
 
 /* ───────────────────────────── formatters ──────────────────────────── */
@@ -396,55 +408,67 @@ const Dashboard = () => {
 
       {/* ── KPI strip — 5 cards ── */}
       <motion.div
-        variants={item}
+        variants={kpiContainer}
+        initial="hidden"
+        animate="visible"
         className="tw-grid tw-gap-3 tw-grid-cols-2 sm:tw-grid-cols-3 lg:tw-grid-cols-5"
       >
-        <KpiPlain
-          icon={<Users size={14} aria-hidden />}
-          label={totalUsers?.title || 'Total Registered Users'}
-          value={fmtDetailCount(totalUsers)}
-          miniChart={<DonutMini percent={72} />}
-          tone="info"
-        />
+        <motion.div variants={kpiItem}>
+          <KpiPlain
+            icon={<Users size={14} aria-hidden />}
+            label={totalUsers?.title || 'Total Registered Users'}
+            value={fmtDetailCount(totalUsers)}
+            miniChart={<DonutMini percent={72} />}
+            tone="info"
+          />
+        </motion.div>
 
-        <KpiPlain
-          icon={<UserCheck size={14} aria-hidden />}
-          label={activeUsers?.title || 'Active Users'}
-          value={fmtDetailCount(activeUsers)}
-          miniChart={<DonutMini percent={55} color="var(--color-chart-3)" />}
-          tone="success"
-        />
+        <motion.div variants={kpiItem}>
+          <KpiPlain
+            icon={<UserCheck size={14} aria-hidden />}
+            label={activeUsers?.title || 'Active Users'}
+            value={fmtDetailCount(activeUsers)}
+            miniChart={<DonutMini percent={55} color="var(--color-chart-3)" />}
+            tone="success"
+          />
+        </motion.div>
 
-        <KpiPromoted
-          icon={<Headphones size={14} aria-hidden />}
-          label={totalListeners?.title || 'Total Listeners'}
-          value={fmtDetailCount(totalListeners)}
-          percent={68}
-        />
+        <motion.div variants={kpiItem}>
+          <KpiPromoted
+            icon={<Headphones size={14} aria-hidden />}
+            label={totalListeners?.title || 'Total Listeners'}
+            value={fmtDetailCount(totalListeners)}
+            percent={68}
+          />
+        </motion.div>
 
-        <KpiPromoted
-          icon={<Activity size={14} aria-hidden />}
-          label={onlineUsers?.title || 'Online Users'}
-          value={fmtDetailCount(onlineUsers)}
-          percent={40}
-        />
+        <motion.div variants={kpiItem}>
+          <KpiPromoted
+            icon={<Activity size={14} aria-hidden />}
+            label={onlineUsers?.title || 'Online Users'}
+            value={fmtDetailCount(onlineUsers)}
+            percent={40}
+          />
+        </motion.div>
 
         {/* Online Listeners — 5th card */}
-        <KpiPromoted
-          icon={
-            <span className="tw-relative tw-flex tw-items-center tw-justify-center">
-              <Headphones size={14} aria-hidden />
-              <span
-                className="tw-absolute -tw-top-1 -tw-right-1 tw-w-2 tw-h-2 tw-rounded-full tw-bg-fg-success"
-                style={{ animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' }}
-              />
-            </span>
-          }
-          label={activeStatus?.title || 'Online Listeners'}
-          value={fmtDetailCount(activeStatus)}
-          percent={null}
-          tone="success"
-        />
+        <motion.div variants={kpiItem}>
+          <KpiPromoted
+            icon={
+              <span className="tw-relative tw-flex tw-items-center tw-justify-center">
+                <Headphones size={14} aria-hidden />
+                <span
+                  className="tw-absolute -tw-top-1 -tw-right-1 tw-w-2 tw-h-2 tw-rounded-full tw-bg-fg-success"
+                  style={{ animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' }}
+                />
+              </span>
+            }
+            label={activeStatus?.title || 'Online Listeners'}
+            value={fmtDetailCount(activeStatus)}
+            percent={null}
+            tone="success"
+          />
+        </motion.div>
       </motion.div>
 
       {/* ── Financial breakdown — 3 equal-height columns ── */}

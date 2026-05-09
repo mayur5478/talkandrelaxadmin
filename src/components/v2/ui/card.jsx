@@ -2,24 +2,40 @@ import React from 'react';
 import { cn } from '../../../lib/cn';
 
 /**
- * Card — the base surface used across every v2 page.
+ * Card — premium surface.
  *
- *   <Card>           default — hairline border, white surface
- *   <Card promoted>  promoted variant — 2px blue border (highlighted KPI)
- *   <Card flush>     no inner padding (use when the children manage their own)
+ *   <Card>           standard card
+ *   <Card promoted>  accent-bordered highlight card
+ *   <Card flush>     no padding (children manage their own spacing)
+ *   <Card glass>     frosted-glass variant (dark mode)
  */
 export const Card = React.forwardRef(function Card(
-  { className, promoted, flush, children, ...rest },
+  { className, promoted, flush, glass, children, ...rest },
   ref,
 ) {
   return (
     <div
       ref={ref}
       className={cn(
-        'tw-bg-bg-primary tw-rounded-md tw-border',
-        promoted ? 'tw-border-fg-info tw-border-2' : 'tw-border-hairline tw-border-tertiary',
-        'tw-transition-shadow tw-duration-base tw-ease-out-soft hover:tw-shadow-sm',
-        flush ? 'tw-p-0' : 'tw-p-3',
+        'tw-rounded-xl tw-border tw-overflow-hidden',
+        /* base surface */
+        !glass && 'tw-bg-bg-primary',
+        /* glass variant */
+        glass && [
+          'tw-bg-bg-primary/70',
+          'tw-backdrop-blur-[12px]',
+          'tw-border-white/[0.06]',
+        ],
+        /* borders */
+        promoted
+          ? 'tw-border-fg-info/60 tw-border-[1.5px] tw-shadow-[0_0_0_1px_inset_rgba(99,102,241,.08)]'
+          : 'tw-border-hairline tw-border-tertiary',
+        /* shadow + hover lift */
+        'tw-shadow-xs',
+        'tw-transition-[box-shadow,transform] tw-duration-200 tw-ease-out',
+        'hover:tw-shadow-md hover:-tw-translate-y-[1px]',
+        /* spacing */
+        flush ? 'tw-p-0' : 'tw-p-4',
         className,
       )}
       {...rest}
@@ -31,17 +47,25 @@ export const Card = React.forwardRef(function Card(
 
 export function CardHeader({ className, children, action }) {
   return (
-    <div className={cn('tw-flex tw-items-center tw-justify-between tw-mb-3', className)}>
-      <div className="tw-min-w-0">{children}</div>
+    <div className={cn('tw-flex tw-items-start tw-justify-between tw-gap-3 tw-mb-3', className)}>
+      <div className="tw-min-w-0 tw-flex-1">{children}</div>
       {action && <div className="tw-shrink-0">{action}</div>}
     </div>
   );
 }
 
 export function CardTitle({ className, children }) {
-  return <div className={cn('tw-text-h3 tw-text-fg-primary', className)}>{children}</div>;
+  return (
+    <div className={cn('tw-text-[14px] tw-font-semibold tw-text-fg-primary tw-leading-snug', className)}>
+      {children}
+    </div>
+  );
 }
 
 export function CardDescription({ className, children }) {
-  return <div className={cn('tw-text-[11px] tw-text-fg-tertiary tw-mt-1', className)}>{children}</div>;
+  return (
+    <div className={cn('tw-text-[12px] tw-text-fg-tertiary tw-mt-0.5', className)}>
+      {children}
+    </div>
+  );
 }

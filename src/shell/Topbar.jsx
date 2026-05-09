@@ -87,19 +87,27 @@ function SearchTrigger({ onClick }) {
     <button
       type="button"
       onClick={onClick}
-      aria-label="Open search"
+      aria-label="Open search (⌘K)"
       className={cn(
-        'tw-hidden md:tw-flex tw-items-center tw-gap-2 tw-h-8 tw-w-[280px] tw-px-3',
-        'tw-bg-bg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md',
-        'tw-text-[12px] tw-text-fg-tertiary',
-        'tw-transition-colors tw-duration-fast tw-ease-out-soft',
-        'hover:tw-text-fg-secondary hover:tw-border-strong',
+        'tw-hidden md:tw-flex tw-items-center tw-gap-2.5',
+        'tw-h-8 tw-w-[260px] tw-px-3',
+        'tw-rounded-full',
+        'tw-bg-bg-secondary tw-border tw-border-hairline tw-border-tertiary',
+        'tw-text-[12.5px] tw-font-medium tw-text-fg-tertiary',
+        'tw-transition-all tw-duration-150',
+        'hover:tw-border-fg-info/40 hover:tw-bg-bg-secondary hover:tw-text-fg-secondary',
+        'hover:tw-shadow-[0_0_0_3px_rgba(99,102,241,.08)]',
         'focus:tw-outline-none focus-visible:tw-ring-2 focus-visible:tw-ring-fg-info',
       )}
     >
-      <Search size={14} aria-hidden />
-      <span className="tw-flex-1 tw-text-left">Search anything</span>
-      <kbd className="tw-text-[10px] tw-font-medium tw-px-1.5 tw-py-[1px] tw-rounded-sm tw-bg-bg-secondary tw-text-fg-tertiary tw-tabular-nums">
+      <Search size={13} aria-hidden className="tw-shrink-0" />
+      <span className="tw-flex-1 tw-text-left">Search anything…</span>
+      <kbd className={cn(
+        'tw-text-[10px] tw-font-semibold tw-tabular-nums',
+        'tw-px-1.5 tw-py-[2px] tw-rounded-md',
+        'tw-bg-bg-primary tw-text-fg-tertiary',
+        'tw-border tw-border-hairline tw-border-tertiary',
+      )}>
         ⌘K
       </kbd>
     </button>
@@ -114,10 +122,11 @@ function IconButton({ children, onClick, ariaLabel }) {
       aria-label={ariaLabel}
       className={cn(
         'tw-relative tw-w-8 tw-h-8 tw-grid tw-place-items-center',
-        'tw-bg-bg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md',
+        'tw-rounded-lg',
         'tw-text-fg-secondary',
-        'tw-transition-colors tw-duration-fast tw-ease-out-soft',
+        'tw-transition-all tw-duration-150 tw-ease-out',
         'hover:tw-bg-bg-secondary hover:tw-text-fg-primary',
+        'active:tw-scale-90',
         'focus:tw-outline-none focus-visible:tw-ring-2 focus-visible:tw-ring-fg-info',
       )}
     >
@@ -137,7 +146,7 @@ function Avatar({ name }) {
   return (
     <div
       aria-label={`Account: ${name}`}
-      className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-bg-info tw-text-fg-info tw-grid tw-place-items-center tw-text-[11px] tw-font-medium"
+      className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-[#6366f1] tw-to-[#8b5cf6] tw-text-white tw-grid tw-place-items-center tw-text-[11px] tw-font-bold tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md tw-transition-shadow tw-duration-150"
     >
       {initials}
     </div>
