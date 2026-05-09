@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
   Trash2, XCircle,
+  UserX, HeadphonesIcon, Clock, ShieldOff, WifiOff,
+  Wallet, AlertCircle, CheckCircle2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSessionListQuery } from "../../../../services/listener";
@@ -23,6 +25,47 @@ function statusTone(s) {
   if (s === "completed") return "info";
   if (s === "failed")    return "danger";
   return "neutral";
+}
+
+/* ─── End-reason mapping ────────────────────────────────────────────── */
+// Each entry: [regex to match raw reason, friendly label, icon, css colour class]
+const END_REASON_MAP = [
+  [/user.?end|user.?left|user.?disconnect|user.?hung|user.?drop/i,        "User ended",           UserX,            "tw-text-fg-info     tw-bg-fg-info/10     tw-border-fg-info/20"],
+  [/listener.?end|listener.?left|listener.?disconnect|listener.?hung/i,   "Listener ended",       HeadphonesIcon,   "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
+  [/force.?end|admin.?end|forced/i,                                        "Force ended",          ShieldOff,        "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  [/timeout|time.?out|timed.?out|idle|inactiv/i,                          "Timed out",            Clock,            "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
+  [/network|connect|disconnect|drop.?call|call.?drop/i,                   "Network issue",        WifiOff,          "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
+  [/balance|wallet|insufficient|credit|payment/i,                         "Low balance",          Wallet,           "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  [/complet|success/i,                                                     "Completed",            CheckCircle2,     "tw-text-fg-success  tw-bg-fg-success/10  tw-border-fg-success/20"],
+];
+
+function EndReasonBadge({ raw }) {
+  if (!raw) return <span className="tw-text-[11px] tw-text-fg-tertiary">—</span>;
+
+  const match = END_REASON_MAP.find(([rx]) => rx.test(raw));
+  if (match) {
+    const [, label, Icon, colourCls] = match;
+    return (
+      <span
+        title={raw}
+        className={`tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-full tw-border tw-border-hairline tw-text-[11px] tw-font-medium tw-whitespace-nowrap ${colourCls}`}
+      >
+        <Icon size={10} aria-hidden className="tw-shrink-0" />
+        {label}
+      </span>
+    );
+  }
+
+  // Unknown reason — show raw text truncated with full text on hover
+  return (
+    <span
+      title={raw}
+      className="tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-full tw-border tw-border-hairline tw-border-tertiary tw-text-[11px] tw-font-medium tw-text-fg-secondary tw-bg-bg-secondary tw-max-w-[150px] tw-truncate"
+    >
+      <AlertCircle size={10} aria-hidden className="tw-shrink-0 tw-text-fg-tertiary" />
+      {raw}
+    </span>
+  );
 }
 
 function Services({ searchUser, searchListener, dateRange, setExcelSessionData, onRefetch }) {
@@ -168,14 +211,8 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                 </Td>
 
                 {/* End Reason */}
-                <Td className="tw-max-w-[160px]">
-                  {s.end_reason || s.endReason ? (
-                    <span className="tw-text-[11px] tw-text-fg-secondary tw-leading-snug tw-line-clamp-2" title={s.end_reason || s.endReason}>
-                      {s.end_reason || s.endReason}
-                    </span>
-                  ) : (
-                    <span className="tw-text-[11px] tw-text-fg-tertiary">—</span>
-                  )}
+                <Td>
+                  <EndReasonBadge raw={s.end_reason || s.endReason} />
                 </Td>
 
                 {/* Actions */}
