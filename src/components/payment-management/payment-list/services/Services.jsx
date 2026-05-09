@@ -85,7 +85,13 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   });
 
   useEffect(() => { if (onRefetch) onRefetch.current = refetch; }, [refetch, onRefetch]);
-  useEffect(() => { if (data?.data) setExcelSessionData(data.data); }, [data]);
+  useEffect(() => {
+    if (data?.data) {
+      setExcelSessionData(data.data);
+      // Debug: log all keys from first session so we can find the real end-reason field
+      if (data.data[0]) console.log('[Services] session keys:', Object.keys(data.data[0]), '\n first row:', data.data[0]);
+    }
+  }, [data]);
 
   if (isLoading) return (
     <div className="tw-flex tw-items-center tw-justify-center tw-gap-2 tw-py-16 tw-text-fg-tertiary tw-text-[13px]">
@@ -210,9 +216,21 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                   ₹{parseFloat(s.user_wallet_balance || 0).toFixed(2)}
                 </Td>
 
-                {/* End Reason */}
+                {/* End Reason — tries every plausible API field name */}
                 <Td>
-                  <EndReasonBadge raw={s.end_reason || s.endReason} />
+                  <EndReasonBadge raw={
+                    s.end_reason        ||
+                    s.endReason         ||
+                    s.call_end_reason   ||
+                    s.callEndReason     ||
+                    s.ended_reason      ||
+                    s.terminated_by     ||
+                    s.ended_by          ||
+                    s.disconnect_reason ||
+                    s.disconnectReason  ||
+                    s.reason            ||
+                    null
+                  } />
                 </Td>
 
                 {/* Actions */}
