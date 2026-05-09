@@ -92,7 +92,7 @@ export const navGroups = [
         ],
       },
       { title: 'Status & stories',  path: '/dashboard/status',                       icon: Sparkles },
-      { title: 'Support queries',   path: '/dashboard/contact-queries/report-block', icon: MessageSquareWarning },
+      { title: 'Report & Block',     path: '/dashboard/contact-queries/report-block', icon: MessageSquareWarning },
       { title: 'Push notifications', path: '/dashboard/push-notifications',          icon: Bell },
     ],
   },

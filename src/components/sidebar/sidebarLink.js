@@ -181,7 +181,7 @@ export const links = [
     group: "CONTENT",
   },
   {
-    title: "Support Queries",
+    title: "Report & Block",
     path: "/dashboard/contact-queries/report-block",
     icon: contact,
     type: "button",
