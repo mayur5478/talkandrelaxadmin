@@ -11,6 +11,7 @@ import {
   Users, UserCheck, Headphones, Activity,
   TrendingUp, DollarSign, CalendarDays, Wallet,
   Wrench, RefreshCw, Stethoscope, BarChart2,
+  Activity as ActivityIcon, BadgeIndianRupee, Layers,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, LineChart, Line,
@@ -187,23 +188,34 @@ function TrafficPanel() {
 
 /* ───────────────────── financial metric row ────────────────────────── */
 
-function MetricRow({ label, value }) {
+function MetricRow({ label, value, accent = false }) {
   const isEmpty = !value || value === '—';
+  const isCurrency = !isEmpty && String(value).startsWith('₹');
+
+  // split "₹3,814.40" → prefix "₹" + number "3,814.40"
+  const prefix = isCurrency ? '₹' : '';
+  const numPart = isCurrency ? String(value).slice(1) : value;
+
   return (
-    <div className="tw-flex tw-items-center tw-justify-between tw-gap-4 tw-py-3 tw-border-b tw-border-hairline tw-border-tertiary last:tw-border-0 tw-group">
-      <span className="tw-text-[12px] tw-text-fg-tertiary tw-leading-tight">{label}</span>
-      <span
-        className={
-          isEmpty
-            ? 'tw-text-[13px] tw-text-fg-tertiary tw-tabular-nums'
-            : 'tw-text-[20px] tw-font-bold tw-tabular-nums tw-tracking-tight ' +
-              (String(value).startsWith('₹')
-                ? 'tw-text-fg-success'
-                : 'tw-text-fg-primary')
-        }
-      >
-        {value ?? '—'}
+    <div className="tw-flex tw-items-center tw-justify-between tw-gap-3 tw-py-2 tw-border-b tw-border-hairline tw-border-tertiary last:tw-border-0 tw-group tw-rounded-sm tw-px-1 hover:tw-bg-bg-secondary tw-transition-colors tw-duration-100">
+      {/* Label */}
+      <span className="tw-text-[12px] tw-text-fg-tertiary tw-leading-snug tw-min-w-0 tw-flex-1">
+        {label}
       </span>
+
+      {/* Value */}
+      {isEmpty ? (
+        <span className="tw-text-[12px] tw-text-fg-tertiary tw-tabular-nums tw-shrink-0">—</span>
+      ) : (
+        <span className="tw-flex tw-items-baseline tw-gap-[2px] tw-shrink-0">
+          {isCurrency && (
+            <span className="tw-text-[11px] tw-font-medium tw-text-fg-tertiary tw-tabular-nums">₹</span>
+          )}
+          <span className={`tw-text-[14px] tw-font-semibold tw-tabular-nums tw-tracking-tight ${accent ? 'tw-text-fg-success' : 'tw-text-fg-primary'}`}>
+            {isCurrency ? numPart : value}
+          </span>
+        </span>
+      )}
     </div>
   );
 }
@@ -477,11 +489,15 @@ const Dashboard = () => {
         className="tw-grid tw-gap-3 tw-grid-cols-1 md:tw-grid-cols-2 lg:tw-grid-cols-3 tw-items-stretch"
       >
         {/* Col 1 — Today's Performance */}
-        <Card className="tw-p-5 tw-flex tw-flex-col tw-h-full">
-          <CardHeader>
-            <CardTitle>Today's Performance</CardTitle>
-          </CardHeader>
-          <div className="tw-flex-1 tw-flex tw-flex-col tw-justify-between">
+        <Card className="tw-p-4 tw-flex tw-flex-col tw-h-full">
+          <div className="tw-flex tw-items-center tw-gap-2 tw-mb-3 tw-pb-2.5 tw-border-b tw-border-hairline tw-border-tertiary">
+            <div className="tw-w-6 tw-h-6 tw-rounded-md tw-bg-fg-info/[.10] tw-text-fg-info tw-grid tw-place-items-center tw-shrink-0">
+              <BadgeIndianRupee size={13} aria-hidden />
+            </div>
+            <span className="tw-text-[12px] tw-font-semibold tw-text-fg-primary tw-tracking-tight">Today's Performance</span>
+            <span className="tw-ml-auto tw-text-[10px] tw-font-medium tw-text-fg-tertiary tw-bg-bg-secondary tw-px-1.5 tw-py-[2px] tw-rounded-full tw-tabular-nums">Today</span>
+          </div>
+          <div className="tw-flex-1 tw-flex tw-flex-col">
             {dailyFinancials.length > 0 ? (
               dailyFinancials.map((m, i) => (
                 <MetricRow key={i} label={m?.title || '—'} value={fmtDetailVal(m)} />
@@ -493,14 +509,15 @@ const Dashboard = () => {
         </Card>
 
         {/* Col 2 — Monthly Financials */}
-        <Card className="tw-p-5 tw-flex tw-flex-col tw-h-full">
-          <CardHeader>
-            <div className="tw-flex tw-items-center tw-gap-2">
-              <CalendarDays size={14} aria-hidden className="tw-text-fg-tertiary" />
-              <CardTitle>Monthly Financials</CardTitle>
+        <Card className="tw-p-4 tw-flex tw-flex-col tw-h-full">
+          <div className="tw-flex tw-items-center tw-gap-2 tw-mb-3 tw-pb-2.5 tw-border-b tw-border-hairline tw-border-tertiary">
+            <div className="tw-w-6 tw-h-6 tw-rounded-md tw-bg-fg-success/[.10] tw-text-fg-success tw-grid tw-place-items-center tw-shrink-0">
+              <CalendarDays size={13} aria-hidden />
             </div>
-          </CardHeader>
-          <div className="tw-flex-1 tw-flex tw-flex-col tw-justify-between">
+            <span className="tw-text-[12px] tw-font-semibold tw-text-fg-primary tw-tracking-tight">Monthly Financials</span>
+            <span className="tw-ml-auto tw-text-[10px] tw-font-medium tw-text-fg-tertiary tw-bg-bg-secondary tw-px-1.5 tw-py-[2px] tw-rounded-full">This month</span>
+          </div>
+          <div className="tw-flex-1 tw-flex tw-flex-col">
             {monthlyFinancials.length > 0 ? (
               monthlyFinancials.map((m, i) => (
                 <MetricRow key={i} label={m?.title || '—'} value={fmtDetailVal(m)} />
@@ -511,17 +528,17 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Col 3 — Adjustments & Volume + Wallet Aggregates combined */}
-        <Card className="tw-p-5 tw-flex tw-flex-col tw-h-full">
+        {/* Col 3 — Adjustments & Volume + Wallet Aggregates */}
+        <Card className="tw-p-4 tw-flex tw-flex-col tw-h-full">
           {/* Section: Adjustments & Volume */}
           {adjustmentsVolume.length > 0 && (
             <>
-              <CardHeader>
-                <div className="tw-flex tw-items-center tw-gap-2">
-                  <TrendingUp size={14} aria-hidden className="tw-text-fg-info" />
-                  <CardTitle>Adjustments &amp; Volume</CardTitle>
+              <div className="tw-flex tw-items-center tw-gap-2 tw-mb-3 tw-pb-2.5 tw-border-b tw-border-hairline tw-border-tertiary">
+                <div className="tw-w-6 tw-h-6 tw-rounded-md tw-bg-fg-warning/[.10] tw-text-fg-warning tw-grid tw-place-items-center tw-shrink-0">
+                  <TrendingUp size={13} aria-hidden />
                 </div>
-              </CardHeader>
+                <span className="tw-text-[12px] tw-font-semibold tw-text-fg-primary tw-tracking-tight">Adjustments &amp; Volume</span>
+              </div>
               <div>
                 {adjustmentsVolume.map((m, i) => (
                   <MetricRow key={i} label={m?.title || '—'} value={fmtDetailVal(m)} />
@@ -530,24 +547,25 @@ const Dashboard = () => {
             </>
           )}
 
-          {/* Divider */}
+          {/* Divider with label */}
           {adjustmentsVolume.length > 0 && walletAggregates.length > 0 && (
-            <div className="tw-border-t tw-border-hairline tw-border-tertiary tw-my-4" />
+            <div className="tw-flex tw-items-center tw-gap-2 tw-my-3">
+              <div className="tw-flex-1 tw-h-px tw-bg-border-tertiary" />
+              <div className="tw-flex tw-items-center tw-gap-1.5 tw-text-fg-success">
+                <Wallet size={11} aria-hidden />
+                <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.06em]">Wallets</span>
+              </div>
+              <div className="tw-flex-1 tw-h-px tw-bg-border-tertiary" />
+            </div>
           )}
 
           {/* Section: Wallet Aggregates */}
           {walletAggregates.length > 0 && (
-            <>
-              <div className="tw-flex tw-items-center tw-gap-2 tw-mb-1">
-                <Wallet size={14} aria-hidden className="tw-text-fg-success" />
-                <span className="tw-text-[13px] tw-font-semibold tw-text-fg-primary">Wallet Aggregates</span>
-              </div>
-              <div className="tw-flex-1 tw-flex tw-flex-col tw-justify-between">
-                {walletAggregates.map((m, i) => (
-                  <MetricRow key={i} label={m?.title || '—'} value={fmtDetailVal(m)} />
-                ))}
-              </div>
-            </>
+            <div className="tw-flex-1 tw-flex tw-flex-col">
+              {walletAggregates.map((m, i) => (
+                <MetricRow key={i} label={m?.title || '—'} value={fmtDetailVal(m)} accent />
+              ))}
+            </div>
           )}
         </Card>
       </motion.div>
