@@ -161,17 +161,7 @@ const STATUS_TONE = { paid: 'success', pending: 'warning', failed: 'danger' };
 function TransactionsPanel({ loading }) {
   const [sort, setSort] = useState({ key: 'date', dir: 'desc' });
 
-  if (loading) {
-    return (
-      <Card flush>
-        <div className="tw-px-4 tw-py-3 tw-border-b tw-border-hairline tw-border-tertiary">
-          <CardTitle>Recent transactions</CardTitle>
-        </div>
-        <TableSkeleton rows={5} cols={6} />
-      </Card>
-    );
-  }
-
+  // Hook order must be stable — keep useMemo BEFORE any early return.
   const rows = useMemo(() => {
     if (!sort.key || !sort.dir) return RECENT_TXNS;
     const sorted = [...RECENT_TXNS].sort((a, b) => {
@@ -182,6 +172,17 @@ function TransactionsPanel({ loading }) {
     });
     return sorted;
   }, [sort]);
+
+  if (loading) {
+    return (
+      <Card flush>
+        <div className="tw-px-4 tw-py-3 tw-border-b tw-border-hairline tw-border-tertiary">
+          <CardTitle>Recent transactions</CardTitle>
+        </div>
+        <TableSkeleton rows={5} cols={6} />
+      </Card>
+    );
+  }
 
   return (
     <Card flush>

@@ -1,14 +1,13 @@
 import React, { lazy, Suspense, useEffect } from "react";
 import "./main.scss";
 import AppShell from "../../shell/AppShell";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { useGetMeQuery } from "../../services/auth";
 import { getCookie } from "../../cookie_helper/cookie";
 
 // Lazy-load all route components — each becomes its own JS chunk
 // loaded only when the user navigates to that route.
 const Dashboard                  = lazy(() => import("../dashboard/Dashboard"));
-const OverviewV2                 = lazy(() => import("../v2/overview/Overview"));
 const ApplicationRequestsV2      = lazy(() => import("../v2/listener-management/ApplicationRequests"));
 const ProfileApprovalsV2         = lazy(() => import("../v2/listener-management/ProfileApprovals"));
 const Users               = lazy(() => import("../user-management/user-list/Users"));
@@ -64,7 +63,8 @@ const Main = () => {
     <AppShell user={user?.user || user}>
       <Suspense fallback={<div className="tw-py-8 tw-text-center tw-text-fg-tertiary">Loading…</div>}>
         <Routes>
-          <Route path="/overview" element={<OverviewV2 />} />
+          {/* /overview was removed from the nav — redirect to the main dashboard */}
+          <Route path="/overview" element={<Navigate to="/dashboard/analytics" replace />} />
           <Route path="/analytics" element={<Dashboard />} />
           <Route path="/user-management/users-list" element={<Users />} />
           <Route path="/user-management/active-users" element={<ActiveUsers />} />
