@@ -31,12 +31,7 @@ export const navGroups = [
     label: 'Main',
     items: [
       {
-        title: 'Overview',
-        path: '/dashboard/overview',
-        icon: LayoutDashboard,
-      },
-      {
-        title: 'Legacy dashboard',
+        title: 'Dashboard',
         path: '/dashboard/analytics',
         icon: LayoutDashboard,
       },
