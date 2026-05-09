@@ -203,7 +203,7 @@ function NavLeaf({ item, indent = false, badges }) {
       }
     >
       {Icon && !indent && <Icon size={15} aria-hidden className="tw-shrink-0 tw-opacity-75" />}
-      <span className="tw-flex-1 tw-truncate">{item.title}</span>
+      <span className="tw-flex-1 tw-truncate tw-text-left">{item.title}</span>
       {badge != null && (
         <span className="tw-text-[10px] tw-leading-none tw-px-1.5 tw-py-[2px] tw-rounded-full tw-bg-bg-secondary tw-text-fg-secondary tw-font-medium tw-tabular-nums tw-shrink-0">
           {badge}
