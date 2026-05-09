@@ -173,15 +173,11 @@ export default function ApplicationRequestsV2() {
                       <Td><Pill tone={status.tone}>{status.label}</Pill></Td>
                       <Td align="right">
                         <div className="tw-inline-flex tw-items-center tw-gap-1">
-                          <Tooltip label="View profile">
+                          <Tooltip label="View full application">
                             <IconButton
                               size="sm"
-                              aria-label="View profile"
-                              onClick={() => navigate(
-                                r.listener_request_status === 'documents in review'
-                                  ? `/dashboard/listener-management/listeners-profile-approvals-docs?id=${r.id}`
-                                  : `/dashboard/listener-management/profile-form?id=${r.id}`,
-                              )}
+                              aria-label="View full application"
+                              onClick={() => navigate(`/dashboard/listener-management/application-review?id=${r.id}`)}
                             >
                               <Eye size={14} />
                             </IconButton>

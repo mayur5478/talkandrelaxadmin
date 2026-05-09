@@ -10,6 +10,7 @@ import { getCookie } from "../../cookie_helper/cookie";
 const Dashboard                  = lazy(() => import("../dashboard/Dashboard"));
 const ApplicationRequestsV2      = lazy(() => import("../v2/listener-management/ApplicationRequests"));
 const ProfileApprovalsV2         = lazy(() => import("../v2/listener-management/ProfileApprovals"));
+const ApplicationReview          = lazy(() => import("../v2/listener-management/ApplicationReview"));
 const Users               = lazy(() => import("../user-management/user-list/Users"));
 const ActiveUsers         = lazy(() => import("../user-management/active-users/ActiveUsers"));
 const RecentUsers         = lazy(() => import("../user-management/recent-users/RecentUsers"));
@@ -77,6 +78,7 @@ const Main = () => {
           <Route path="/legacy/listener-management/listener-application-request" element={<ApplicationRequests />} />
           <Route path="/legacy/listener-management/listeners-profile-approvals" element={<ProfileApproval />} />
           <Route path="/listener-management/listeners-profile-approvals-docs" element={<Docs />} />
+          <Route path="/listener-management/application-review" element={<ApplicationReview />} />
           <Route path="/payment-management/payment-list" element={<PaymentList />} />
           <Route path="/payment-management/edit-salary" element={<EditSalary />} />
           <Route path="/payment-management/salary-slip" element={<SalarySlip />} />
