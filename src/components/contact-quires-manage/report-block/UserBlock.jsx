@@ -1,200 +1,146 @@
-import React, { useEffect, useState } from "react";
-import sort from "../../assets/sort.png";
-import forwardIcon from "../../assets/forward.png";
-import backwardIcon from "../../assets/backward.png";
-import { Form } from "react-bootstrap";
+import React, { useEffect, useState } from 'react';
+import { Undo2 } from 'lucide-react';
 import {
   useBlockUsersListQuery,
   useUnblockUserMutation,
-} from "../../../services/contact";
-import replyImage from "../../assets/reply.png";
-import Unblock from "../../common/unblock/Unblock";
-import { useNavigate } from "react-router-dom";
+} from '../../../services/contact';
+import {
+  Table, THead, TBody, TR, Th, Td,
+  Pagination,
+  Spinner, ErrorBanner, EmptyState,
+  Button,
+} from '../../v2/ui';
+import Unblock from '../../common/unblock/Unblock';
+import { useNavigate } from 'react-router-dom';
+
 function UserBlock({ search }) {
-  const [page, setPage] = useState(1);
+  const [page, setPage]         = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [searchTerm, setSearchTerm] = useState("");
-  console.log("search", search);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setSearchTerm(search);
-      setPage(1);
-    }, 500);
-    return () => clearTimeout(handler);
+    const t = setTimeout(() => { setSearchTerm(search); setPage(1); }, 500);
+    return () => clearTimeout(t);
   }, [search]);
 
   const { data, error, isLoading, refetch } = useBlockUsersListQuery({
-    page,
-    limit: pageSize,
-    search: searchTerm,
+    page, limit: pageSize, search: searchTerm,
   });
 
   const totalRecords = data?.meta?.total || 0;
-  const totalPages = Math.ceil(totalRecords / pageSize);
+  const totalPages   = Math.ceil(totalRecords / (pageSize === 'all' ? totalRecords || 1 : pageSize));
 
-  const handlePageSizeChange = (e) => {
-    setPageSize(Number(e.target.value));
-    setPage(1); // Reset to first page on page size change
-  };
+  const [unblockUser, { isLoading: isUnblockLoading }] = useUnblockUserMutation();
+  const [showModal, setShowModal]             = useState(false);
+  const [selectedUnblock, setSelectedUnblock] = useState({});
+  const [nameUnblock, setNameUnblock]         = useState({});
 
-  const handlePreviousPage = () => {
-    setPage((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleNextPage = () => {
-    setPage((prev) => Math.min(prev + 1, totalPages));
-  };
-
-  const [unblockUser, { isLoading: isUnblockLoading }] =
-    useUnblockUserMutation();
-  const [showUnblockModal, setShowUnblockModal] = useState(false);
-  const [selectedUserUnblock, setSelectedUserUnblock] = useState({});
-  const [userNameUnblock, setUserNameUnblock] = useState({});
   const handleUnblock = (userId, listenerId, listenerName, userName) => {
-    setSelectedUserUnblock({ userId: userId, listenerId: listenerId });
-    setShowUnblockModal(true);
-    setUserNameUnblock({ userName, listenerName });
+    setSelectedUnblock({ userId, listenerId });
+    setNameUnblock({ userName, listenerName });
+    setShowModal(true);
   };
 
   const confirmUnblock = async () => {
     try {
-      await unblockUser(selectedUserUnblock).unwrap();
+      await unblockUser(selectedUnblock).unwrap();
       refetch();
     } catch (err) {
-      console.error("Error toggling account freeze:", err);
+      console.error('Unblock error:', err);
     } finally {
-      setShowUnblockModal(false);
-      setSelectedUserUnblock(null);
-      setUserNameUnblock(null);
+      setShowModal(false);
+      setSelectedUnblock({});
+      setNameUnblock({});
     }
   };
 
   const navigate = useNavigate();
-  const handleView = (id) => {
-    navigate(`/dashboard/user-management/profile-view?id=${id}`);
-  };
-  const handleView2 = (id) => {
-    navigate(`/dashboard/listener-management/profile-view?id=${id}`);
-  };
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error fetching blocked listeners</div>;
+  if (isLoading) return <div className="tw-flex tw-justify-center tw-py-12"><Spinner size={20} className="tw-text-fg-info" /></div>;
+  if (error)     return <div className="tw-p-4"><ErrorBanner title="Failed to load blocked users" /></div>;
+
+  const rows = data?.data || [];
 
   return (
-    <div>
-      <div className="table">
-        <div className="table-headings">
-          <div>
-            <p className="heading-text">Sr. No</p>
-          </div>
-          <div>
-            <p className="heading-text">
-              Reported by <img className="sort" src={sort} alt="Sort" />
-            </p>
-          </div>
-          <div>
-            <p className="heading-text">Report for</p>
-          </div>
-          <div>
-            <p className="heading-text">Unblock?</p>
-          </div>
-        </div>
-        {data.data.map((listener, index) => (
-          <div key={listener.id} className="table-body">
-            <div>
-              <p className="heading-text">
-                {(page - 1) * pageSize + index + 1}
-              </p>
-            </div>
-            <div>
-              <p
-                onClick={() => handleView(listener?.userId)}
-                className="heading-text name"
-              >
-                {" "}
-                {listener.listenerInfo.display_name}
-              </p>
-            </div>
-            <div>
-              <p
-                onClick={() => handleView2(listener?.listenerId)}
-                className="heading-text name"
-              >
-                {listener.userInfo.fullName}
-              </p>
-            </div>
-            <div>
-              <img
-                onClick={() => {
-                  setShowUnblockModal(true);
-                  handleUnblock(
-                    listener.userId,
-                    listener.listenerId,
-                    listener.listenerInfo.display_name,
-                    listener.userInfo.fullName
-                  );
-                }}
-                src={replyImage}
-                alt={replyImage}
-              />
-            </div>
-          </div>
-        ))}
-        <div className="pagination">
-          <div className="pagination-dropdown">
-            <p>Items Per Page:</p>
-            <Form.Select
-              aria-label="Default select example"
-              value={pageSize}
-              onChange={handlePageSizeChange}
-            >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-            </Form.Select>
-          </div>
-          <div className="pagination-details">
-            <div className="pagination-numbers">
-              <p>{(page - 1) * pageSize + 1}</p>-
-              <p>{Math.min(page * pageSize, totalRecords)}</p>
-              <p>of</p>
-              <p>{totalRecords}</p>
-            </div>
-            <div className="pagination-controls">
-              <img
-                onClick={handlePreviousPage}
-                src={backwardIcon}
-                alt="Previous"
-                style={{
-                  cursor: page === 1 ? "not-allowed" : "pointer",
-                  opacity: page === 1 ? 0.5 : 1,
-                }}
-              />
-              <img
-                onClick={handleNextPage}
-                src={forwardIcon}
-                alt="Next"
-                style={{
-                  cursor: page === totalPages ? "not-allowed" : "pointer",
-                  opacity: page === totalPages ? 0.5 : 1,
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+    <>
+      <Table>
+        <THead>
+          <TR>
+            <Th className="tw-w-16">Sr. No</Th>
+            <Th>Reported by (Listener)</Th>
+            <Th>Report for (User)</Th>
+            <Th align="right">Unblock</Th>
+          </TR>
+        </THead>
+        <TBody>
+          {rows.length === 0 ? (
+            <TR isLast>
+              <Td colSpan={4}>
+                <EmptyState title="No blocked users" description="No users have been blocked yet." />
+              </Td>
+            </TR>
+          ) : (
+            rows.map((item, index) => (
+              <TR key={item.id} isLast={index === rows.length - 1}>
+                <Td className="tw-text-fg-tertiary tw-font-medium">
+                  {(page - 1) * pageSize + index + 1}
+                </Td>
+                <Td>
+                  <span
+                    onClick={() => navigate(`/dashboard/listener-management/profile-view?id=${item?.listenerId}`)}
+                    className="tw-text-fg-info tw-font-medium tw-cursor-pointer hover:tw-underline"
+                  >
+                    {item?.listenerInfo?.display_name || '—'}
+                  </span>
+                </Td>
+                <Td>
+                  <span
+                    onClick={() => navigate(`/dashboard/user-management/profile-view?id=${item?.userId}`)}
+                    className="tw-text-fg-info tw-font-medium tw-cursor-pointer hover:tw-underline"
+                  >
+                    {item?.userInfo?.fullName || '—'}
+                  </span>
+                </Td>
+                <Td align="right">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleUnblock(
+                      item?.userId,
+                      item?.listenerId,
+                      item?.listenerInfo?.display_name,
+                      item?.userInfo?.fullName,
+                    )}
+                  >
+                    <Undo2 size={13} aria-hidden />
+                    Unblock
+                  </Button>
+                </Td>
+              </TR>
+            ))
+          )}
+        </TBody>
+      </Table>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        totalRecords={totalRecords}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSize={(v) => { setPageSize(v); setPage(1); }}
+      />
+
       <Unblock
-        show={showUnblockModal}
-        onHide={() => setShowUnblockModal(false)}
+        show={showModal}
+        onHide={() => setShowModal(false)}
         onConfirm={confirmUnblock}
-        userId={selectedUserUnblock}
-        userName={userNameUnblock}
+        userId={selectedUnblock}
+        userName={nameUnblock}
         isUnblockLoading={isUnblockLoading}
         type="user"
       />
-    </div>
+    </>
   );
 }
 

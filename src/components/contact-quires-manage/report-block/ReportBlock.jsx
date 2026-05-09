@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import "./reportBlock.scss";
 import { Search } from "lucide-react";
 import { Card, Tabs, TabsList, Tab, TabPanel } from "../../v2/ui";
 import ListenerBLock from "./ListenerBLock";
