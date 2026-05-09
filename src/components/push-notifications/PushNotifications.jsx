@@ -9,6 +9,8 @@ import {
   useSendToSelectedMutation,
   useGetPushHistoryQuery,
   useRetryNotificationMutation,
+  useCancelNotificationMutation,
+  useDeleteNotificationMutation,
 } from "../../services/notification";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -31,12 +33,22 @@ const MODES = [
 
 const defaultForm = { title: "", body: "" };
 
+// Image upload constraints — must match backend (routes/admin/pushNotification/pushNotification.js)
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_MIMES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function targetLabel(target) {
   if (target === "users")     return "Users";
   if (target === "listeners") return "Listeners";
   if (target === "selective") return "Selective";
   return "All";
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function ResultBadge({ result }) {
@@ -61,6 +73,84 @@ function ResultBadge({ result }) {
         <div className="pn-result__row pn-result__row--warn">
           <span className="pn-result__label">Skipped (no token)</span>
           <span className="pn-result__value">{result.skipped}</span>
+        </div>
+      )}
+      {result.imageUrl && (
+        <div className="pn-result__row">
+          <span className="pn-result__label">Image attached</span>
+          <a href={result.imageUrl} target="_blank" rel="noopener noreferrer" className="pn-result__value">view</a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Image upload picker (preview + remove) ──────────────────────────────────
+function ImagePicker({ image, onPick, onClear, disabled }) {
+  const inputRef = useRef(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  useEffect(() => {
+    if (!image) { setPreviewUrl(null); return; }
+    const url = URL.createObjectURL(image);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [image]);
+
+  const handleFile = (file) => {
+    if (!file) return;
+    if (!ALLOWED_MIMES.includes(file.type.toLowerCase())) {
+      alert(`Unsupported image type: ${file.type}. Only JPEG, PNG, WebP allowed.`);
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      alert(`Image too large (${formatBytes(file.size)}). Max 5 MB.`);
+      return;
+    }
+    onPick(file);
+  };
+
+  return (
+    <div className="pn-field">
+      <label className="pn-label">Image (optional)</label>
+      {!image ? (
+        <div className="pn-image-picker pn-image-picker--empty">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style={{ display: "none" }}
+            onChange={(e) => handleFile(e.target.files?.[0])}
+            disabled={disabled}
+          />
+          <button
+            type="button"
+            className="pn-image-picker__btn"
+            onClick={() => inputRef.current?.click()}
+            disabled={disabled}
+          >
+            + Attach image
+          </button>
+          <span className="pn-image-picker__hint">JPEG, PNG, or WebP · max 5 MB</span>
+        </div>
+      ) : (
+        <div className="pn-image-picker pn-image-picker--filled">
+          {previewUrl && (
+            <img src={previewUrl} alt="Preview" className="pn-image-picker__preview" />
+          )}
+          <div className="pn-image-picker__info">
+            <span className="pn-image-picker__filename">{image.name}</span>
+            <span className="pn-image-picker__size">{formatBytes(image.size)}</span>
+          </div>
+          <button
+            type="button"
+            className="pn-image-picker__remove"
+            onClick={onClear}
+            disabled={disabled}
+            title="Remove image"
+          >
+            ×
+          </button>
         </div>
       )}
     </div>
@@ -170,11 +260,16 @@ function RecipientSelector({ selected, onAdd, onRemove }) {
 function HistoryPanel() {
   const [historyPage, setHistoryPage]   = useState(1);
   const [retryingId,  setRetryingId]    = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+  const [deletingId,  setDeletingId]    = useState(null);
   const [retryResult, setRetryResult]   = useState({});   // { [id]: { sent, failed, total } }
   const [retryError,  setRetryError]    = useState({});   // { [id]: errorMsg }
+  const [actionMsg,   setActionMsg]     = useState({});   // { [id]: { type: 'ok'|'err', text } }
 
   const { data, isLoading, isFetching } = useGetPushHistoryQuery({ page: historyPage, pageSize: 10 });
   const [retryNotification]             = useRetryNotificationMutation();
+  const [cancelNotification]            = useCancelNotificationMutation();
+  const [deleteNotification]            = useDeleteNotificationMutation();
 
   const history    = data?.history || [];
   const pagination = data?.pagination || {};
@@ -193,6 +288,49 @@ function HistoryPanel() {
     }
   };
 
+  const handleCancel = async (item) => {
+    const reason = window.prompt(
+      `Cancel this notification? It will no longer be retryable.\n\n` +
+      `Title: ${item.title}\n` +
+      `Sent to: ${item.recipient_preview || targetLabel(item.target)}\n\n` +
+      `Reason (optional):`,
+      ""
+    );
+    if (reason === null) return; // user clicked Cancel on the prompt
+
+    setCancellingId(item.id);
+    setActionMsg((prev) => ({ ...prev, [item.id]: null }));
+    try {
+      await cancelNotification({ id: item.id, reason: reason.trim() || null }).unwrap();
+      setActionMsg((prev) => ({ ...prev, [item.id]: { type: "ok", text: "✓ Cancelled — cannot be retried." } }));
+    } catch (err) {
+      setActionMsg((prev) => ({ ...prev, [item.id]: { type: "err", text: err?.data?.message || "Cancel failed." } }));
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+  const handleDelete = async (item) => {
+    const ok = window.confirm(
+      `Permanently DELETE this log entry? This removes it from history entirely.\n\n` +
+      `Title: ${item.title}\n` +
+      `Sent: ${new Date(item.createdAt).toLocaleString()}\n\n` +
+      `Use Cancel instead if you want to keep the audit trail.`
+    );
+    if (!ok) return;
+
+    setDeletingId(item.id);
+    setActionMsg((prev) => ({ ...prev, [item.id]: null }));
+    try {
+      await deleteNotification(item.id).unwrap();
+      // No success message needed — entry will disappear from list on refetch
+    } catch (err) {
+      setActionMsg((prev) => ({ ...prev, [item.id]: { type: "err", text: err?.data?.message || "Delete failed." } }));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="pn-card pn-history-card">
       <h3 className="pn-card__title">
@@ -207,47 +345,120 @@ function HistoryPanel() {
       ) : (
         <>
           <ul className="pn-history-list">
-            {history.map((item) => (
-              <li key={item.id} className="pn-history-item">
-                <div className="pn-history-item__header">
-                  <span className={`pn-badge pn-badge--${item.target}`}>{targetLabel(item.target)}</span>
-                  <span className="pn-history-item__time">
-                    {new Date(item.createdAt).toLocaleString()}
-                  </span>
-                </div>
-                <p className="pn-history-item__title">{item.title}</p>
-                <p className="pn-history-item__body">{item.body}</p>
-                {item.recipient_preview && (
-                  <p className="pn-history-item__recipients">→ {item.recipient_preview}</p>
-                )}
-                <p className="pn-history-item__meta">
-                  Sent {item.sent_count}/{item.total_recipients}
-                  {item.failed_count  > 0 && <span className="pn-meta-fail"> · {item.failed_count} failed</span>}
-                  {item.skipped_count > 0 && <span className="pn-meta-skip"> · {item.skipped_count} skipped</span>}
-                  {item.sent_by && <span className="pn-meta-by"> · by {item.sent_by}</span>}
-                </p>
-
-                {/* Retry button */}
-                <button
-                  className="pn-retry-btn"
-                  onClick={() => handleRetry(item)}
-                  disabled={retryingId === item.id}
+            {history.map((item) => {
+              const isCancelled = !!item.is_cancelled;
+              return (
+                <li
+                  key={item.id}
+                  className={`pn-history-item ${isCancelled ? "pn-history-item--cancelled" : ""}`}
                 >
-                  {retryingId === item.id ? "Retrying…" : "↺ Retry"}
-                </button>
+                  <div className="pn-history-item__header">
+                    <span className={`pn-badge pn-badge--${item.target}`}>{targetLabel(item.target)}</span>
+                    {isCancelled && (
+                      <span className="pn-badge pn-badge--cancelled" title="No further retries allowed">
+                        ✕ Cancelled
+                      </span>
+                    )}
+                    <span className="pn-history-item__time">
+                      {new Date(item.createdAt).toLocaleString()}
+                    </span>
+                  </div>
 
-                {/* Inline retry result */}
-                {retryResult[item.id] && (
-                  <p className="pn-retry-result pn-retry-result--ok">
-                    ✓ Retry sent {retryResult[item.id].sent}/{retryResult[item.id].total}
-                    {retryResult[item.id].failed > 0 && ` · ${retryResult[item.id].failed} failed`}
+                  <p className="pn-history-item__title">{item.title}</p>
+                  <p className="pn-history-item__body">{item.body}</p>
+
+                  {item.image_url && (
+                    <a
+                      href={item.image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="pn-history-item__image-link"
+                      title="Open full image"
+                    >
+                      <img
+                        src={item.image_url}
+                        alt="Notification attachment"
+                        className="pn-history-item__image"
+                        loading="lazy"
+                      />
+                    </a>
+                  )}
+
+                  {item.recipient_preview && (
+                    <p className="pn-history-item__recipients">→ {item.recipient_preview}</p>
+                  )}
+                  <p className="pn-history-item__meta">
+                    Sent {item.sent_count}/{item.total_recipients}
+                    {item.failed_count  > 0 && <span className="pn-meta-fail"> · {item.failed_count} failed</span>}
+                    {item.skipped_count > 0 && <span className="pn-meta-skip"> · {item.skipped_count} skipped</span>}
+                    {item.sent_by && <span className="pn-meta-by"> · by {item.sent_by}</span>}
                   </p>
-                )}
-                {retryError[item.id] && (
-                  <p className="pn-retry-result pn-retry-result--err">✗ {retryError[item.id]}</p>
-                )}
-              </li>
-            ))}
+
+                  {/* Cancellation details */}
+                  {isCancelled && (
+                    <p className="pn-history-item__cancel-info">
+                      Cancelled by <strong>{item.cancelled_by || "unknown"}</strong>
+                      {item.cancelled_at && ` on ${new Date(item.cancelled_at).toLocaleString()}`}
+                      {item.cancel_reason && (
+                        <>
+                          <br />
+                          <span className="pn-history-item__cancel-reason">Reason: {item.cancel_reason}</span>
+                        </>
+                      )}
+                    </p>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="pn-history-actions">
+                    {!isCancelled && (
+                      <button
+                        className="pn-retry-btn"
+                        onClick={() => handleRetry(item)}
+                        disabled={retryingId === item.id || cancellingId === item.id || deletingId === item.id}
+                      >
+                        {retryingId === item.id ? "Retrying…" : "↺ Retry"}
+                      </button>
+                    )}
+
+                    {!isCancelled && (
+                      <button
+                        className="pn-cancel-btn"
+                        onClick={() => handleCancel(item)}
+                        disabled={retryingId === item.id || cancellingId === item.id || deletingId === item.id}
+                        title="Mark as cancelled — prevents retry"
+                      >
+                        {cancellingId === item.id ? "Cancelling…" : "🚫 Cancel"}
+                      </button>
+                    )}
+
+                    <button
+                      className="pn-delete-btn"
+                      onClick={() => handleDelete(item)}
+                      disabled={retryingId === item.id || cancellingId === item.id || deletingId === item.id}
+                      title="Permanently remove from history"
+                    >
+                      {deletingId === item.id ? "Deleting…" : "🗑 Delete"}
+                    </button>
+                  </div>
+
+                  {/* Inline retry result */}
+                  {retryResult[item.id] && (
+                    <p className="pn-retry-result pn-retry-result--ok">
+                      ✓ Retry sent {retryResult[item.id].sent}/{retryResult[item.id].total}
+                      {retryResult[item.id].failed > 0 && ` · ${retryResult[item.id].failed} failed`}
+                    </p>
+                  )}
+                  {retryError[item.id] && (
+                    <p className="pn-retry-result pn-retry-result--err">✗ {retryError[item.id]}</p>
+                  )}
+                  {actionMsg[item.id] && (
+                    <p className={`pn-retry-result pn-retry-result--${actionMsg[item.id].type}`}>
+                      {actionMsg[item.id].text}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
           </ul>
 
           {/* Pagination */}
@@ -266,10 +477,11 @@ function HistoryPanel() {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 function PushNotifications() {
-  const [mode, setMode]   = useState("broadcast");
+  const [mode, setMode]               = useState("broadcast");
   const [target, setTarget]           = useState("users");
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [form, setForm]               = useState(defaultForm);
+  const [image, setImage]             = useState(null); // File | null
   const [lastResult, setLastResult]   = useState(null);
   const [errorMsg, setErrorMsg]       = useState("");
 
@@ -308,7 +520,11 @@ function PushNotifications() {
     setLastResult(null);
 
     try {
-      const payload = { title: form.title.trim(), body: form.body.trim() };
+      const payload = {
+        title: form.title.trim(),
+        body:  form.body.trim(),
+        ...(image ? { image } : {}),
+      };
       let res;
       if (mode === "selective") {
         res = await sendToSelected({ ...payload, userIds: selectedRecipients.map((r) => r.id) }).unwrap();
@@ -319,6 +535,7 @@ function PushNotifications() {
       }
       setLastResult(res);
       setForm(defaultForm);
+      setImage(null);
       if (mode === "selective") setSelectedRecipients([]);
     } catch (err) {
       setErrorMsg(err?.data?.message || "Failed to send notification. Please try again.");
@@ -388,6 +605,14 @@ function PushNotifications() {
             <textarea id="pn-body" className="pn-textarea" name="body" placeholder="e.g. Check out the latest updates in your app..." value={form.body} onChange={handleChange} maxLength={300} rows={4} disabled={isSending} />
             <span className="pn-char-count">{form.body.length}/300</span>
           </div>
+
+          {/* Optional image attachment */}
+          <ImagePicker
+            image={image}
+            onPick={(f) => { setImage(f); setLastResult(null); setErrorMsg(""); }}
+            onClear={() => setImage(null)}
+            disabled={isSending}
+          />
 
           {errorMsg   && <p className="pn-error">{errorMsg}</p>}
           {lastResult && <ResultBadge result={lastResult} />}
