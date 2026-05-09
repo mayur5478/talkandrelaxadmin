@@ -28,35 +28,40 @@ function statusTone(s) {
 }
 
 /* ─── End-reason mapping ────────────────────────────────────────────── */
-// Matched against the exact strings the backend writes to Sessions.reason.
+// Built from actual DB values (verified 2026-05-09):
+//   "ended" (12546), "Zombie session…" (1266), "It got triggered by balance" (773),
+//   "Network disconnection — grace period expired" (436), "failed" (205), etc.
 // Order matters — first match wins.
-// Each entry: [regex, friendly label, icon, colour classes]
 const END_REASON_MAP = [
-  // Admin-initiated (check before generic "disconnect" catches "Admin Reset")
-  [/force.?end|admin.?force|forced/i,                                      "Force ended",          ShieldOff,        "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-  [/admin.*reset|reset.*admin|global.?reset/i,                            "Admin reset",          ShieldOff,        "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-  [/admin/i,                                                               "Admin action",         ShieldOff,        "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  // Admin-initiated — check BEFORE generic matches
+  [/force.?end|admin.?force|forced/i,                                      "Force ended",       ShieldOff,     "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  [/admin.*reset|reset.*admin|global.?reset/i,                            "Admin reset",       ShieldOff,     "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  [/admin/i,                                                               "Admin action",      ShieldOff,     "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
 
   // Balance / payment
-  [/balance|wallet|insufficient|low.?balance/i,                           "Low balance",          Wallet,           "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  [/balance|wallet|insufficient|triggered.*balance|balance.*trigger/i,    "Low balance",       Wallet,        "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
 
-  // Network / socket-level drops (socket.io reasons: "transport closed", "ping timeout")
-  [/network|transport.?clos|ping.?timeout|grace.?period|grace.*expir/i,   "Network drop",         WifiOff,          "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
+  // Zombie / stale / janitor / ghost — before "network" so "Zombie" doesn't fall through
+  [/zombie|stale|janitor|ghost|abandoned|healed/i,                        "Stale session",     Clock,         "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
 
-  // Explicit user/listener disconnect (socket "User disconnected" default)
-  [/user.?disconnect|user.?end|user.?left|user.?hung/i,                   "User ended",           UserX,            "tw-text-fg-info     tw-bg-fg-info/10     tw-border-fg-info/20"],
-  [/listener.?disconnect|listener.?end|listener.?left|listener.?hung/i,   "Listener ended",       HeadphonesIcon,   "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
-  // Generic "disconnected" with no user/listener prefix → treat as network
-  [/disconnect/i,                                                          "Disconnected",         WifiOff,          "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
+  // Network drops
+  [/network|internet|disconnect|transport.?clos|ping.?timeout|grace/i,    "Network drop",      WifiOff,       "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
 
-  // Timeout / inactivity / stale / janitor
-  [/timeout|time.?out|timed.?out|inactiv|stale|janitor|ghost/i,          "Timed out",            Clock,            "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
+  // User / listener explicitly ended — "User pressed End", "user ended", etc.
+  [/user.*end|user.*left|user.*hung|user.*press/i,                        "User ended",        UserX,         "tw-text-fg-info     tw-bg-fg-info/10     tw-border-fg-info/20"],
+  [/listener.*end|listener.*left|listener.*hung/i,                        "Listener ended",    HeadphonesIcon,"tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
 
   // Zego / connection never confirmed
-  [/zego|never.?confirm|not.?confirm/i,                                   "Connection failed",    WifiOff,          "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
+  [/zego|never.?confirm|not.?confirm/i,                                   "Connection failed", WifiOff,       "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
 
-  // Manual / normal end
-  [/manual|complet|success/i,                                             "Completed",            CheckCircle2,     "tw-text-fg-success  tw-bg-fg-success/10  tw-border-fg-success/20"],
+  // Inactivity / timeout
+  [/timeout|time.?out|inactiv/i,                                          "Timed out",         Clock,         "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
+
+  // Failed (billing / session start failure)
+  [/^failed$/i,                                                           "Failed",            AlertCircle,   "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+
+  // Normal end — "ended", "Manual end", "completed", "success"
+  [/^ended$|manual|complet|success/i,                                     "Completed",         CheckCircle2,  "tw-text-fg-success  tw-bg-fg-success/10  tw-border-fg-success/20"],
 ];
 
 function EndReasonBadge({ raw }) {
@@ -105,7 +110,12 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   });
 
   useEffect(() => { if (onRefetch) onRefetch.current = refetch; }, [refetch, onRefetch]);
-  useEffect(() => { if (data?.data) setExcelSessionData(data.data); }, [data]);
+  useEffect(() => {
+    if (data?.data) {
+      setExcelSessionData(data.data);
+      if (data.data[0]) console.log('[Sessions] end_reason sample:', data.data[0].end_reason, '| all keys:', Object.keys(data.data[0]));
+    }
+  }, [data]);
 
   if (isLoading) return (
     <div className="tw-flex tw-items-center tw-justify-center tw-gap-2 tw-py-16 tw-text-fg-tertiary tw-text-[13px]">
