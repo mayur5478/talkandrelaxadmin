@@ -134,13 +134,22 @@ export default function ProfileApprovalsV2() {
                     <Td><Pill tone="warning">In review</Pill></Td>
                     <Td align="right">
                       <div className="tw-inline-flex tw-items-center tw-gap-1">
-                        <Tooltip label="View documents">
+                        <Tooltip label="View profile">
                           <IconButton
                             size="sm"
-                            aria-label="View documents"
-                            onClick={() => navigate(`/dashboard/listener-management/listeners-profile-approvals-docs?id=${r.id}`)}
+                            aria-label="View profile"
+                            onClick={() => navigate(`/dashboard/listener-management/profile-view?id=${r.id}`)}
                           >
                             <Eye size={14} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip label="View application docs">
+                          <IconButton
+                            size="sm"
+                            aria-label="View application docs"
+                            onClick={() => navigate(`/dashboard/listener-management/listeners-profile-approvals-docs?id=${r.id}`)}
+                          >
+                            <Download size={14} />
                           </IconButton>
                         </Tooltip>
                         <Button
