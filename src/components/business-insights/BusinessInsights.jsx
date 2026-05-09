@@ -59,11 +59,11 @@ function MonthSelect({ months, value, onChange }) {
 // ── Pill summary row ──────────────────────────────────────────────────────────
 function SummaryStrip({ items }) {
   return (
-    <div className="tw-flex tw-flex-wrap tw-gap-3 tw-mb-4">
+    <div className="tw-grid tw-grid-cols-2 sm:tw-grid-cols-4 tw-gap-2 tw-mb-4">
       {items.map((it, i) => (
-        <div key={i} className="tw-flex tw-flex-col tw-items-center tw-bg-bg-secondary tw-rounded-md tw-px-4 tw-py-2 tw-border tw-border-hairline tw-border-tertiary tw-min-w-[110px]">
-          <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-text-fg-tertiary tw-tracking-wide">{it.label}</span>
-          <span className={`tw-text-[16px] tw-font-bold tw-tabular-nums tw-mt-1 ${it.tone === "success" ? "tw-text-fg-success" : it.tone === "danger" ? "tw-text-fg-danger" : it.tone === "info" ? "tw-text-fg-info" : "tw-text-fg-primary"}`}>{it.value}</span>
+        <div key={i} className="tw-flex tw-flex-col tw-items-center tw-bg-bg-secondary tw-rounded-lg tw-px-3 tw-py-2.5 tw-border tw-border-hairline tw-border-tertiary tw-text-center">
+          <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-text-fg-tertiary tw-tracking-wide tw-leading-tight">{it.label}</span>
+          <span className={`tw-text-[15px] tw-font-bold tw-tabular-nums tw-mt-1 tw-leading-none ${it.tone === "success" ? "tw-text-fg-success" : it.tone === "danger" ? "tw-text-fg-danger" : it.tone === "info" ? "tw-text-fg-info" : "tw-text-fg-primary"}`}>{it.value}</span>
         </div>
       ))}
     </div>
@@ -1064,9 +1064,9 @@ export default function BusinessInsights() {
   if (error)     return <div className="tw-p-6"><ErrorBanner title="Failed to load insights" message="Check your connection and try again." /></div>;
 
   return (
-    <div className="tw-p-6 tw-flex tw-flex-col tw-gap-4">
+    <div className="tw-flex tw-flex-col tw-gap-4">
       {/* Header */}
-      <div className="tw-flex tw-items-end tw-justify-between tw-gap-4 tw-flex-wrap tw-mb-2">
+      <div className="tw-flex tw-flex-col sm:tw-flex-row sm:tw-items-end tw-justify-between tw-gap-4 tw-mb-2">
         <div>
           <h1 className="tw-text-h1 tw-text-fg-primary tw-m-0">Business Insights</h1>
           <p className="tw-text-small tw-text-fg-tertiary tw-mt-1 tw-mb-0">

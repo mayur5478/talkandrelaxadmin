@@ -30,7 +30,12 @@ export function TabsList({ ariaLabel = 'Tabs', children, className }) {
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={cn('tw-flex tw-w-full tw-border-b tw-border-hairline tw-border-tertiary tw-gap-4', className)}
+      className={cn(
+        'tw-flex tw-w-full tw-border-b tw-border-hairline tw-border-tertiary tw-gap-4',
+        /* mobile: scroll tabs horizontally, hide the scrollbar */
+        'tw-overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:tw-hidden',
+        className,
+      )}
     >
       {children}
     </div>

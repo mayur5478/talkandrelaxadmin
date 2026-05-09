@@ -7,9 +7,8 @@ function readStored() {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
     if (v === 'light' || v === 'dark') return v;
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
   } catch { /* ignore — SSR / private mode */ }
-  return 'light';
+  return 'dark'; // dark mode by default
 }
 
 export function ThemeProvider({ children }) {

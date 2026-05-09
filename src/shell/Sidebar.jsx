@@ -126,7 +126,7 @@ export default function Sidebar({ open, onClose, badges = {} }) {
 function Brand({ onClose }) {
   return (
     <div className="tw-flex tw-items-center tw-gap-3 tw-px-4 tw-pt-4 tw-pb-4 tw-border-b tw-border-hairline tw-border-tertiary">
-      <div className="tw-w-7 tw-h-7 tw-rounded-md tw-bg-bg-info tw-text-fg-info tw-grid tw-place-items-center tw-text-[13px] tw-font-semibold tw-shrink-0">
+      <div className="tw-w-8 tw-h-8 tw-rounded-lg tw-bg-gradient-to-br tw-from-[#6366f1] tw-to-[#8b5cf6] tw-text-white tw-grid tw-place-items-center tw-text-[13px] tw-font-bold tw-shrink-0 tw-shadow-[0_2px_8px_rgba(99,102,241,.40)]">
         T
       </div>
       <div className="tw-flex-1 tw-min-w-0">

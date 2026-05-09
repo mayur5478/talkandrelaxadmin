@@ -29,7 +29,7 @@ export default function AppShell({ user, badges, children }) {
   return (
     <ThemeProvider>
       <ToastProvider>
-        <div className="appshell-v2 tw-min-h-screen tw-bg-bg-tertiary tw-text-fg-secondary">
+        <div className="appshell-v2 tw-min-h-screen tw-bg-bg-tertiary dark:tw-bg-[#080a0e] tw-text-fg-secondary">
           <div className="tw-flex tw-min-h-screen">
             <Sidebar
               open={sidebarOpen}

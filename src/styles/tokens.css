@@ -61,39 +61,46 @@
 }
 
 .dark {
-  --color-background-primary:   #0f1216;
-  --color-background-secondary: #161a20;
-  --color-background-tertiary:  #0a0d11;
+  /* Deeper, richer blacks — Option A "Dark Pro" palette */
+  --color-background-primary:   #0c0e12;
+  --color-background-secondary: #13161c;
+  --color-background-tertiary:  #080a0e;
 
-  --color-background-info:      #14223a;
-  --color-background-success:   #0f2419;
-  --color-background-warning:   #2a1f08;
-  --color-background-danger:    #2a1212;
+  /* Tinted surface colours — subtle hue for depth */
+  --color-background-info:      #0d1f38;
+  --color-background-success:   #0b2218;
+  --color-background-warning:   #241a06;
+  --color-background-danger:    #220e0e;
 
-  --color-text-primary:    #f1f5f9;
-  --color-text-secondary:  #cbd5e1;
-  --color-text-tertiary:   #64748b;
+  /* Text — high contrast, crisp */
+  --color-text-primary:    #f0f4f8;
+  --color-text-secondary:  #a8b8cc;
+  --color-text-tertiary:   #4a5568;
 
-  --color-text-info:    #5fa8ff;
+  /* Accent colours — vivid on dark, WCAG AA */
+  --color-text-info:    #6ea8fe;
   --color-text-success: #4ade80;
   --color-text-warning: #fbbf24;
   --color-text-danger:  #f87171;
 
-  --color-border-tertiary: #1f242c;
+  /* Borders — barely visible, creates card separation without harshness */
+  --color-border-tertiary: #1c2230;
 
-  --color-chart-1: #5fa8ff;
+  /* Chart palette — brighter on dark bg */
+  --color-chart-1: #6ea8fe;
   --color-chart-2: #fbbf24;
-  --color-chart-3: #4ade80;
+  --color-chart-3: #34d399;
   --color-chart-4: #a78bfa;
   --color-chart-5: #f87171;
 
-  --color-tooltip-bg: #f1f5f9;
-  --color-tooltip-fg: #0f1216;
+  --color-tooltip-bg: #1c2230;
+  --color-tooltip-fg: #f0f4f8;
 
-  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.30);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.40), 0 1px 2px -1px rgb(0 0 0 / 0.30);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.30);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.55), 0 4px 6px -4px rgb(0 0 0 / 0.30);
+  /* Deeper shadows for layered card look */
+  --shadow-xs: 0 1px 3px 0 rgb(0 0 0 / 0.40);
+  --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 0.50), 0 1px 2px -1px rgb(0 0 0 / 0.40);
+  --shadow-md: 0 6px 12px -2px rgb(0 0 0 / 0.55), 0 3px 5px -2px rgb(0 0 0 / 0.40);
+  --shadow-lg: 0 14px 20px -4px rgb(0 0 0 / 0.65), 0 6px 8px -4px rgb(0 0 0 / 0.45);
 }
 
 /* ── Typography ───────────────────────────────────────────────────────── */
