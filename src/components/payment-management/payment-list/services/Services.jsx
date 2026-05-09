@@ -111,10 +111,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
 
   useEffect(() => { if (onRefetch) onRefetch.current = refetch; }, [refetch, onRefetch]);
   useEffect(() => {
-    if (data?.data) {
-      setExcelSessionData(data.data);
-      if (data.data[0]) console.log('[Sessions] end_reason sample:', data.data[0].end_reason, '| all keys:', Object.keys(data.data[0]));
-    }
+    if (data?.data) setExcelSessionData(data.data);
   }, [data]);
 
   if (isLoading) return (
