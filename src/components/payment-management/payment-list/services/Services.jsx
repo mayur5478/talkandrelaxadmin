@@ -96,6 +96,7 @@ function EndReasonBadge({ raw }) {
 function Services({ searchUser, searchListener, dateRange, setExcelSessionData, onRefetch }) {
   const [page,     setPage]     = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [nowTs,    setNowTs]    = useState(() => Date.now());
   const [showForceEndModal, setShowForceEndModal] = useState(false);
   const [forceEndTarget,    setForceEndTarget]    = useState({ id: "", name: "", userId: "" });
   const navigate = useNavigate();
@@ -113,6 +114,22 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   useEffect(() => {
     if (data?.data) setExcelSessionData(data.data);
   }, [data]);
+  useEffect(() => {
+    const timer = setInterval(() => setNowTs(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getDisplayDuration = (session) => {
+    const apiDuration = Number(session?.totalDuration || 0);
+    if (session?.transaction_status !== "active") return apiDuration;
+
+    const startedAt = moment(session?.createdAt);
+    if (!startedAt.isValid()) return apiDuration;
+
+    // Live rows may have stale DB duration until close; derive a realtime fallback from start time.
+    const elapsedMinutes = Math.max(1, Math.floor((nowTs - startedAt.valueOf()) / 60000));
+    return Math.max(apiDuration, elapsedMinutes);
+  };
 
   if (isLoading) return (
     <div className="tw-flex tw-items-center tw-justify-center tw-gap-2 tw-py-16 tw-text-fg-tertiary tw-text-[13px]">
@@ -215,7 +232,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                 </Td>
 
                 {/* Duration */}
-                <Td align="right" className="tw-tabular-nums">{s.totalDuration}</Td>
+                <Td align="right" className="tw-tabular-nums">{getDisplayDuration(s)}</Td>
 
                 {/* Total Amount */}
                 <Td align="right" className="tw-tabular-nums tw-font-medium tw-text-fg-primary">
