@@ -19,7 +19,7 @@ export const setCookie = (name, value, days) => {
     return null;
   };
   
-  export const clearCookie = (name) => {
-    document.cookie = name + '=; Max-Age=-99999999;';
+export const clearCookie = (name) => {
+    document.cookie = `${name}=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
   };
   

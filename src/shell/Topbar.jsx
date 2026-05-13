@@ -8,7 +8,7 @@ import {
   useLogoutAdminMutation,
   useResetAdminPasswordMutation,
 } from '../services/auth';
-import { clearCookie } from '../cookie_helper/cookie';
+import { clearCookie, getCookie } from '../cookie_helper/cookie';
 import ResetPassword from '../components/common/reset-password/ResetPassword';
 
 /**
@@ -34,6 +34,7 @@ export default function Topbar({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resetAdminPassword, { isError: resetError }] = useResetAdminPasswordMutation();
   const [logoutAdmin] = useLogoutAdminMutation();
+  const adminId = user?.id || getCookie('userId') || localStorage.getItem('userId');
 
   const displayName = useMemo(() => {
     if (user?.first_name || user?.last_name) {
@@ -44,15 +45,17 @@ export default function Topbar({
 
   const handleLogout = async () => {
     try {
-      await logoutAdmin({ adminId: user?.id }).unwrap();
+      await logoutAdmin({ adminId }).unwrap();
     } catch (err) {
       // proceed with local logout even if API call fails
       console.error('Logout error:', err);
     } finally {
       localStorage.removeItem('token');
       localStorage.removeItem('role');
+      localStorage.removeItem('userId');
       clearCookie('token');
       clearCookie('role');
+      clearCookie('userId');
       setMenuOpen(false);
       navigate('/');
     }
@@ -62,7 +65,7 @@ export default function Topbar({
     setIsSubmitting(true);
     try {
       await resetAdminPassword({
-        adminId: user?.id,
+        adminId,
         newPassword,
         oldPassword,
       }).unwrap();
