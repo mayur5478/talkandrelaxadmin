@@ -6,6 +6,7 @@ import MultiDatePicker from "../user-management/user-list/date-picker/MultiDateP
 import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import moment from "moment";
+import { formatSessionEndReason } from "../../utils/sessionEndReasons";
 import {
   Card, CardHeader, CardTitle,
   Button,
@@ -76,7 +77,7 @@ function ServiceHistory() {
           listener_credit:s.listener_credit,
           admin_credit:   s.admin_credit,
           wallet_balance: s.user_wallet_balance || "0.00",
-          end_reason:     s.end_reason || s.endReason || "",
+          end_reason:     formatSessionEndReason(s.end_reason || s.endReason),
         });
       });
 

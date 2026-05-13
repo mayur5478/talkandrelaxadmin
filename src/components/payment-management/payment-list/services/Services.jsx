@@ -14,6 +14,7 @@ import {
   Table, THead, TBody, TR, Th, Td,
   Pill, Spinner, ErrorBanner,
 } from "../../../v2/ui";
+import { classifySessionEndReason } from "../../../../utils/sessionEndReasons";
 
 const selectCls =
   "tw-bg-bg-secondary tw-text-fg-primary tw-text-[12px] " +
@@ -26,69 +27,38 @@ function statusTone(s) {
   if (s === "failed")    return "danger";
   return "neutral";
 }
+const END_REASON_BADGE_META = {
+  danger:  [ShieldOff,    "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
+  warning: [WifiOff,      "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
+  info:    [UserX,        "tw-text-fg-info     tw-bg-fg-info/10     tw-border-fg-info/20"],
+  success: [CheckCircle2, "tw-text-fg-success  tw-bg-fg-success/10  tw-border-fg-success/20"],
+  neutral: [Clock,        "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
+  unknown: [AlertCircle,  "tw-text-fg-secondary tw-bg-bg-secondary  tw-border-tertiary"],
+};
 
-/* ─── End-reason mapping ────────────────────────────────────────────── */
-// Built from actual DB values (verified 2026-05-09):
-//   "ended" (12546), "Zombie session…" (1266), "It got triggered by balance" (773),
-//   "Network disconnection — grace period expired" (436), "failed" (205), etc.
-// Order matters — first match wins.
-const END_REASON_MAP = [
-  // Admin-initiated — check BEFORE generic matches
-  [/force.?end|admin.?force|forced/i,                                      "Force ended",       ShieldOff,     "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-  [/admin.*reset|reset.*admin|global.?reset/i,                            "Admin reset",       ShieldOff,     "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-  [/admin/i,                                                               "Admin action",      ShieldOff,     "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-
-  // Balance / payment
-  [/balance|wallet|insufficient|triggered.*balance|balance.*trigger/i,    "Low balance",       Wallet,        "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-
-  // Zombie / stale / janitor / ghost — before "network" so "Zombie" doesn't fall through
-  [/zombie|stale|janitor|ghost|abandoned|healed/i,                        "Stale session",     Clock,         "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
-
-  // Network drops
-  [/network|internet|disconnect|transport.?clos|ping.?timeout|grace/i,    "Network drop",      WifiOff,       "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
-
-  // User / listener explicitly ended — "User pressed End", "user ended", etc.
-  [/user.*end|user.*left|user.*hung|user.*press/i,                        "User ended",        UserX,         "tw-text-fg-info     tw-bg-fg-info/10     tw-border-fg-info/20"],
-  [/listener.*end|listener.*left|listener.*hung/i,                        "Listener ended",    HeadphonesIcon,"tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
-
-  // Zego / connection never confirmed
-  [/zego|never.?confirm|not.?confirm/i,                                   "Connection failed", WifiOff,       "tw-text-fg-warning  tw-bg-fg-warning/10  tw-border-fg-warning/20"],
-
-  // Inactivity / timeout
-  [/timeout|time.?out|inactiv/i,                                          "Timed out",         Clock,         "tw-text-fg-tertiary tw-bg-bg-secondary   tw-border-tertiary"],
-
-  // Failed (billing / session start failure)
-  [/^failed$/i,                                                           "Failed",            AlertCircle,   "tw-text-fg-danger   tw-bg-fg-danger/10   tw-border-fg-danger/20"],
-
-  // Normal end — "ended", "Manual end", "completed", "success"
-  [/^ended$|manual|complet|success/i,                                     "Completed",         CheckCircle2,  "tw-text-fg-success  tw-bg-fg-success/10  tw-border-fg-success/20"],
-];
+const END_REASON_ICON_OVERRIDES = {
+  "Listener ended": HeadphonesIcon,
+  "Low balance": Wallet,
+  "Client watchdog": AlertCircle,
+  "Connection failed": WifiOff,
+  "Failed": AlertCircle,
+};
 
 function EndReasonBadge({ raw }) {
-  if (!raw) return <span className="tw-text-[11px] tw-text-fg-tertiary">—</span>;
+  if (!raw) return <span className="tw-text-[11px] tw-text-fg-tertiary">-</span>;
 
-  const match = END_REASON_MAP.find(([rx]) => rx.test(raw));
-  if (match) {
-    const [, label, Icon, colourCls] = match;
-    return (
-      <span
-        title={raw}
-        className={`tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-full tw-border tw-border-hairline tw-text-[11px] tw-font-medium tw-whitespace-nowrap ${colourCls}`}
-      >
-        <Icon size={10} aria-hidden className="tw-shrink-0" />
-        {label}
-      </span>
-    );
-  }
+  const reason = classifySessionEndReason(raw);
+  const badgeMeta = END_REASON_BADGE_META[reason.tone] || END_REASON_BADGE_META.unknown;
+  const Icon = END_REASON_ICON_OVERRIDES[reason.label] || badgeMeta[0];
+  const colourCls = badgeMeta[1];
 
-  // Unknown reason — show raw text truncated with full text on hover
   return (
     <span
-      title={raw}
-      className="tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-full tw-border tw-border-hairline tw-border-tertiary tw-text-[11px] tw-font-medium tw-text-fg-secondary tw-bg-bg-secondary tw-max-w-[150px] tw-truncate"
+      title={reason.raw}
+      className={`tw-inline-flex tw-items-center tw-gap-1 tw-px-2 tw-py-0.5 tw-rounded-full tw-border tw-border-hairline tw-text-[11px] tw-font-medium tw-whitespace-nowrap ${colourCls}`}
     >
-      <AlertCircle size={10} aria-hidden className="tw-shrink-0 tw-text-fg-tertiary" />
-      {raw}
+      <Icon size={10} aria-hidden className="tw-shrink-0" />
+      {reason.label}
     </span>
   );
 }
