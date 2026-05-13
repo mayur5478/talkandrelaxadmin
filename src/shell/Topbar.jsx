@@ -1,9 +1,15 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, Moon, Sun, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/cn';
 import { resolveBreadcrumb } from './nav-config';
 import { useTheme } from './ThemeProvider';
+import {
+  useLogoutAdminMutation,
+  useResetAdminPasswordMutation,
+} from '../services/auth';
+import { clearCookie } from '../cookie_helper/cookie';
+import ResetPassword from '../components/common/reset-password/ResetPassword';
 
 /**
  * Topbar — breadcrumbs / ⌘K search trigger / bell / theme toggle / avatar.
@@ -20,10 +26,61 @@ export default function Topbar({
   user,
 }) {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const trail = resolveBreadcrumb(pathname);
   const { theme, toggle: toggleTheme } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resetAdminPassword, { isError: resetError }] = useResetAdminPasswordMutation();
+  const [logoutAdmin] = useLogoutAdminMutation();
+
+  const displayName = useMemo(() => {
+    if (user?.first_name || user?.last_name) {
+      return `${user?.first_name || ''} ${user?.last_name || ''}`.trim();
+    }
+    return user?.fullName || user?.name || 'Admin';
+  }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      await logoutAdmin({ adminId: user?.id }).unwrap();
+    } catch (err) {
+      // proceed with local logout even if API call fails
+      console.error('Logout error:', err);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      clearCookie('token');
+      clearCookie('role');
+      setMenuOpen(false);
+      navigate('/');
+    }
+  };
+
+  const handleResetPasswordSubmit = async (newPassword, oldPassword) => {
+    setIsSubmitting(true);
+    try {
+      await resetAdminPassword({
+        adminId: user?.id,
+        newPassword,
+        oldPassword,
+      }).unwrap();
+      setShowResetModal(false);
+      await handleLogout();
+    } catch (err) {
+      if (err?.status === 401) {
+        alert('Old password is incorrect');
+      } else {
+        console.error('Reset password error:', err);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
+    <>
     <header className="tw-h-14 tw-flex tw-items-center tw-gap-3 tw-px-4 md:tw-px-6 tw-bg-bg-primary tw-border-b tw-border-hairline tw-border-tertiary">
       {/* Mobile menu */}
       <button
@@ -57,9 +114,27 @@ export default function Topbar({
           {theme === 'dark' ? <Sun size={15} aria-hidden /> : <Moon size={15} aria-hidden />}
         </IconButton>
 
-        <Avatar name={user?.fullName || user?.name || 'Admin'} />
+        <Avatar
+          name={displayName}
+          open={menuOpen}
+          onToggle={() => setMenuOpen((prev) => !prev)}
+          onChangePassword={() => {
+            setShowResetModal(true);
+            setMenuOpen(false);
+          }}
+          onLogout={handleLogout}
+        />
       </div>
     </header>
+    <ResetPassword
+      show={showResetModal}
+      close={setShowResetModal}
+      onHide={() => setShowResetModal(false)}
+      onSubmit={handleResetPasswordSubmit}
+      isSubmitting={isSubmitting}
+      FormError={resetError}
+    />
+    </>
   );
 }
 
@@ -135,7 +210,7 @@ function IconButton({ children, onClick, ariaLabel }) {
   );
 }
 
-function Avatar({ name }) {
+function Avatar({ name, open, onToggle, onChangePassword, onLogout }) {
   const initials = (name || '')
     .split(' ')
     .map((s) => s[0])
@@ -144,11 +219,34 @@ function Avatar({ name }) {
     .join('')
     .toUpperCase() || 'A';
   return (
-    <div
-      aria-label={`Account: ${name}`}
-      className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-[#6366f1] tw-to-[#8b5cf6] tw-text-white tw-grid tw-place-items-center tw-text-[11px] tw-font-bold tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md tw-transition-shadow tw-duration-150"
-    >
-      {initials}
+    <div className="tw-relative">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={`Account: ${name}`}
+        className="tw-w-8 tw-h-8 tw-rounded-full tw-bg-gradient-to-br tw-from-[#6366f1] tw-to-[#8b5cf6] tw-text-white tw-grid tw-place-items-center tw-text-[11px] tw-font-bold tw-cursor-pointer tw-shadow-sm hover:tw-shadow-md tw-transition-shadow tw-duration-150 focus:tw-outline-none focus-visible:tw-ring-2 focus-visible:tw-ring-fg-info"
+      >
+        {initials}
+      </button>
+
+      {open && (
+        <div className="tw-absolute tw-right-0 tw-top-10 tw-z-50 tw-min-w-[180px] tw-rounded-xl tw-bg-bg-primary tw-border tw-border-hairline tw-border-tertiary tw-shadow-xl tw-overflow-hidden">
+          <button
+            type="button"
+            onClick={onChangePassword}
+            className="tw-w-full tw-text-left tw-px-3 tw-py-2.5 tw-text-[13px] tw-text-fg-secondary hover:tw-bg-bg-secondary"
+          >
+            Change Password
+          </button>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="tw-w-full tw-text-left tw-px-3 tw-py-2.5 tw-text-[13px] tw-text-fg-danger hover:tw-bg-bg-secondary"
+          >
+            Logout
+          </button>
+        </div>
+      )}
     </div>
   );
 }
