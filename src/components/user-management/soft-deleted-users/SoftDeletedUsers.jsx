@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import "../user-list/users.scss";
 import { useSoftDeletedUsersQuery, useUserDeleteMutation } from "../../../services/user";
+import { useListenerSoftDeleteMutation } from "../../../services/listener";
 import moment from "moment";
 import Delete from "../../common/delete/Delete.jsx";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,9 @@ import { useState } from "react";
 
 function SoftDeletedUsers() {
   const { data, isLoading, error, refetch } = useSoftDeletedUsersQuery();
-  const [deleteUser, { isLoading: isRestoreLoading }] = useUserDeleteMutation();
+  const [deleteUser, { isLoading: isUserRestoreLoading }] = useUserDeleteMutation();
+  const [restoreListener, { isLoading: isListenerRestoreLoading }] = useListenerSoftDeleteMutation();
+  const isRestoreLoading = isUserRestoreLoading || isListenerRestoreLoading;
   const [showRestoreModal, setShowRestoreModal] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState(null);
   const navigate = useNavigate();
@@ -23,11 +26,13 @@ function SoftDeletedUsers() {
 
   const confirmRestore = async () => {
     try {
-      await deleteUser({ 
-        id: restoreTarget.id, 
-        status: false, 
-        mobile_number: restoreTarget.mobile_number 
-      }).unwrap();
+      const payload = {
+        id: restoreTarget.id,
+        status: false,
+        mobile_number: restoreTarget.mobile_number,
+      };
+      const restore = restoreTarget.role === "listener" ? restoreListener : deleteUser;
+      await restore(payload).unwrap();
       refetch();
     } catch (err) {
       console.error("Error restoring user:", err);
