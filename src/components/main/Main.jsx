@@ -43,6 +43,8 @@ const DailySummary        = lazy(() => import("../analytics/DailySummary"));
 const Status              = lazy(() => import("../status/Status"));
 const UserProfile         = lazy(() => import("../user-management/user-profile-view/UserProfile"));
 const PushNotifications   = lazy(() => import("../push-notifications/PushNotifications"));
+const SupportManagement   = lazy(() => import("../support-management/SupportManagement"));
+const Agent               = lazy(() => import("../agent/Agent"));
 
 const Main = () => {
   const {
@@ -103,6 +105,8 @@ const Main = () => {
           <Route path="user-management/profile-view" element={<UserProfile />} />
           <Route path="listener-management/profile-form" element={<ListenerDetailsForm />} />
           <Route path="/push-notifications" element={<PushNotifications />} />
+          <Route path="/support-tickets" element={<SupportManagement />} />
+          <Route path="/agent" element={<Agent />} />
         </Routes>
       </Suspense>
     </AppShell>

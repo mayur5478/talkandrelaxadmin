@@ -23,7 +23,9 @@ import {
   Sliders,
   Sparkles,
   MessageSquareWarning,
+  LifeBuoy,
   Bell,
+  Bot,
 } from 'lucide-react';
 
 export const navGroups = [
@@ -77,6 +79,7 @@ export const navGroups = [
   {
     label: 'Workspace',
     items: [
+      { title: 'Agent',          path: '/dashboard/agent',           icon: Bot },
       { title: 'Daily summary',  path: '/dashboard/daily-summary',   icon: CalendarDays },
       { title: 'Service history', path: '/dashboard/service-history', icon: History },
       { title: 'Call rejections', path: '/dashboard/rejections',      icon: XCircle },
@@ -93,6 +96,7 @@ export const navGroups = [
       },
       { title: 'Status & stories',  path: '/dashboard/status',                       icon: Sparkles },
       { title: 'Report & Block',     path: '/dashboard/contact-queries/report-block', icon: MessageSquareWarning },
+      { title: 'Support tickets',    path: '/dashboard/support-tickets',              icon: LifeBuoy },
       { title: 'Push notifications', path: '/dashboard/push-notifications',          icon: Bell },
     ],
   },

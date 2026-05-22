@@ -1,0 +1,459 @@
+// Support ticket management page styles.
+// Uses the same CSS custom property palette as the rest of the admin panel.
+
+.sm-page {
+  padding: 40px 30px;
+}
+
+.sm-header {
+  margin-bottom: 22px;
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black, #1a1a1a);
+    margin: 0 0 6px;
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+  }
+}
+
+// ── Stat cards ──────────────────────────────────────────
+.sm-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+
+  @media (max-width: 720px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.sm-stat {
+  background: var(--white, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0px 5px 20px 2px #00000014;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-left: 4px solid #94a3b8;
+
+  &__value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--black, #1a1a1a);
+  }
+  &__label {
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  &--open { border-left-color: #f59e0b; }
+  &--progress { border-left-color: #3b82f6; }
+  &--resolved { border-left-color: #10b981; }
+  &--total { border-left-color: #8b5cf6; }
+}
+
+// ── Layout ──────────────────────────────────────────────
+.sm-layout {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+  height: 70vh;
+  min-height: 520px;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    height: auto;
+  }
+}
+
+// ── Left panel ──────────────────────────────────────────
+.sm-list-panel {
+  width: 360px;
+  flex-shrink: 0;
+  background: var(--white, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0px 5px 20px 2px #00000014;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  @media (max-width: 900px) {
+    width: 100%;
+  }
+}
+
+.sm-filters {
+  padding: 14px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sm-search {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+
+  &:focus { border-color: #3b82f6; }
+}
+
+.sm-filter-row {
+  display: flex;
+  gap: 8px;
+
+  select {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 12px;
+    background: #fff;
+    cursor: pointer;
+  }
+}
+
+.sm-ticket-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.sm-list-empty {
+  padding: 30px 16px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.sm-ticket {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #f1f1f4;
+  padding: 12px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: background 0.12s ease;
+
+  &:hover { background: #f8fafc; }
+  &--active { background: #eef2ff; }
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  &__subject {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--black, #1a1a1a);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &__unread {
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 10px;
+    padding: 1px 7px;
+    flex-shrink: 0;
+  }
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  &__preview {
+    font-size: 12px;
+    color: #6b7280;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &__time {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+}
+
+// ── Badges & priority dot ───────────────────────────────
+.sm-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: capitalize;
+  border-radius: 6px;
+  padding: 2px 7px;
+  white-space: nowrap;
+
+  &--role-user { background: #dbeafe; color: #1d4ed8; }
+  &--role-listener { background: #ede9fe; color: #6d28d9; }
+  &--status-open { background: #fef3c7; color: #b45309; }
+  &--status-in_progress { background: #dbeafe; color: #1d4ed8; }
+  &--status-resolved { background: #d1fae5; color: #047857; }
+  &--status-closed { background: #e5e7eb; color: #4b5563; }
+}
+
+.sm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #94a3b8;
+
+  &--low { background: #10b981; }
+  &--medium { background: #f59e0b; }
+  &--high { background: #ef4444; }
+}
+
+// ── Conversation panel ──────────────────────────────────
+.sm-conversation {
+  flex: 1;
+  min-width: 0;
+  background: var(--white, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0px 5px 20px 2px #00000014;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &--empty {
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    font-size: 14px;
+    min-height: 320px;
+  }
+}
+
+.sm-conv-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  &__subject {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--black, #1a1a1a);
+    margin: 0 0 4px;
+  }
+  &__sub {
+    font-size: 12.5px;
+    color: #6b7280;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  &__controls {
+    display: flex;
+    gap: 10px;
+  }
+}
+
+.sm-control {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11px;
+  color: #6b7280;
+
+  select {
+    padding: 5px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    font-size: 12px;
+    background: #fff;
+    cursor: pointer;
+  }
+}
+
+.sm-conv-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+
+  &__empty {
+    margin: auto;
+    color: #9ca3af;
+    font-size: 13px;
+  }
+}
+
+// ── Message bubbles ─────────────────────────────────────
+.sm-msg {
+  display: flex;
+
+  &--admin { justify-content: flex-end; }
+  &--requester { justify-content: flex-start; }
+
+  &__bubble {
+    max-width: 72%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    box-shadow: 0 1px 2px #0000000d;
+  }
+
+  &--admin &__bubble {
+    background: #3b82f6;
+    color: #fff;
+    border-bottom-right-radius: 3px;
+  }
+  &--requester &__bubble {
+    background: #fff;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 3px;
+  }
+
+  &__text {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  &__image-link { display: block; }
+  &__image {
+    max-width: 220px;
+    max-height: 220px;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  &__time {
+    display: block;
+    font-size: 10px;
+    opacity: 0.7;
+    margin-top: 3px;
+    text-align: right;
+  }
+}
+
+// ── Composer ────────────────────────────────────────────
+.sm-composer {
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 16px;
+
+  &__error {
+    color: #dc2626;
+    font-size: 12px;
+    margin: 0 0 8px;
+  }
+  &__closed {
+    color: #6b7280;
+    font-size: 13px;
+    text-align: center;
+    margin: 6px 0;
+  }
+  &__attachment {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #475569;
+    margin-bottom: 8px;
+
+    button {
+      background: none;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+      color: #64748b;
+    }
+  }
+  &__row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+  }
+  &__attach {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  &__input {
+    flex: 1;
+    resize: none;
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+
+    &:focus { border-color: #3b82f6; }
+  }
+  &__send {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0 18px;
+    height: 38px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}
+
+// ── Pagination ──────────────────────────────────────────
+.sm-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 12px;
+  color: #6b7280;
+
+  button {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+}
