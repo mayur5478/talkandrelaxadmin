@@ -2,8 +2,11 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getCookie } from "../cookie_helper/cookie";
 
 // The agent runs in a separate backend service (talk-and-relax-agent), not the
-// main API. Its URL comes from REACT_APP_AGENT_URL; add that to .env.
-const AGENT_URL = process.env.REACT_APP_AGENT_URL || "http://localhost:3010";
+// main API. Production is reached via the same nginx that proxies the main API
+// (test-api.talkandrelax.com), at path /agent/ -> 127.0.0.1:3010 on the droplet.
+// Override via REACT_APP_AGENT_URL in .env for local dev (e.g. http://localhost:3010).
+const AGENT_URL =
+  process.env.REACT_APP_AGENT_URL || "https://test-api.talkandrelax.com/agent";
 
 export const agentApi = createApi({
   reducerPath: "agentApi",
@@ -28,10 +31,18 @@ export const agentApi = createApi({
         body: { force },
       }),
     }),
+    // Tool-call audit log for the last N days.
+    auditLog: builder.query({
+      query: ({ days = 7 } = {}) => ({
+        url: "api/agent/audit",
+        method: "GET",
+        params: { days },
+      }),
+    }),
   }),
 });
 
-export const { useBriefMutation } = agentApi;
+export const { useBriefMutation, useAuditLogQuery } = agentApi;
 
 /*
  * streamAgentChat — POST /api/agent/chat and parse the SSE stream.

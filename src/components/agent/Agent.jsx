@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../v2/_lib/PageHeader';
 import { Card, CardHeader, CardTitle, Button, ErrorBanner, Skeleton, Pill } from '../v2/ui';
 import { useBriefMutation } from '../../services/agent';
@@ -12,6 +13,7 @@ import AgentChat from './AgentChat';
  * Step 5: the daily briefing card + the tool trace. Chat comes in step 6.
  */
 export default function Agent() {
+  const navigate = useNavigate();
   const [runBrief, { data: briefing, isLoading, error }] = useBriefMutation();
 
   // Load the cached briefing on mount (force:false hits the 1-hour cache).
@@ -30,6 +32,11 @@ export default function Agent() {
       <PageHeader
         title="Agent"
         description="Read-only chief-of-staff agent. Daily briefing and the trace of every tool call behind it."
+        secondary={
+          <Button variant="outline" onClick={() => navigate('/dashboard/agent/audit')}>
+            Audit log
+          </Button>
+        }
         primaryAction={
           <Button onClick={regenerate} loading={isLoading}>
             <RefreshCw size={14} aria-hidden />

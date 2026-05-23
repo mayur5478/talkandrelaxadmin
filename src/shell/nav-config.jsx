@@ -79,7 +79,14 @@ export const navGroups = [
   {
     label: 'Workspace',
     items: [
-      { title: 'Agent',          path: '/dashboard/agent',           icon: Bot },
+      {
+        title: 'Agent',
+        icon: Bot,
+        children: [
+          { title: 'Briefing',  path: '/dashboard/agent' },
+          { title: 'Audit log', path: '/dashboard/agent/audit' },
+        ],
+      },
       { title: 'Daily summary',  path: '/dashboard/daily-summary',   icon: CalendarDays },
       { title: 'Service history', path: '/dashboard/service-history', icon: History },
       { title: 'Call rejections', path: '/dashboard/rejections',      icon: XCircle },
