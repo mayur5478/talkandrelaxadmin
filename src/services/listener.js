@@ -37,13 +37,6 @@ export const listenerApi = createApi({
         params: { page, pageSize, searchParams, date },
       }),
     }),
-    listenerFormLink: builder.mutation({
-      query: (userId) => ({
-        url: `listener/listener-form-link`,
-        method: "POST",
-        body: { id: userId },
-      }),
-    }),
     listenerProfileFormLink: builder.mutation({
       query: (userId) => ({
         url: `listener/listener-profile-form-link`,
@@ -187,7 +180,6 @@ export const listenerApi = createApi({
 
 export const {
   useListenerListQuery,
-  useListenerFormLinkMutation,
   useProfileApprovalsQuery,
   useApplicationsQuery,
   useListenerProfileFormLinkMutation,

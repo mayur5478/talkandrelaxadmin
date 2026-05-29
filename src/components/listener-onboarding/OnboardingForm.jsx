@@ -102,14 +102,13 @@ function OnboardingForm() {
       .then((data) => {
         if (data.data) {
           setFormInfo(data.data);
-          if (data.data.formStep === 1) {
-            setF1((prev) => ({
-              ...prev,
-              email: data.data.userEmail || "",
-              fullName: data.data.userName || "",
-              mobile_number: data.data.userMobile || "",
-            }));
-          } else if (data.data.formStep === 2) {
+          // Intentionally NOT pre-filling email/fullName/mobile from the
+          // users row — that pulled in stale identity data from prior
+          // submissions / admin invites and confused candidates ("the form
+          // is showing old data"). Candidates type fresh each time.
+          // Form 2 keeps its display_name pre-fill since that comes from
+          // Form 1's submitted fullName, not the users row.
+          if (data.data.formStep === 2) {
             setF2((prev) => ({ ...prev, display_name: data.data.userName || "" }));
           }
         } else {
@@ -169,7 +168,13 @@ function OnboardingForm() {
         throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${txt.slice(0, 120)}`);
       }
       if (res.ok) { setSubmitted(true); }
-      else { setSubmitError(data.message || `Submission failed (HTTP ${res.status}). Please try again.`); }
+      else {
+        // Surface the underlying exception detail (server returns it in
+        // `data.error` alongside the generic `data.message`).
+        const base = data.message || `Submission failed (HTTP ${res.status}).`;
+        const detail = data.error ? ` — ${data.error}` : "";
+        setSubmitError(base + detail);
+      }
     } catch (err) {
       console.error("[submitForm1]", err);
       setSubmitError(err?.message || "Network error. Please check your connection and try again.");
@@ -222,7 +227,11 @@ function OnboardingForm() {
         throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${txt.slice(0, 120)}`);
       }
       if (res.ok) { setSubmitted(true); }
-      else { setSubmitError(data.message || `Submission failed (HTTP ${res.status}). Please try again.`); }
+      else {
+        const base = data.message || `Submission failed (HTTP ${res.status}).`;
+        const detail = data.error ? ` — ${data.error}` : "";
+        setSubmitError(base + detail);
+      }
     } catch (err) {
       console.error("[submitForm2]", err);
       setSubmitError(err?.message || "Network error. Please check your connection and try again.");

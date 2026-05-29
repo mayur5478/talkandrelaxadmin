@@ -6,7 +6,7 @@ import { getCookie } from "../cookie_helper/cookie";
 // routes/support/supportTicket.js).
 export const supportApi = createApi({
   reducerPath: "supportApi",
-  tagTypes: ["SupportList", "SupportTicket", "SupportStats"],
+  tagTypes: ["SupportList", "SupportTicket", "SupportStats", "CannedReply"],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_SERVER_URL,
     prepareHeaders: (headers) => {
@@ -78,6 +78,41 @@ export const supportApi = createApi({
         "SupportList",
       ],
     }),
+
+    getCannedReplies: builder.query({
+      query: ({ activeOnly = false } = {}) => ({
+        url: "support/canned-replies",
+        method: "GET",
+        params: activeOnly ? { active: "true" } : {},
+      }),
+      providesTags: ["CannedReply"],
+    }),
+
+    createCannedReply: builder.mutation({
+      query: (body) => ({
+        url: "support/canned-replies",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["CannedReply"],
+    }),
+
+    updateCannedReply: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `support/canned-replies/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["CannedReply"],
+    }),
+
+    deleteCannedReply: builder.mutation({
+      query: (id) => ({
+        url: `support/canned-replies/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["CannedReply"],
+    }),
   }),
 });
 
@@ -88,4 +123,8 @@ export const {
   useSendSupportMessageMutation,
   useUpdateSupportTicketMutation,
   useMarkSupportReadMutation,
+  useGetCannedRepliesQuery,
+  useCreateCannedReplyMutation,
+  useUpdateCannedReplyMutation,
+  useDeleteCannedReplyMutation,
 } = supportApi;

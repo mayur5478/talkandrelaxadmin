@@ -14,7 +14,7 @@ import {
   TableSkeleton,
   Pagination,
 } from "../../v2/ui";
-import { Search, Eye, PencilLine, Trash2, Undo2, Wallet, RotateCcw, PhoneOff, Send } from "lucide-react";
+import { Search, Eye, PencilLine, Trash2, Undo2, Wallet, RotateCcw, PhoneOff } from "lucide-react";
 
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import ExcelJS from "exceljs";
@@ -24,11 +24,9 @@ import {
   useUserDeleteMutation,
   useUserListQuery,
 } from "../../../services/user";
-import { useListenerFormLinkMutation } from "../../../services/listener";
 import moment from "moment";
 import { useAccountFreezeMutation } from "../../../services/auth.js";
 import AccountFreeze from "../../common/account-freeze/AccountFreeze.jsx";
-import LinkShare from "../../common/link-share/LinkShare.jsx";
 import Delete from "../../common/delete/Delete.jsx";
 import { useResetAllStuckStatesMutation } from "../../../services/auth.js";
 import Swal from "sweetalert2";
@@ -49,9 +47,6 @@ function Users() {
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userName, setUserName] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [linkUserName, setLinkUserName] = useState(null);
-  const [showLinkModal, setShowLinkModal] = useState(false);
   const [editUserModal, setEditUserModal] = useState(false);
   const [showFreezeModal, setShowFreezeModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -68,10 +63,6 @@ function Users() {
   const [dateRange, setDateRange] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
   const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
-  const [
-    sendFormLink,
-    { data: mutationData, error: mutationError, isLoading: isMutationLoading },
-  ] = useListenerFormLinkMutation();
   const [accountFreeze, { isLoading: isFreezeLoading }] =
     useAccountFreezeMutation();
   const { data, error, isLoading, refetch } = useUserListQuery({
@@ -123,24 +114,6 @@ function Users() {
       setShowFreezeModal(false);
       setSelectedUser(null);
       setUserName(null);
-    }
-  };
-
-  const handleSendLinkToggle = (userId, userName) => {
-    setUserId(userId);
-    setShowLinkModal(true);
-    setLinkUserName(userName);
-  };
-  const handleSendFormLink = async () => {
-    try {
-      await sendFormLink(userId).unwrap();
-      refetch();
-    } catch (err) {
-      console.error("Error toggling account freeze:", err);
-    } finally {
-      setShowLinkModal(false);
-      setUserId(null);
-      setLinkUserName(null);
     }
   };
 
@@ -475,9 +448,6 @@ function Users() {
                         <Td>{user?.device_type}</Td>
                         <Td>
                           <div className="tw-flex tw-items-center tw-gap-1">
-                            <IconButton size="sm" aria-label="Send Link" onClick={() => handleSendLinkToggle(user.id, user.fullName)}>
-                              <Send size={14} />
-                            </IconButton>
                             <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
                               <Eye size={14} />
                             </IconButton>
@@ -532,14 +502,6 @@ function Users() {
         userId={selectedUser}
         userName={userName}
         isFreezeLoading={isFreezeLoading}
-      />
-      <LinkShare
-        show={showLinkModal}
-        onHide={() => setShowLinkModal(false)}
-        onConfirm={handleSendFormLink}
-        userId={userId}
-        userName={linkUserName}
-        isMutationLoading={isMutationLoading}
       />
       <Delete
         show={showDeleteModal}

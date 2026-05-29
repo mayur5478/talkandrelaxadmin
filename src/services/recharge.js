@@ -52,6 +52,15 @@ export const rechargeApi = createApi({
         body: { id, charge },
       }),
     }),
+    // Separate from session commission so gifts can have a different split.
+    // Written with a single-argument signature (the RTK Query contract).
+    editGiftCommission: builder.mutation({
+      query: ({ id, charge }) => ({
+        url: `/admin/update-gift-charge`,
+        method: "POST",
+        body: { id, charge },
+      }),
+    }),
     deleteRechargePlan: builder.mutation({
       query: (id) => ({
         url: `/plans/delete`,
@@ -175,6 +184,7 @@ export const {
   useCreateRechargePlanMutation,
   useEditRechargePlanMutation,
   useEditAdminCommissionMutation,
+  useEditGiftCommissionMutation,
   useGiftPlansListQuery,
   useCreateGiftPlanMutation,
   useDeleteGiftPlanMutation,

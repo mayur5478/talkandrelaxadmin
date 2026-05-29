@@ -18,6 +18,7 @@ import {
   useCreateRechargePlanMutation,
   useDeleteRechargePlanMutation,
   useEditAdminCommissionMutation,
+  useEditGiftCommissionMutation,
   useEditRechargePlanMutation,
   useRechargePlansHighlightMutation,
   useRechargePlansListQuery,
@@ -159,6 +160,17 @@ function Recharge() {
       console.error("Submit Error:", error);
     }
   };
+  const [editGiftCommission, { isLoading: isEditGiftCommissionLoading }] =
+    useEditGiftCommissionMutation();
+  const handleSubmitGiftCommission = async (id, charge) => {
+    try {
+      await editGiftCommission({ id, charge }).unwrap();
+      userRefetch();
+      setShowCommission(false);
+    } catch (error) {
+      console.error("Gift commission submit error:", error);
+    }
+  };
 
   if (isLoading) return <TableSkeleton rows={8} cols={6} />;
   if (fetchError) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching plans</div>;
@@ -297,7 +309,9 @@ function Recharge() {
         show={showCommission}
         onHide={() => setShowCommission(false)}
         isSubmitting={isEditCommissionLoading}
+        isSubmittingGift={isEditGiftCommissionLoading}
         onSubmit={handleSubmitCommission}
+        onSubmitGift={handleSubmitGiftCommission}
         user={user}
       />
     </div>

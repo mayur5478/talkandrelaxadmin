@@ -7,6 +7,10 @@ import {
   useSendSupportMessageMutation,
   useUpdateSupportTicketMutation,
   useMarkSupportReadMutation,
+  useGetCannedRepliesQuery,
+  useCreateCannedReplyMutation,
+  useUpdateCannedReplyMutation,
+  useDeleteCannedReplyMutation,
 } from "../../services/support";
 import useSupportSocket from "./useSupportSocket";
 
@@ -127,9 +131,15 @@ function TicketRow({ ticket, active, onClick }) {
 // ─── Message bubble ───────────────────────────────────────────────────────────
 function MessageBubble({ message }) {
   const fromAdmin = message.senderRole === "admin";
+  const autoLabel = message.isAutomated
+    ? message.automatedKind === "ai"
+      ? "AI reply"
+      : "Auto-reply"
+    : null;
   return (
     <div className={`sm-msg ${fromAdmin ? "sm-msg--admin" : "sm-msg--requester"}`}>
       <div className="sm-msg__bubble">
+        {autoLabel && <span className="sm-msg__auto">{autoLabel}</span>}
         {message.messageType === "image" && message.attachmentUrl && (
           <a
             href={message.attachmentUrl}
@@ -160,10 +170,13 @@ function Conversation({ ticketId }) {
   const [sendMessage, { isLoading: sending }] = useSendSupportMessageMutation();
   const [updateTicket, { isLoading: updating }] = useUpdateSupportTicketMutation();
   const [markRead] = useMarkSupportReadMutation();
+  const { data: cannedData } = useGetCannedRepliesQuery({ activeOnly: true });
+  const cannedReplies = cannedData?.cannedReplies || [];
 
   const [replyText, setReplyText] = useState("");
   const [replyImage, setReplyImage] = useState(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showCanned, setShowCanned] = useState(false);
   const scrollRef = useRef(null);
   const fileRef = useRef(null);
 
@@ -332,49 +345,92 @@ function Conversation({ ticketId }) {
             This ticket is closed. Re-open it to continue the conversation.
           </p>
         ) : (
-          <div className="sm-composer__row">
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              style={{ display: "none" }}
-              onChange={(e) => {
-                handlePickImage(e.target.files?.[0]);
-                e.target.value = "";
-              }}
-            />
-            <button
-              type="button"
-              className="sm-composer__attach"
-              title="Attach image"
-              onClick={() => fileRef.current?.click()}
-              disabled={sending}
-            >
-              📎
-            </button>
-            <textarea
-              className="sm-composer__input"
-              placeholder="Write a reply…"
-              value={replyText}
-              rows={2}
-              disabled={sending}
-              onChange={(e) => setReplyText(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-            />
-            <button
-              type="button"
-              className="sm-composer__send"
-              onClick={handleSend}
-              disabled={sending || (!replyText.trim() && !replyImage)}
-            >
-              {sending ? "Sending…" : "Send"}
-            </button>
-          </div>
+          <>
+            {showCanned && (
+              <div className="sm-canned-pop">
+                <div className="sm-canned-pop__head">
+                  <span>Canned replies</span>
+                  <button type="button" onClick={() => setShowCanned(false)}>
+                    ×
+                  </button>
+                </div>
+                {cannedReplies.length === 0 ? (
+                  <p className="sm-canned-pop__empty">
+                    No canned replies yet. Add some from “Canned replies” above.
+                  </p>
+                ) : (
+                  cannedReplies.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className="sm-canned-pop__item"
+                      onClick={() => {
+                        setReplyText((prev) =>
+                          prev.trim() ? `${prev}\n${c.body}` : c.body
+                        );
+                        setShowCanned(false);
+                      }}
+                    >
+                      <span className="sm-canned-pop__item-title">{c.title}</span>
+                      <span className="sm-canned-pop__item-body">{c.body}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+            <div className="sm-composer__row">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  handlePickImage(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+              <button
+                type="button"
+                className="sm-composer__attach"
+                title="Attach image"
+                onClick={() => fileRef.current?.click()}
+                disabled={sending}
+              >
+                📎
+              </button>
+              <button
+                type="button"
+                className="sm-composer__attach"
+                title="Canned replies"
+                onClick={() => setShowCanned((s) => !s)}
+                disabled={sending}
+              >
+                💬
+              </button>
+              <textarea
+                className="sm-composer__input"
+                placeholder="Write a reply…"
+                value={replyText}
+                rows={2}
+                disabled={sending}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="sm-composer__send"
+                onClick={handleSend}
+                disabled={sending || (!replyText.trim() && !replyImage)}
+              >
+                {sending ? "Sending…" : "Send"}
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -392,6 +448,7 @@ function SupportManagement() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [manageCanned, setManageCanned] = useState(false);
 
   // Debounce the search box.
   useEffect(() => {
@@ -425,11 +482,24 @@ function SupportManagement() {
   return (
     <div className="sm-page">
       <div className="sm-header">
-        <h2 className="sm-header__title">Support Tickets</h2>
-        <p className="sm-header__subtitle">
-          Resolve user and listener support requests in real time.
-        </p>
+        <div>
+          <h2 className="sm-header__title">Support Tickets</h2>
+          <p className="sm-header__subtitle">
+            Resolve user and listener support requests in real time.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="sm-header__action"
+          onClick={() => setManageCanned(true)}
+        >
+          Canned replies
+        </button>
       </div>
+
+      {manageCanned && (
+        <CannedRepliesManager onClose={() => setManageCanned(false)} />
+      )}
 
       <StatCards stats={statsData?.stats} loading={statsLoading} />
 
@@ -518,6 +588,143 @@ function SupportManagement() {
 
         {/* ── Right: conversation ── */}
         <Conversation ticketId={selectedTicketId} />
+      </div>
+    </div>
+  );
+}
+
+// ─── Canned replies manager (modal) ───────────────────────────────────────────
+function CannedRepliesManager({ onClose }) {
+  const { data, isLoading } = useGetCannedRepliesQuery({});
+  const [createReply, { isLoading: creating }] = useCreateCannedReplyMutation();
+  const [updateReply, { isLoading: updating }] = useUpdateCannedReplyMutation();
+  const [deleteReply] = useDeleteCannedReplyMutation();
+
+  const replies = data?.cannedReplies || [];
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ title: "", body: "", category: "" });
+  const [error, setError] = useState("");
+
+  const resetForm = () => {
+    setEditingId(null);
+    setForm({ title: "", body: "", category: "" });
+    setError("");
+  };
+
+  const startEdit = (r) => {
+    setEditingId(r.id);
+    setForm({ title: r.title, body: r.body, category: r.category || "" });
+    setError("");
+  };
+
+  const handleSave = async () => {
+    if (!form.title.trim() || !form.body.trim()) {
+      setError("Title and body are required.");
+      return;
+    }
+    try {
+      if (editingId) {
+        await updateReply({ id: editingId, ...form }).unwrap();
+      } else {
+        await createReply(form).unwrap();
+      }
+      resetForm();
+    } catch (e) {
+      setError(e?.data?.message || "Could not save the reply.");
+    }
+  };
+
+  const handleDelete = async (r) => {
+    if (!window.confirm(`Delete canned reply "${r.title}"?`)) return;
+    try {
+      await deleteReply(r.id).unwrap();
+      if (editingId === r.id) resetForm();
+    } catch (e) {
+      /* surfaced via list refetch */
+    }
+  };
+
+  return (
+    <div className="sm-modal-overlay" onClick={onClose}>
+      <div className="sm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="sm-modal__head">
+          <h3>Canned replies</h3>
+          <button type="button" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        <div className="sm-modal__body">
+          <div className="sm-canned-list">
+            {isLoading ? (
+              <p className="sm-list-empty">Loading…</p>
+            ) : replies.length === 0 ? (
+              <p className="sm-list-empty">No canned replies yet.</p>
+            ) : (
+              replies.map((r) => (
+                <div key={r.id} className="sm-canned-row">
+                  <div className="sm-canned-row__main">
+                    <span className="sm-canned-row__title">
+                      {r.title}
+                      {!r.isActive && (
+                        <em className="sm-canned-row__off"> (inactive)</em>
+                      )}
+                    </span>
+                    <span className="sm-canned-row__body">{r.body}</span>
+                  </div>
+                  <div className="sm-canned-row__actions">
+                    <button type="button" onClick={() => startEdit(r)}>
+                      Edit
+                    </button>
+                    <button type="button" onClick={() => handleDelete(r)}>
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="sm-canned-form">
+            <h4>{editingId ? "Edit reply" : "New reply"}</h4>
+            <input
+              type="text"
+              placeholder="Title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Category (optional)"
+              value={form.category}
+              onChange={(e) => setForm({ ...form, category: e.target.value })}
+            />
+            <textarea
+              placeholder="Reply text"
+              rows={6}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+            />
+            {error && <p className="sm-canned-form__error">{error}</p>}
+            <div className="sm-canned-form__actions">
+              {editingId && (
+                <button
+                  type="button"
+                  className="sm-btn-ghost"
+                  onClick={resetForm}
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="button"
+                className="sm-btn-primary"
+                onClick={handleSave}
+                disabled={creating || updating}
+              >
+                {editingId ? "Save changes" : "Add reply"}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
