@@ -187,6 +187,7 @@ function Users() {
       { header: "Form Status", key: "listener_request_status" },
       { header: "Account Freeze", key: "account_freeze" },
       { header: "Devices", key: "device_type" },
+      { header: "Location (IP)", key: "location" },
     ];
 
     worksheet.columns = headers.map((h) => ({
@@ -205,6 +206,7 @@ function Users() {
           ? moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")
           : "",
         wallet_balance: user?.wallet_balance ?? 0,
+        location: [user?.geo_city, user?.geo_state].filter(Boolean).join(", ") || user?.state || "",
         listener_request_status:
           user?.listener_request_status === "no request"
             ? "Pending"
@@ -403,13 +405,14 @@ function Users() {
                     <Th>Form Status</Th>
                     <Th>Account Freeze</Th>
                     <Th>Devices</Th>
+                    <Th>Location</Th>
                     <Th>Action</Th>
                   </TR>
                 </THead>
                 <TBody>
                   {error ? (
                     <TR>
-                      <Td colSpan={11} className="tw-text-center tw-text-fg-tertiary">Error loading users</Td>
+                      <Td colSpan={12} className="tw-text-center tw-text-fg-tertiary">Error loading users</Td>
                     </TR>
                   ) : (
                     data?.data?.users?.map((user, index) => (
@@ -446,6 +449,9 @@ function Users() {
                           </label>
                         </Td>
                         <Td>{user?.device_type}</Td>
+                        <Td>
+                          {[user?.geo_city, user?.geo_state].filter(Boolean).join(", ") || user?.state || "—"}
+                        </Td>
                         <Td>
                           <div className="tw-flex tw-items-center tw-gap-1">
                             <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>

@@ -144,8 +144,17 @@ function UserProfiile() {
                 <div className="left-sec space">
                   <div className="upper-sec">
                     {" "}
-                    <p className="title">State:</p>
-                    <p className="text">{profileData?.state}</p>
+                    <p className="title">State (self-reported):</p>
+                    <p className="text">{profileData?.state || "—"}</p>
+                  </div>
+
+                  <div className="lower-sec">
+                    <p className="title">Detected (IP):</p>
+                    <p className="text">
+                      {[profileData?.geo_city, profileData?.geo_state]
+                        .filter(Boolean)
+                        .join(", ") || "—"}
+                    </p>
                   </div>
 
                   <div className="lower-sec">
