@@ -63,6 +63,7 @@ function EditUser({ show, onHide, id, onSuccess }) {
     mobile_number: "",
     nationality: "",
     state: "",
+    nick_name: "",
   });
 
   const [isIndian, setIsIndian] = useState(null);
@@ -86,6 +87,7 @@ function EditUser({ show, onHide, id, onSuccess }) {
         mobile_number: user.mobile_number || "",
         nationality: user.nationality || "",
         state: toTitleCase(user.state || ""),
+        nick_name: user.nick_name || "",
       });
       setIsIndian(user.nationality?.toLowerCase() === "indian");
     }
@@ -136,6 +138,19 @@ function EditUser({ show, onHide, id, onSuccess }) {
                 placeholder="Enter last name"
                 name="lastName"
                 value={form.lastName}
+                onChange={handleChange}
+              />
+            </Form.Group>
+          </div>
+
+          <div className="row-class mb-3">
+            <Form.Group controlId="formNickName" className="text-start">
+              <Form.Label>Anonymous Name:</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter anonymous name"
+                name="nick_name"
+                value={form.nick_name}
                 onChange={handleChange}
               />
             </Form.Group>

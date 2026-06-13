@@ -3,6 +3,7 @@ import { getCookie } from "../cookie_helper/cookie";
 
 export const userApi = createApi({
   reducerPath: "userApi",
+  tagTypes: ["UserProfile", "UserList"],
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.REACT_APP_SERVER_URL,
     prepareHeaders: (headers) => {
@@ -22,6 +23,7 @@ export const userApi = createApi({
         method: "GET",
         params: { page, pageSize, searchParams, fromDate, toDate, archived },
       }),
+      providesTags: ["UserList"],
     }),
     recentUserList: builder.query({
       query: ({ page = 1, pageSize = 10, searchParams, date }) => ({
@@ -50,12 +52,14 @@ export const userApi = createApi({
         method: "PUT",
         body: { id, status, mobile_number },
       }),
+      invalidatesTags: ["UserList"],
     }),
     userProfile: builder.query({
       query: (id) => ({
         url: `user/user-profile?id=${id}`,
         method: "GET",
       }),
+      providesTags: (result, error, id) => [{ type: "UserProfile", id }],
     }),
     updateUser: builder.mutation({
       query: (formDataToSubmit) => ({
@@ -63,6 +67,7 @@ export const userApi = createApi({
         method: "PUT",
         body: formDataToSubmit,
       }),
+      invalidatesTags: (result, error, { id }) => [{ type: "UserProfile", id }, "UserList"],
     }),
     softDeletedUsers: builder.query({
       query: () => ({
