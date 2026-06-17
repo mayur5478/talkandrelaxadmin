@@ -1005,6 +1005,175 @@ function PayrollTab({ listenerDailyHours, listenerDailyOnlineHours, payrollFrom,
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// TAB 8 — LISTENER BUSINESS (per-listener daily business, month by month)
+// ════════════════════════════════════════════════════════════════════════════
+const LB_METRICS = [
+  { key: "grossRevenue", label: "Business ₹",  short: "Business",  money: true,  cellCls: "tw-bg-bg-info tw-text-fg-info" },
+  { key: "earnings",     label: "Earnings ₹",  short: "Earnings",  money: true,  cellCls: "tw-bg-bg-success tw-text-fg-success" },
+  { key: "sessionCount", label: "Sessions",    short: "Sessions",  money: false, cellCls: "tw-bg-bg-secondary tw-text-fg-primary" },
+  { key: "totalMins",    label: "Minutes",     short: "Minutes",   money: false, cellCls: "tw-bg-bg-warning tw-text-fg-warning" },
+];
+
+// Compact cell number: ₹ amounts collapse to k above 9999, counts shown as-is.
+function lbCell(v, money) {
+  if (!v) return "—";
+  if (money && v >= 10000) return `${(v / 1000).toFixed(1)}k`;
+  return fmtNum(v);
+}
+
+function ListenerBusinessTab({ listenerDailyHours }) {
+  const rows = listenerDailyHours || [];
+
+  // Month options derived straight from the data (YYYY-MM), newest first in selector.
+  const monthKeys = Array.from(new Set(rows.map(r => (r.day || "").slice(0, 7)))).filter(Boolean).sort();
+  const monthOpts = monthKeys.map(k => {
+    const [y, m] = k.split("-");
+    return { key: k, name: `${MONTH_NAMES_FULL[Number(m) - 1]} ${y}` };
+  });
+
+  const [selMonth, setSelMonth] = useState(monthKeys[monthKeys.length - 1] || "");
+  const [metricKey, setMetricKey] = useState("grossRevenue");
+  const metric = LB_METRICS.find(m => m.key === metricKey) || LB_METRICS[0];
+
+  // Keep selection valid if the applied range changes underneath us.
+  const activeMonth = monthKeys.includes(selMonth) ? selMonth : (monthKeys[monthKeys.length - 1] || "");
+
+  if (!rows.length) {
+    return <EmptyState title="No listener business data" description="Adjust the date range and click Apply." />;
+  }
+
+  const monthRows = rows.filter(r => (r.day || "").slice(0, 7) === activeMonth);
+  const dates = Array.from(new Set(monthRows.map(r => r.day))).sort();
+
+  // pivot[name][day] = full metric bundle for that listener-day
+  const pivot = {};
+  monthRows.forEach(r => {
+    if (!pivot[r.name]) pivot[r.name] = {};
+    pivot[r.name][r.day] = r;
+  });
+
+  const valOf = (cell) => cell ? Number(cell[metric.key] || 0) : 0;
+
+  // Listeners sorted by their month total of the selected metric (highest business first).
+  const listeners = Object.keys(pivot)
+    .map(name => ({ name, total: dates.reduce((s, d) => s + valOf(pivot[name][d]), 0) }))
+    .sort((a, b) => b.total - a.total);
+
+  // Month totals across ALL listeners (for the KPI strip — every metric, not just selected).
+  const monthTotals = monthRows.reduce((a, r) => {
+    a.grossRevenue += Number(r.grossRevenue || 0);
+    a.earnings     += Number(r.earnings || 0);
+    a.sessionCount += Number(r.sessionCount || 0);
+    a.totalMins    += Number(r.totalMins || 0);
+    return a;
+  }, { grossRevenue: 0, earnings: 0, sessionCount: 0, totalMins: 0 });
+
+  // Per-day totals (footer row) for the selected metric.
+  const dayTotals = Object.fromEntries(dates.map(d => [d, listeners.reduce((s, l) => s + valOf(pivot[l.name][d]), 0)]));
+  const grandTotal = listeners.reduce((s, l) => s + l.total, 0);
+
+  const fmtTotal = (v) => metric.money ? fmt(v) : (metric.key === "totalMins" ? `${fmtNum(v)} min` : fmtNum(v));
+
+  return (
+    <div className="tw-flex tw-flex-col tw-gap-6">
+      {/* Controls + KPI strip */}
+      <div className="tw-flex tw-items-start tw-justify-between tw-flex-wrap tw-gap-4">
+        <SummaryStrip items={[
+          { label: "Total Business",  value: fmt(monthTotals.grossRevenue),      tone: "info" },
+          { label: "Listener Earnings", value: fmt(monthTotals.earnings),        tone: "success" },
+          { label: "Sessions",        value: fmtNum(monthTotals.sessionCount),   tone: "neutral" },
+          { label: "Minutes",         value: `${fmtNum(monthTotals.totalMins)} min`, tone: "warning" },
+        ]} />
+        {monthOpts.length > 1 && (
+          <div className="tw-flex tw-items-center tw-gap-2">
+            <span className="tw-text-[11px] tw-text-fg-tertiary tw-font-semibold tw-uppercase">Month</span>
+            <MonthSelect months={monthOpts} value={activeMonth} onChange={setSelMonth} />
+          </div>
+        )}
+      </div>
+
+      {/* Metric toggle */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <span className="tw-text-[11px] tw-text-fg-tertiary tw-font-semibold tw-uppercase">Show</span>
+        {LB_METRICS.map(m => (
+          <button
+            key={m.key}
+            onClick={() => setMetricKey(m.key)}
+            className={`tw-text-[12px] tw-px-3 tw-py-1 tw-rounded-md tw-border tw-border-hairline tw-border-tertiary tw-transition-colors ${metricKey === m.key ? "tw-bg-fg-info tw-text-white tw-border-transparent" : "tw-bg-bg-secondary tw-text-fg-secondary hover:tw-text-fg-primary"}`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <Card>
+          <CardHeader>
+            <CardTitle>Listener Business — {metric.short} per day · {monthOpts.find(m => m.key === activeMonth)?.name || activeMonth}</CardTitle>
+            <div className="tw-text-[11px] tw-text-fg-tertiary tw-mt-1">{listeners.length} listener{listeners.length !== 1 ? "s" : ""} · {dates.length} day{dates.length !== 1 ? "s" : ""} with activity · sorted by month total</div>
+          </CardHeader>
+          {dates.length === 0 ? (
+            <EmptyState title="No activity this month" description="No listener sessions recorded for the selected month." />
+          ) : (
+            <div className="tw-overflow-auto tw-max-h-[560px]">
+              <Table>
+                <THead>
+                  <TR>
+                    <Th className="tw-sticky tw-left-0 tw-bg-bg-primary tw-z-10 tw-min-w-[140px]">Listener</Th>
+                    {dates.map(d => (
+                      <Th key={d} className="tw-text-center tw-min-w-[48px]">
+                        <div>{d.slice(8)}</div>
+                        <div className="tw-text-[9px] tw-text-fg-tertiary">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(d).getDay()]}</div>
+                      </Th>
+                    ))}
+                    <Th className="tw-text-center tw-sticky tw-right-0 tw-bg-bg-primary tw-z-10">Total</Th>
+                  </TR>
+                </THead>
+                <TBody>
+                  {listeners.map(l => {
+                    const days = pivot[l.name];
+                    return (
+                      <TR key={l.name}>
+                        <Td className="tw-sticky tw-left-0 tw-bg-bg-primary tw-z-10 tw-font-medium tw-text-fg-primary">{l.name}</Td>
+                        {dates.map(d => {
+                          const cell = days[d];
+                          const v = valOf(cell);
+                          return (
+                            <Td
+                              key={d}
+                              title={cell ? `${l.name} · ${d}\nBusiness ₹${fmtNum(cell.grossRevenue)} · Earnings ₹${fmtNum(cell.earnings)} · ${cell.sessionCount} sess · ${cell.totalMins} min` : "No sessions"}
+                              className="tw-text-center tw-p-1"
+                            >
+                              {v > 0
+                                ? <span className={`tw-inline-block tw-text-[10px] tw-font-bold tw-px-1 tw-py-[2px] tw-rounded ${metric.cellCls}`}>{lbCell(v, metric.money)}</span>
+                                : <span className="tw-text-[10px] tw-text-fg-tertiary">—</span>}
+                            </Td>
+                          );
+                        })}
+                        <Td className="tw-text-center tw-font-bold tw-text-fg-primary tw-sticky tw-right-0 tw-bg-bg-primary tw-z-10">{fmtTotal(l.total)}</Td>
+                      </TR>
+                    );
+                  })}
+                </TBody>
+                <TBody>
+                  <TR isLast>
+                    <Td className="tw-sticky tw-left-0 tw-bg-bg-primary tw-z-10 tw-font-bold tw-text-fg-primary">Daily Total</Td>
+                    {dates.map(d => (
+                      <Td key={d} className="tw-text-center tw-font-semibold tw-text-fg-secondary tw-text-[10px]">{lbCell(dayTotals[d], metric.money)}</Td>
+                    ))}
+                    <Td className="tw-text-center tw-font-bold tw-text-fg-info tw-sticky tw-right-0 tw-bg-bg-primary tw-z-10">{fmtTotal(grandTotal)}</Td>
+                  </TR>
+                </TBody>
+              </Table>
+            </div>
+          )}
+        </Card>
+      </motion.div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 export default function BusinessInsights() {
@@ -1128,6 +1297,7 @@ export default function BusinessInsights() {
           <Tab value="individuals">Individuals</Tab>
           <Tab value="attempts">Call Attempts</Tab>
           <Tab value="payroll">Payroll</Tab>
+          <Tab value="listenerBusiness">Listener Business</Tab>
         </TabsList>
 
         <TabPanel value="overview">
@@ -1150,6 +1320,9 @@ export default function BusinessInsights() {
         </TabPanel>
         <TabPanel value="payroll">
           <PayrollTab listenerDailyHours={listenerDailyHours} listenerDailyOnlineHours={listenerDailyOnlineHours} payrollFrom={payrollFrom} setPayrollFrom={setPayrollFrom} payrollTo={payrollTo} setPayrollTo={setPayrollTo} minWorkHours={minWorkHours} setMinWorkHours={setMinWorkHours}/>
+        </TabPanel>
+        <TabPanel value="listenerBusiness">
+          <ListenerBusinessTab listenerDailyHours={listenerDailyHours} />
         </TabPanel>
       </Tabs>
     </div>
