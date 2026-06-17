@@ -510,7 +510,7 @@ function SupportManagement() {
             <input
               className="sm-search"
               type="text"
-              placeholder="Search by subject…"
+              placeholder="Search by name, number or subject…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
             />
