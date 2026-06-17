@@ -1174,6 +1174,168 @@ function ListenerBusinessTab({ listenerDailyHours }) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// TAB 9 — USER BUSINESS (per-user daily wallet spend, month by month)
+// ════════════════════════════════════════════════════════════════════════════
+const UB_METRICS = [
+  { key: "spend",        label: "Spend ₹",  short: "Spend",    money: true,  cellCls: "tw-bg-bg-info tw-text-fg-info" },
+  { key: "sessionCount", label: "Sessions", short: "Sessions", money: false, cellCls: "tw-bg-bg-secondary tw-text-fg-primary" },
+  { key: "totalMins",    label: "Minutes",  short: "Minutes",  money: false, cellCls: "tw-bg-bg-warning tw-text-fg-warning" },
+];
+
+const UB_ROW_CAP = 100; // users can be many — cap rendered rows, note the rest
+
+function UserBusinessTab({ userDailyBusiness }) {
+  const rows = userDailyBusiness || [];
+
+  const monthKeys = Array.from(new Set(rows.map(r => (r.day || "").slice(0, 7)))).filter(Boolean).sort();
+  const monthOpts = monthKeys.map(k => {
+    const [y, m] = k.split("-");
+    return { key: k, name: `${MONTH_NAMES_FULL[Number(m) - 1]} ${y}` };
+  });
+
+  const [selMonth, setSelMonth] = useState(monthKeys[monthKeys.length - 1] || "");
+  const [metricKey, setMetricKey] = useState("spend");
+  const metric = UB_METRICS.find(m => m.key === metricKey) || UB_METRICS[0];
+
+  const activeMonth = monthKeys.includes(selMonth) ? selMonth : (monthKeys[monthKeys.length - 1] || "");
+
+  if (!rows.length) {
+    return <EmptyState title="No user business data" description="Adjust the date range and click Apply." />;
+  }
+
+  const monthRows = rows.filter(r => (r.day || "").slice(0, 7) === activeMonth);
+  const dates = Array.from(new Set(monthRows.map(r => r.day))).sort();
+
+  const pivot = {};
+  monthRows.forEach(r => {
+    if (!pivot[r.name]) pivot[r.name] = {};
+    pivot[r.name][r.day] = r;
+  });
+
+  const valOf = (cell) => cell ? Number(cell[metric.key] || 0) : 0;
+
+  const allUsers = Object.keys(pivot)
+    .map(name => ({ name, total: dates.reduce((s, d) => s + valOf(pivot[name][d]), 0) }))
+    .sort((a, b) => b.total - a.total);
+  const users = allUsers.slice(0, UB_ROW_CAP);
+  const truncated = allUsers.length - users.length;
+
+  const monthTotals = monthRows.reduce((a, r) => {
+    a.spend        += Number(r.spend || 0);
+    a.sessionCount += Number(r.sessionCount || 0);
+    a.totalMins    += Number(r.totalMins || 0);
+    return a;
+  }, { spend: 0, sessionCount: 0, totalMins: 0 });
+
+  // Daily totals use the FULL user set (not just the capped rows shown).
+  const dayTotals = Object.fromEntries(dates.map(d => [d, allUsers.reduce((s, u) => s + valOf(pivot[u.name][d]), 0)]));
+  const grandTotal = allUsers.reduce((s, u) => s + u.total, 0);
+
+  const fmtTotal = (v) => metric.money ? fmt(v) : (metric.key === "totalMins" ? `${fmtNum(v)} min` : fmtNum(v));
+
+  return (
+    <div className="tw-flex tw-flex-col tw-gap-6">
+      {/* Controls + KPI strip */}
+      <div className="tw-flex tw-items-start tw-justify-between tw-flex-wrap tw-gap-4">
+        <SummaryStrip items={[
+          { label: "Total Spend", value: fmt(monthTotals.spend),               tone: "info" },
+          { label: "Sessions",    value: fmtNum(monthTotals.sessionCount),     tone: "neutral" },
+          { label: "Minutes",     value: `${fmtNum(monthTotals.totalMins)} min`, tone: "warning" },
+          { label: "Active Users", value: fmtNum(allUsers.length),             tone: "success" },
+        ]} />
+        {monthOpts.length > 1 && (
+          <div className="tw-flex tw-items-center tw-gap-2">
+            <span className="tw-text-[11px] tw-text-fg-tertiary tw-font-semibold tw-uppercase">Month</span>
+            <MonthSelect months={monthOpts} value={activeMonth} onChange={setSelMonth} />
+          </div>
+        )}
+      </div>
+
+      {/* Metric toggle */}
+      <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+        <span className="tw-text-[11px] tw-text-fg-tertiary tw-font-semibold tw-uppercase">Show</span>
+        {UB_METRICS.map(m => (
+          <button
+            key={m.key}
+            onClick={() => setMetricKey(m.key)}
+            className={`tw-text-[12px] tw-px-3 tw-py-1 tw-rounded-md tw-border tw-border-hairline tw-border-tertiary tw-transition-colors ${metricKey === m.key ? "tw-bg-fg-info tw-text-white tw-border-transparent" : "tw-bg-bg-secondary tw-text-fg-secondary hover:tw-text-fg-primary"}`}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+
+      <motion.div variants={fadeUp} initial="hidden" animate="visible">
+        <Card>
+          <CardHeader>
+            <CardTitle>User Business — {metric.short} per day · {monthOpts.find(m => m.key === activeMonth)?.name || activeMonth}</CardTitle>
+            <div className="tw-text-[11px] tw-text-fg-tertiary tw-mt-1">
+              {allUsers.length} active user{allUsers.length !== 1 ? "s" : ""} · {dates.length} day{dates.length !== 1 ? "s" : ""} with activity · sorted by month total
+              {truncated > 0 && <span className="tw-text-fg-warning"> · showing top {UB_ROW_CAP} ({truncated} more not shown)</span>}
+            </div>
+          </CardHeader>
+          {dates.length === 0 ? (
+            <EmptyState title="No activity this month" description="No user sessions recorded for the selected month." />
+          ) : (
+            <div className="tw-overflow-auto tw-max-h-[560px]">
+              <Table>
+                <THead>
+                  <TR>
+                    <Th className="tw-sticky tw-left-0 tw-bg-bg-primary tw-z-10 tw-min-w-[140px]">User</Th>
+                    {dates.map(d => (
+                      <Th key={d} className="tw-text-center tw-min-w-[48px]">
+                        <div>{d.slice(8)}</div>
+                        <div className="tw-text-[9px] tw-text-fg-tertiary">{["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][new Date(d).getDay()]}</div>
+                      </Th>
+                    ))}
+                    <Th className="tw-text-center tw-sticky tw-right-0 tw-bg-bg-primary tw-z-10">Total</Th>
+                  </TR>
+                </THead>
+                <TBody>
+                  {users.map(u => {
+                    const days = pivot[u.name];
+                    return (
+                      <TR key={u.name}>
+                        <Td className="tw-sticky tw-left-0 tw-bg-bg-primary tw-z-10 tw-font-medium tw-text-fg-primary">{u.name}</Td>
+                        {dates.map(d => {
+                          const cell = days[d];
+                          const v = valOf(cell);
+                          return (
+                            <Td
+                              key={d}
+                              title={cell ? `${u.name} · ${d}\nSpend ₹${fmtNum(cell.spend)} · ${cell.sessionCount} sess · ${cell.totalMins} min` : "No sessions"}
+                              className="tw-text-center tw-p-1"
+                            >
+                              {v > 0
+                                ? <span className={`tw-inline-block tw-text-[10px] tw-font-bold tw-px-1 tw-py-[2px] tw-rounded ${metric.cellCls}`}>{lbCell(v, metric.money)}</span>
+                                : <span className="tw-text-[10px] tw-text-fg-tertiary">—</span>}
+                            </Td>
+                          );
+                        })}
+                        <Td className="tw-text-center tw-font-bold tw-text-fg-primary tw-sticky tw-right-0 tw-bg-bg-primary tw-z-10">{fmtTotal(u.total)}</Td>
+                      </TR>
+                    );
+                  })}
+                </TBody>
+                <TBody>
+                  <TR isLast>
+                    <Td className="tw-sticky tw-left-0 tw-bg-bg-primary tw-z-10 tw-font-bold tw-text-fg-primary">Daily Total</Td>
+                    {dates.map(d => (
+                      <Td key={d} className="tw-text-center tw-font-semibold tw-text-fg-secondary tw-text-[10px]">{lbCell(dayTotals[d], metric.money)}</Td>
+                    ))}
+                    <Td className="tw-text-center tw-font-bold tw-text-fg-info tw-sticky tw-right-0 tw-bg-bg-primary tw-z-10">{fmtTotal(grandTotal)}</Td>
+                  </TR>
+                </TBody>
+              </Table>
+            </div>
+          )}
+        </Card>
+      </motion.div>
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 export default function BusinessInsights() {
@@ -1205,6 +1367,7 @@ export default function BusinessInsights() {
   const monthlySales           = data?.monthlySales          || [];
   const listenerDailyHours     = data?.listenerDailyHours    || [];
   const listenerDailyOnlineHours = data?.listenerDailyOnlineHours || [];
+  const userDailyBusiness      = data?.userDailyBusiness     || [];
 
   const latest = months[months.length-1];
   const prev   = months[months.length-2];
@@ -1298,6 +1461,7 @@ export default function BusinessInsights() {
           <Tab value="attempts">Call Attempts</Tab>
           <Tab value="payroll">Payroll</Tab>
           <Tab value="listenerBusiness">Listener Business</Tab>
+          <Tab value="userBusiness">User Business</Tab>
         </TabsList>
 
         <TabPanel value="overview">
@@ -1323,6 +1487,9 @@ export default function BusinessInsights() {
         </TabPanel>
         <TabPanel value="listenerBusiness">
           <ListenerBusinessTab listenerDailyHours={listenerDailyHours} />
+        </TabPanel>
+        <TabPanel value="userBusiness">
+          <UserBusinessTab userDailyBusiness={userDailyBusiness} />
         </TabPanel>
       </Tabs>
     </div>
