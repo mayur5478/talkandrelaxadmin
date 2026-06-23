@@ -11,6 +11,7 @@ const Dashboard                  = lazy(() => import("../dashboard/Dashboard"));
 const ApplicationRequestsV2      = lazy(() => import("../v2/listener-management/ApplicationRequests"));
 const ProfileApprovalsV2         = lazy(() => import("../v2/listener-management/ProfileApprovals"));
 const ApplicationReview          = lazy(() => import("../v2/listener-management/ApplicationReview"));
+const Monitoring          = lazy(() => import("../monitoring/Monitoring"));
 const Users               = lazy(() => import("../user-management/user-list/Users"));
 const ActiveUsers         = lazy(() => import("../user-management/active-users/ActiveUsers"));
 const RecentUsers         = lazy(() => import("../user-management/recent-users/RecentUsers"));
@@ -70,6 +71,7 @@ const Main = () => {
           {/* /overview was removed from the nav — redirect to the main dashboard */}
           <Route path="/overview" element={<Navigate to="/dashboard/analytics" replace />} />
           <Route path="/analytics" element={<Dashboard />} />
+          <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/user-management/users-list" element={<Users />} />
           <Route path="/user-management/active-users" element={<ActiveUsers />} />
           <Route path="/user-management/recent-users" element={<RecentUsers />} />

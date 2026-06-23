@@ -9,6 +9,7 @@ import { storyApi } from "../services/stories";
 import { notificationApi } from "../services/notification";
 import { supportApi } from "../services/support";
 import { agentApi } from "../services/agent";
+import { monitoringApi } from "../services/monitoring";
 export const store = configureStore({
   reducer: {
     [userApi.reducerPath]: userApi.reducer,
@@ -20,6 +21,7 @@ export const store = configureStore({
     [notificationApi.reducerPath]: notificationApi.reducer,
     [supportApi.reducerPath]: supportApi.reducer,
     [agentApi.reducerPath]: agentApi.reducer,
+    [monitoringApi.reducerPath]: monitoringApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -32,6 +34,7 @@ export const store = configureStore({
       notificationApi.middleware,
       supportApi.middleware,
       agentApi.middleware,
+      monitoringApi.middleware,
     ]),
 });
 

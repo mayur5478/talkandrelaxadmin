@@ -26,6 +26,7 @@ import {
   LifeBuoy,
   Bell,
   Bot,
+  Activity,
 } from 'lucide-react';
 
 export const navGroups = [
@@ -36,6 +37,11 @@ export const navGroups = [
         title: 'Dashboard',
         path: '/dashboard/analytics',
         icon: LayoutDashboard,
+      },
+      {
+        title: 'Monitoring',
+        path: '/dashboard/monitoring',
+        icon: Activity,
       },
       {
         title: 'User management',
