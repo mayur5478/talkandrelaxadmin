@@ -113,10 +113,10 @@ export const authApi = createApi({
       }),
     }),
     forceEndSession: builder.mutation({
-      query: ({ sessionId, userId, listenerId, reason }) => ({
+      query: ({ sessionId, userId, listenerId, reason, force }) => ({
         url: `admin/force-end-session`,
         method: "POST",
-        body: { sessionId, userId, listenerId, reason },
+        body: { sessionId, userId, listenerId, reason, ...(force ? { force: true } : {}) },
       }),
     }),
     resetUserState: builder.mutation({
