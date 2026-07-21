@@ -4,6 +4,7 @@ import { Search } from 'lucide-react';
 import { Command } from 'cmdk';
 import { cn } from '../lib/cn';
 import { flattenNav } from './nav-config';
+import { canAccessPath } from '../utils/roles';
 
 /**
  * ⌘K command palette.
@@ -18,7 +19,11 @@ import { flattenNav } from './nav-config';
  */
 export default function CommandMenu({ open, onOpenChange }) {
   const navigate = useNavigate();
-  const items = useMemo(() => flattenNav(), []);
+  // Filter by role too — otherwise ⌘K happily jumps to pages the sidebar hides.
+  const items = useMemo(
+    () => flattenNav().filter((i) => canAccessPath(i.path)),
+    [],
+  );
   const [search, setSearch] = useState('');
 
   // Global ⌘K / Ctrl-K shortcut

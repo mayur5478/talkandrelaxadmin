@@ -14,7 +14,7 @@ import {
   TableSkeleton,
   Pagination,
 } from "../../v2/ui";
-import { Search, Eye, PencilLine, Trash2, Undo2, Wallet, RotateCcw, PhoneOff } from "lucide-react";
+import { Search, Eye, PencilLine, Trash2, Undo2, Wallet, RotateCcw, PhoneOff, Send } from "lucide-react";
 
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import ExcelJS from "exceljs";
@@ -29,6 +29,8 @@ import { useAccountFreezeMutation } from "../../../services/auth.js";
 import AccountFreeze from "../../common/account-freeze/AccountFreeze.jsx";
 import Delete from "../../common/delete/Delete.jsx";
 import { useResetAllStuckStatesMutation } from "../../../services/auth.js";
+import { isHR } from "../../../utils/roles";
+import { useSendOnboardingForm1Mutation } from "../../../services/listener";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
@@ -63,6 +65,7 @@ function Users() {
   const [dateRange, setDateRange] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
   const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
+  const [sendOnboardingForm1, { isLoading: isSendingForm1 }] = useSendOnboardingForm1Mutation();
   const [accountFreeze, { isLoading: isFreezeLoading }] =
     useAccountFreezeMutation();
   const { data, error, isLoading, refetch } = useUserListQuery({
@@ -73,6 +76,22 @@ function Users() {
     toDate: dateRange[1]?.toISOString(),
     archived: showArchived,
   });
+  // HR brief: "User list — only sent forms can be seen to list". HR sees only
+  // candidates who are actually in the onboarding pipeline, not the whole user
+  // base.
+  //
+  // NOTE: this filters the CURRENT PAGE client-side, so an HR user's pages will
+  // look short and the pagination total still counts every user. Doing this
+  // properly needs a server-side filter on the user-list endpoint — folded into
+  // the phase-2 backend scoping work.
+  const visibleUsers = React.useMemo(() => {
+    const rows = data?.data?.users ?? [];
+    if (!isHR()) return rows;
+    return rows.filter(
+      (u) => u?.listener_request_status && u.listener_request_status !== "no request",
+    );
+  }, [data]);
+
   const navigate = useNavigate();
   const [deleteUser, { isLoading: isDeleteUserLoading }] =
     useUserDeleteMutation();
@@ -169,7 +188,9 @@ function Users() {
     setId(id);
   };
   const exportUsersToExcel = async (
-    users = data?.data?.users,
+    // Default to the role-filtered rows, not the raw response — otherwise an
+    // HR user exports the entire user base straight past the table filter.
+    users = visibleUsers,
     fileName = "users.xlsx"
   ) => {
     if (!Array.isArray(users) || users.length === 0) return;
@@ -298,6 +319,38 @@ function Users() {
     setShowResetModal(true);
   };
 
+  // Sends the personalised, token-based onboarding Form 1 email — the same
+  // mutation the Application Requests page uses. This replaces the legacy
+  // "Send Link" button removed in 318da5a, which mailed a generic template
+  // pointing at the misspelled /listerner-questions URL.
+  const handleSendForm1 = async (id, name, alreadySent) => {
+    const result = await Swal.fire({
+      title: alreadySent ? "Resend onboarding form?" : "Send onboarding form?",
+      text: alreadySent
+        ? `${name} has already been sent Form 1. Send it again?`
+        : `Email the listener onboarding form to ${name}?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: alreadySent ? "Yes, resend" : "Yes, send",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await sendOnboardingForm1(id).unwrap();
+      Swal.fire("Sent!", `Onboarding form emailed to ${name}.`, "success");
+      refetch();
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.data?.message || "Could not send the onboarding form",
+        "error",
+      );
+    }
+  };
+
   const handleGlobalReset = async () => {
     const result = await Swal.fire({
       title: 'Are you sure?',
@@ -352,14 +405,17 @@ function Users() {
           >
             {showArchived ? "Active Users" : "Archived Users"}
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={handleGlobalReset}
-            disabled={isResetAllLoading}
-          >
-            {isResetAllLoading ? 'Resetting...' : '⚠ Clear All Stuck States'}
-          </Button>
+          {/* Platform-wide destructive action — admin only. */}
+          {!isHR() && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleGlobalReset}
+              disabled={isResetAllLoading}
+            >
+              {isResetAllLoading ? 'Resetting...' : '⚠ Clear All Stuck States'}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -415,8 +471,8 @@ function Users() {
                       <Td colSpan={12} className="tw-text-center tw-text-fg-tertiary">Error loading users</Td>
                     </TR>
                   ) : (
-                    data?.data?.users?.map((user, index) => (
-                      <TR key={user.id} isLast={index === (data?.data?.users?.length - 1)}>
+                    visibleUsers.map((user, index) => (
+                      <TR key={user.id} isLast={index === (visibleUsers.length - 1)}>
                         <Td>
                           {pageSize === "all"
                             ? index + 1
@@ -438,6 +494,13 @@ function Users() {
                           )}
                         </Td>
                         <Td>
+                          {/* HR cannot freeze accounts — the endpoint is
+                              admin-only, so show state without the control. */}
+                          {isHR() ? (
+                            <Pill tone={user?.account_freeze ? "danger" : "neutral"}>
+                              {user?.account_freeze ? "Frozen" : "Active"}
+                            </Pill>
+                          ) : (
                           <label className="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
                             <input
                               type="checkbox"
@@ -447,6 +510,7 @@ function Users() {
                             />
                             <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
                           </label>
+                          )}
                         </Td>
                         <Td>{user?.device_type}</Td>
                         <Td>
@@ -457,21 +521,58 @@ function Users() {
                             <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
                               <Eye size={14} />
                             </IconButton>
-                            <IconButton size="sm" aria-label="Edit" onClick={() => editUser(user?.id)}>
-                              <PencilLine size={14} />
-                            </IconButton>
-                            <IconButton size="sm" aria-label="Adjust Wallet" onClick={() => handleAdjustClick(user.id, user.fullName)}>
-                              <Wallet size={14} />
-                            </IconButton>
-                            <IconButton size="sm" aria-label="Reset Stuck States" onClick={() => handleResetStateClick(user.id, user.fullName)}>
-                              <RotateCcw size={14} />
-                            </IconButton>
-                            {user.is_session_running && (
+                            {!isHR() && (
+                              <IconButton size="sm" aria-label="Edit" onClick={() => editUser(user?.id)}>
+                                <PencilLine size={14} />
+                              </IconButton>
+                            )}
+                            {/* Wallet + stuck-state tools are admin-only on the
+                                backend (secure(["admin"])) — hide rather than
+                                render buttons that 403. */}
+                            {!isHR() && (
+                              <>
+                                <IconButton size="sm" aria-label="Adjust Wallet" onClick={() => handleAdjustClick(user.id, user.fullName)}>
+                                  <Wallet size={14} />
+                                </IconButton>
+                                <IconButton size="sm" aria-label="Reset Stuck States" onClick={() => handleResetStateClick(user.id, user.fullName)}>
+                                  <RotateCcw size={14} />
+                                </IconButton>
+                              </>
+                            )}
+                            {/* Onboarding form: only for candidates who have not
+                                progressed past the invite stage. Deliberately an
+                                allow list — the other statuses ("documents in
+                                review", "application rejected", "approved",
+                                "profile in process") must NOT get a fresh Form 1.
+                                "processing" = already sent, so it becomes a resend. */}
+                            {["no request", "pending", "processing"].includes(
+                              user?.listener_request_status,
+                            ) && (
+                              <IconButton
+                                size="sm"
+                                aria-label={
+                                  user?.listener_request_status === "processing"
+                                    ? "Resend Onboarding Form"
+                                    : "Send Onboarding Form"
+                                }
+                                disabled={isSendingForm1}
+                                onClick={() =>
+                                  handleSendForm1(
+                                    user.id,
+                                    user.fullName,
+                                    user?.listener_request_status === "processing",
+                                  )
+                                }
+                              >
+                                <Send size={14} />
+                              </IconButton>
+                            )}
+                            {user.is_session_running && !isHR() && (
                               <IconButton size="sm" aria-label="Force End Session" onClick={() => handleForceEndClick(user.id, user.fullName)}>
                                 <PhoneOff size={14} />
                               </IconButton>
                             )}
-                            {user?.is_soft_delete === false ? (
+                            {isHR() ? null : user?.is_soft_delete === false ? (
                               <IconButton size="sm" aria-label="Delete" onClick={() => handleDelete(user.id, user.fullName, true, user.mobile_number)}>
                                 <Trash2 size={14} />
                               </IconButton>

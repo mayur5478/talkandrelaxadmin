@@ -4,6 +4,7 @@ import { ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/cn';
 import { navGroups } from './nav-config';
+import { filterNavGroups } from '../utils/roles';
 
 /**
  * Sidebar — desktop pinned (260px), mobile drawer.
@@ -96,7 +97,7 @@ export default function Sidebar({ open, onClose, badges = {} }) {
             initial="hidden"
             animate="visible"
           >
-            {navGroups.map((group) => (
+            {filterNavGroups(navGroups).map((group) => (
               <NavGroup key={group.label} group={group} badges={badges} />
             ))}
           </motion.div>

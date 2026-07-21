@@ -14,6 +14,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 import TransactionModal from "../../common/transaction-modal/TransactionModal";
 import { useListenerManualRefundMutation } from "../../../services/recharge";
+import { isHR } from "../../../utils/roles";
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import Swal from "sweetalert2";
 function ListenerProfileView() {
@@ -118,7 +119,10 @@ function ListenerProfileView() {
                     </p>
                     <p className="email">{profileData?.email}</p>
                   </div>
-                  <Button onClick={() => setShow(true)} className="profile-btn">Money Refund</Button>
+                  {/* HR keeps full listener management EXCEPT money movement. */}
+                  {!isHR() && (
+                    <Button onClick={() => setShow(true)} className="profile-btn">Money Refund</Button>
+                  )}
                 </div>
                 <div className="text-center mt-3 mx-4">
                   <Button 

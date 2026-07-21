@@ -16,6 +16,7 @@ import EditUser from "../../common/edit-user/EditUser";
 import { useState } from "react";
 import TransactionModal from "../../common/transaction-modal/TransactionModal";
 import { useUserManualRefundMutation } from "../../../services/recharge";
+import { isHR } from "../../../utils/roles";
 
 function UserProfiile() {
   const [ids, setId] = useState("");
@@ -82,9 +83,12 @@ function UserProfiile() {
                     <p className="name">{profileData?.fullName}</p>
                     <p className="email">{profileData?.email}</p>
                   </div>
-                  <Button onClick={() => setShow(true)} className="profile-btn">
-                    Money Refund
-                  </Button>
+                  {/* HR must not move money — see src/utils/roles.js */}
+                  {!isHR() && (
+                    <Button onClick={() => setShow(true)} className="profile-btn">
+                      Money Refund
+                    </Button>
+                  )}
                 </div>
                 <div className="user-details">
                   <div>
