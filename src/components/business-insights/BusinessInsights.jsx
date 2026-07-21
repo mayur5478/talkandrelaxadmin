@@ -19,6 +19,7 @@ import {
   Table, THead, TBody, TR, Th, Td,
 } from "../v2/ui/index.js";
 import { useMonthlyInsightsQuery } from "../../services/auth";
+import { isHR } from "../../utils/roles";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MONTH_NAMES_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -1032,7 +1033,12 @@ function ListenerBusinessTab({ listenerDailyHours }) {
   });
 
   const [selMonth, setSelMonth] = useState(monthKeys[monthKeys.length - 1] || "");
-  const [metricKey, setMetricKey] = useState("grossRevenue");
+  // HR gets the volume metrics only — the two money metrics are hidden, so
+  // their default has to be a metric they can actually see.
+  const lbMetrics = isHR()
+    ? LB_METRICS.filter((m) => m.key === "sessionCount" || m.key === "totalMins")
+    : LB_METRICS;
+  const [metricKey, setMetricKey] = useState(isHR() ? "sessionCount" : "grossRevenue");
   const metric = LB_METRICS.find(m => m.key === metricKey) || LB_METRICS[0];
 
   // Keep selection valid if the applied range changes underneath us.
@@ -1079,8 +1085,11 @@ function ListenerBusinessTab({ listenerDailyHours }) {
       {/* Controls + KPI strip */}
       <div className="tw-flex tw-items-start tw-justify-between tw-flex-wrap tw-gap-4">
         <SummaryStrip items={[
-          { label: "Total Business",  value: fmt(monthTotals.grossRevenue),      tone: "info" },
-          { label: "Listener Earnings", value: fmt(monthTotals.earnings),        tone: "success" },
+          // Money tiles hidden from HR, same reason as the metric toggles.
+          ...(isHR() ? [] : [
+            { label: "Total Business",  value: fmt(monthTotals.grossRevenue),      tone: "info" },
+            { label: "Listener Earnings", value: fmt(monthTotals.earnings),        tone: "success" },
+          ]),
           { label: "Sessions",        value: fmtNum(monthTotals.sessionCount),   tone: "neutral" },
           { label: "Minutes",         value: `${fmtNum(monthTotals.totalMins)} min`, tone: "warning" },
         ]} />
@@ -1095,7 +1104,7 @@ function ListenerBusinessTab({ listenerDailyHours }) {
       {/* Metric toggle */}
       <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
         <span className="tw-text-[11px] tw-text-fg-tertiary tw-font-semibold tw-uppercase">Show</span>
-        {LB_METRICS.map(m => (
+        {lbMetrics.map(m => (
           <button
             key={m.key}
             onClick={() => setMetricKey(m.key)}
@@ -1339,7 +1348,9 @@ function UserBusinessTab({ userDailyBusiness }) {
 // MAIN COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 export default function BusinessInsights() {
-  const [activeTab, setActiveTab] = useState("overview");
+  // HR sees only Payroll and Listener Business, so "overview" would render a
+  // blank panel for them — start them on Payroll instead.
+  const [activeTab, setActiveTab] = useState(isHR() ? "payroll" : "overview");
   const [fromYear, setFromYear] = useState(2025);
   const [fromMon,  setFromMon]  = useState(12);
   const [toYear,   setToYear]   = useState(CUR_YEAR);
@@ -1443,25 +1454,29 @@ export default function BusinessInsights() {
       {latest && (
         <motion.div variants={fadeUp} initial="hidden" animate="visible"
           className="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 lg:tw-grid-cols-4 tw-gap-4">
-          <KpiPlain tone="info"    label={`${latest.name} · Avg Daily Sales`}     value={fmt(latest.avgDailyNetSales)}      delta={salesChange  !== null ? Number(salesChange)  : undefined} sub={prev?`vs ${prev.name}`:undefined}/>
+          {/* Revenue KPIs are hidden from HR — this strip sits above the tabs,
+              so leaving it would leak the numbers the tab gating removes. */}
+          {!isHR() && <KpiPlain tone="info"    label={`${latest.name} · Avg Daily Sales`}     value={fmt(latest.avgDailyNetSales)}      delta={salesChange  !== null ? Number(salesChange)  : undefined} sub={prev?`vs ${prev.name}`:undefined}/>}
           <KpiPlain tone="success" label={`${latest.name} · Avg Daily Sessions`}  value={`${latest.avgDailySessions}/day`}  delta={sessChange   !== null ? Number(sessChange)   : undefined} sub={prev?`vs ${prev.name}`:undefined}/>
           <KpiPlain tone="warning" label={`${latest.name} · Avg Daily Minutes`}   value={`${latest.avgDailyMinutes} min`}   delta={minsChange   !== null ? Number(minsChange)   : undefined} sub={prev?`vs ${prev.name}`:undefined}/>
-          <KpiPlain tone="neutral" label={`${latest.name} · Avg Recharge Ticket`} value={fmt(latest.avgRechargeTicket)}     delta={ticketChange !== null ? Number(ticketChange) : undefined} sub={prev?`vs ${prev.name}`:undefined}/>
+          {!isHR() && <KpiPlain tone="neutral" label={`${latest.name} · Avg Recharge Ticket`} value={fmt(latest.avgRechargeTicket)}     delta={ticketChange !== null ? Number(ticketChange) : undefined} sub={prev?`vs ${prev.name}`:undefined}/>}
         </motion.div>
       )}
 
       {/* ── 7 Tabs ── */}
       <Tabs value={activeTab} onChange={setActiveTab}>
         <TabsList className="tw-w-full">
-          <Tab value="overview">Overview</Tab>
-          <Tab value="sales">Total Sales</Tab>
-          <Tab value="sessions">Sessions</Tab>
-          <Tab value="recharges">Recharges</Tab>
-          <Tab value="individuals">Individuals</Tab>
-          <Tab value="attempts">Call Attempts</Tab>
+          {/* HR's remit is staffing, not revenue: only Payroll and Listener
+              Business are exposed. */}
+          {!isHR() && <Tab value="overview">Overview</Tab>}
+          {!isHR() && <Tab value="sales">Total Sales</Tab>}
+          {!isHR() && <Tab value="sessions">Sessions</Tab>}
+          {!isHR() && <Tab value="recharges">Recharges</Tab>}
+          {!isHR() && <Tab value="individuals">Individuals</Tab>}
+          {!isHR() && <Tab value="attempts">Call Attempts</Tab>}
           <Tab value="payroll">Payroll</Tab>
           <Tab value="listenerBusiness">Listener Business</Tab>
-          <Tab value="userBusiness">User Business</Tab>
+          {!isHR() && <Tab value="userBusiness">User Business</Tab>}
         </TabsList>
 
         <TabPanel value="overview">

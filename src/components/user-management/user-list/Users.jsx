@@ -75,6 +75,10 @@ function Users() {
     fromDate: dateRange[0]?.toISOString(),
     toDate: dateRange[1]?.toISOString(),
     archived: showArchived,
+    // Scope HR's list server-side to candidates whose form has been sent
+    // ("processing" is what the panel renders as "Sent"). Filtering only on the
+    // client trimmed the current page, so HR saw empty tables.
+    ...(isHR() ? { listenerRequestStatus: "processing" } : {}),
   });
   // HR brief: "User list — only sent forms can be seen to list". HR sees only
   // candidates who are actually in the onboarding pipeline, not the whole user
@@ -87,9 +91,10 @@ function Users() {
   const visibleUsers = React.useMemo(() => {
     const rows = data?.data?.users ?? [];
     if (!isHR()) return rows;
-    return rows.filter(
-      (u) => u?.listener_request_status && u.listener_request_status !== "no request",
-    );
+    // Backstop only — the real filter is the server-side listenerRequestStatus
+    // param above. Kept so a stale/unfiltered backend can't leak the full user
+    // base into HR's table.
+    return rows.filter((u) => u?.listener_request_status === "processing");
   }, [data]);
 
   const navigate = useNavigate();
@@ -204,7 +209,9 @@ function Users() {
       { header: "Email", key: "email" },
       { header: "Contact Number", key: "mobile_number" },
       { header: "Registration Date", key: "createdAt" },
-      { header: "Wallet Balance", key: "wallet_balance" },
+      // Wallet balance is hidden from HR in the table; keep it out of their
+      // export too, otherwise the column is one click away regardless.
+      ...(isHR() ? [] : [{ header: "Wallet Balance", key: "wallet_balance" }]),
       { header: "Form Status", key: "listener_request_status" },
       { header: "Account Freeze", key: "account_freeze" },
       { header: "Devices", key: "device_type" },
@@ -457,12 +464,12 @@ function Users() {
                     <Th>Contact Number</Th>
                     <Th>User Type</Th>
                     <Th>Registration Date</Th>
-                    <Th>Wallet Balance</Th>
+                    {!isHR() && <Th>Wallet Balance</Th>}
                     <Th>Form Status</Th>
                     <Th>Account Freeze</Th>
                     <Th>Devices</Th>
                     <Th>Location</Th>
-                    <Th>Action</Th>
+                    {!isHR() && <Th>Action</Th>}
                   </TR>
                 </THead>
                 <TBody>
@@ -483,7 +490,7 @@ function Users() {
                         <Td>{user.mobile_number || "N/A"}</Td>
                         <Td>{user.userType || "N/A"}</Td>
                         <Td>{moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")}</Td>
-                        <Td>{user.wallet_balance}</Td>
+                        {!isHR() && <Td>{user.wallet_balance}</Td>}
                         <Td>
                           {user?.listener_request_status === "no request" ? (
                             <Pill tone="warning">Pending</Pill>
@@ -516,6 +523,11 @@ function Users() {
                         <Td>
                           {[user?.geo_city, user?.geo_state].filter(Boolean).join(", ") || user?.state || "—"}
                         </Td>
+                        {/* HR's user list is read-only. Every control below is
+                            either admin-only on the backend or outside HR's
+                            remit, so the whole cell is dropped rather than
+                            rendering buttons that 403. */}
+                        {!isHR() && (
                         <Td>
                           <div className="tw-flex tw-items-center tw-gap-1">
                             <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
@@ -583,6 +595,7 @@ function Users() {
                             )}
                           </div>
                         </Td>
+                        )}
                       </TR>
                     ))
                   )}

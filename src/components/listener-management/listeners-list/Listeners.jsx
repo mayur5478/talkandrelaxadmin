@@ -39,6 +39,7 @@ import CreateSession from "../create-session/CreateSession";
 import ResetStateModal from "../../common/reset-state/ResetStateModal";
 import { useResetAllStuckStatesMutation } from "../../../services/auth";
 import Swal from "sweetalert2";
+import { isHR } from "../../../utils/roles";
 
 function Listeners() {
   const [modalShow, setModalShow] = useState(false);
@@ -259,9 +260,13 @@ function Listeners() {
       { header: "Email ID", key: "email" },
       { header: "Contact Number", key: "mobile_number" },
       { header: "Registration Date", key: "createdAt" },
-      { header: "Wallet Balance", key: "balance" },
-      { header: "Account Freeze", key: "account_freeze" },
-      { header: "Wallet Freeze", key: "wallet_freeze" },
+      // Wallet/freeze columns are hidden from HR in the table — keep them out
+      // of the export too, or they're one click away regardless.
+      ...(isHR() ? [] : [
+        { header: "Wallet Balance", key: "balance" },
+        { header: "Account Freeze", key: "account_freeze" },
+        { header: "Wallet Freeze", key: "wallet_freeze" },
+      ]),
       { header: "Devices", key: "device_type" },
     ];
 
@@ -346,17 +351,23 @@ function Listeners() {
           >
             {showArchived ? "Active Listeners" : "Archived Listeners"}
           </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={handleGlobalReset}
-            disabled={isResetAllLoading}
-          >
-            {isResetAllLoading ? 'Resetting...' : '⚠ Clear All Stuck States'}
-          </Button>
-          <Button variant="secondary" size="sm" onClick={() => setShow(true)}>
-            + Create Session
-          </Button>
+          {/* Global reset and session creation are admin-only on the backend
+              (secure(["admin"])) — hidden rather than rendered to 403. */}
+          {!isHR() && (
+            <>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleGlobalReset}
+                disabled={isResetAllLoading}
+              >
+                {isResetAllLoading ? 'Resetting...' : '⚠ Clear All Stuck States'}
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setShow(true)}>
+                + Create Session
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -397,9 +408,9 @@ function Listeners() {
                     <Th>Email ID</Th>
                     <Th>Contact Number</Th>
                     <Th>Registration Date</Th>
-                    <Th>Wallet Balance</Th>
-                    <Th>Account Freeze</Th>
-                    <Th>Wallet Freeze</Th>
+                    {!isHR() && <Th>Wallet Balance</Th>}
+                    {!isHR() && <Th>Account Freeze</Th>}
+                    {!isHR() && <Th>Wallet Freeze</Th>}
                     <Th>Devices</Th>
                     <Th>Action</Th>
                   </TR>
@@ -421,7 +432,8 @@ function Listeners() {
                         <Td>{user.email}</Td>
                         <Td>{user.mobile_number || "N/A"}</Td>
                         <Td>{moment(user.createdAt).format("DD/MM/YYYY, hh:mm A")}</Td>
-                        <Td>{user?.balance}</Td>
+                        {!isHR() && <Td>{user?.balance}</Td>}
+                        {!isHR() && (
                         <Td>
                           <label className="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
                             <input
@@ -433,6 +445,8 @@ function Listeners() {
                             <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
                           </label>
                         </Td>
+                        )}
+                        {!isHR() && (
                         <Td>
                           <label className="tw-relative tw-inline-flex tw-items-center tw-cursor-pointer">
                             <input
@@ -444,13 +458,16 @@ function Listeners() {
                             <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
                           </label>
                         </Td>
+                        )}
                         <Td>{user?.device_type}</Td>
                         <Td>
                           <div className="tw-flex tw-items-center tw-gap-1">
                             <IconButton size="sm" aria-label="View" onClick={() => handleView(user?.id)}>
                               <Eye size={14} />
                             </IconButton>
-                            {user?.is_soft_delete === false ? (
+                            {/* Archive/restore and stuck-state reset are
+                                admin-only on the backend — HR gets view only. */}
+                            {!isHR() && (user?.is_soft_delete === false ? (
                               <IconButton size="sm" aria-label="Archive" onClick={() => handleSoftDelete(user.id, user.fullName, true, user.mobile_number)}>
                                 <Trash2 size={14} />
                               </IconButton>
@@ -458,10 +475,12 @@ function Listeners() {
                               <IconButton size="sm" aria-label="Restore" onClick={() => handleSoftDelete(user.id, user.fullName, false, user.mobile_number)}>
                                 <Undo2 size={14} />
                               </IconButton>
+                            ))}
+                            {!isHR() && (
+                              <IconButton size="sm" aria-label="Reset Stuck States" onClick={() => handleResetStateClick(user.id, user.display_name)}>
+                                <RotateCcw size={14} />
+                              </IconButton>
                             )}
-                            <IconButton size="sm" aria-label="Reset Stuck States" onClick={() => handleResetStateClick(user.id, user.display_name)}>
-                              <RotateCcw size={14} />
-                            </IconButton>
                           </div>
                         </Td>
                       </TR>

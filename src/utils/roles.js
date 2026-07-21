@@ -58,6 +58,8 @@ export const HR_ALLOWED_PREFIXES = [
   '/dashboard/user-management/profile-view',
   '/dashboard/listener-management',
   '/dashboard/business-insights',
+  // Status & stories — HR moderates listener status posts.
+  '/dashboard/status',
 ];
 
 /**

@@ -18,10 +18,10 @@ export const userApi = createApi({
   }),
   endpoints: (builder) => ({
     userList: builder.query({
-      query: ({ page = 1, pageSize = 10, searchParams, fromDate, toDate, archived }) => ({
+      query: ({ page = 1, pageSize = 10, searchParams, fromDate, toDate, archived, listenerRequestStatus }) => ({
         url: `user/user-list`,
         method: "GET",
-        params: { page, pageSize, searchParams, fromDate, toDate, archived },
+        params: { page, pageSize, searchParams, fromDate, toDate, archived, listenerRequestStatus },
       }),
       providesTags: ["UserList"],
     }),
