@@ -10,6 +10,7 @@ import { notificationApi } from "../services/notification";
 import { supportApi } from "../services/support";
 import { agentApi } from "../services/agent";
 import { monitoringApi } from "../services/monitoring";
+import { systemResetApi } from "../services/systemReset";
 export const store = configureStore({
   reducer: {
     [userApi.reducerPath]: userApi.reducer,
@@ -22,6 +23,7 @@ export const store = configureStore({
     [supportApi.reducerPath]: supportApi.reducer,
     [agentApi.reducerPath]: agentApi.reducer,
     [monitoringApi.reducerPath]: monitoringApi.reducer,
+    [systemResetApi.reducerPath]: systemResetApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -35,6 +37,7 @@ export const store = configureStore({
       supportApi.middleware,
       agentApi.middleware,
       monitoringApi.middleware,
+      systemResetApi.middleware,
     ]),
 });
 

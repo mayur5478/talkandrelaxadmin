@@ -27,6 +27,7 @@ import {
   Bell,
   Bot,
   Activity,
+  Wrench,
 } from 'lucide-react';
 
 export const navGroups = [
@@ -42,6 +43,11 @@ export const navGroups = [
         title: 'Monitoring',
         path: '/dashboard/monitoring',
         icon: Activity,
+      },
+      {
+        title: 'System Reset',
+        path: '/dashboard/system-reset',
+        icon: Wrench,
       },
       {
         title: 'User management',

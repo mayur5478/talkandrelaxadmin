@@ -16,6 +16,7 @@ export const monitoringApi = createApi({
     getLive: builder.query({ query: () => `monitoring/live` }),
     getListeners: builder.query({ query: (days = 7) => `monitoring/listeners?days=${days}` }),
     getBillingIntegrity: builder.query({ query: (days = 7) => `monitoring/billing-integrity?days=${days}` }),
+    getCallHealth: builder.query({ query: (days = 7) => `monitoring/call-health?days=${days}` }),
     getCallQuality: builder.query({ query: (days = 7) => `call-metrics/admin/summary?days=${days}` }),
     getCallQualityList: builder.query({
       query: ({ days = 7, filter = "poor", page = 1 } = {}) =>
@@ -41,6 +42,7 @@ export const {
   useGetLiveQuery,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
+  useGetCallHealthQuery,
   useGetCallQualityQuery,
   useGetCallQualityListQuery,
   useGetSessionDetailQuery,

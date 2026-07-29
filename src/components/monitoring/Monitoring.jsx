@@ -3,6 +3,7 @@ import {
   useGetLiveQuery,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
+  useGetCallHealthQuery,
   useGetCallQualityQuery,
   useGetCallQualityListQuery,
   useGetAlertsQuery,
@@ -12,7 +13,7 @@ import {
 } from "../../services/monitoring";
 import { Table, THead, TBody, TR, Th, Td } from "../v2/ui/table";
 
-const TABS = ["Live", "Call Quality", "Listener Scorecard", "Billing Integrity", "Alerts"];
+const TABS = ["Live", "Call Health", "Call Quality", "Listener Scorecard", "Billing Integrity", "Alerts"];
 
 const Card = ({ label, value, sub, tone }) => (
   <div className="tw-rounded-xl tw-border tw-border-border tw-bg-bg-secondary tw-p-4 tw-min-w-[150px]">
@@ -55,6 +56,7 @@ export default function Monitoring() {
       </div>
 
       {tab === "Live" && <LiveTab onOpen={setOpenSession} />}
+      {tab === "Call Health" && <CallHealthTab days={days} />}
       {tab === "Call Quality" && <QualityTab days={days} />}
       {tab === "Listener Scorecard" && <ScorecardTab days={days} />}
       {tab === "Billing Integrity" && <BillingTab days={days} onOpen={setOpenSession} />}
@@ -90,6 +92,114 @@ function LiveTab({ onOpen }) {
               ))}
         </TBody>
       </Table>
+    </div>
+  );
+}
+
+function CallHealthTab({ days }) {
+  const { data, isLoading } = useGetCallHealthQuery(days, { pollingInterval: 30000 });
+  if (isLoading) return <div className="tw-text-fg-tertiary tw-p-4">Loading call health…</div>;
+  const f = data?.funnel || {};
+  const o = data?.outcome || {};
+  const fcm = data?.fcmCoverage || {};
+  const techPct = f.failed ? Math.round((f.techFail / f.failed) * 100) : 0;
+
+  return (
+    <div>
+      {/* Funnel */}
+      <div className="tw-flex tw-gap-3 tw-mb-4 tw-flex-wrap">
+        <Card label="Attempts" value={f.attempts} sub={`last ${data?.window_days}d`} />
+        <Card label="Connected" value={f.connected} tone="tw-text-green-400" />
+        <Card label="Connect rate" value={f.connectRate != null ? `${f.connectRate}%` : "—"}
+          tone={f.connectRate >= 60 ? "tw-text-green-400" : "tw-text-amber-400"} />
+        <Card label="Failed attempts" value={f.failed} tone="tw-text-red-400" />
+        <Card label="Tech failures" value={f.techFail} sub={`${techPct}% of failures`} tone="tw-text-red-400" />
+        <Card label="Human declines" value={f.humanFail} sub="user/listener chose to reject" />
+      </div>
+
+      {/* Session outcomes + coverage */}
+      <div className="tw-flex tw-gap-3 tw-mb-4 tw-flex-wrap">
+        <Card label="Sessions" value={o.total} />
+        <Card label="Avg duration" value={o.avg_min != null ? `${o.avg_min} min` : "—"} />
+        <Card label="Under 1 min" value={o.under_1min} tone="tw-text-amber-400" />
+        <Card label="Ended as tech-fail" value={o.tech_ended} tone="tw-text-red-400" />
+        <Card label="Listener FCM coverage" value={fcm.pct != null ? `${fcm.pct}%` : "—"}
+          sub={`${fcm.withToken}/${fcm.total} can be rung`}
+          tone={fcm.pct >= 80 ? "tw-text-green-400" : "tw-text-red-400"} />
+      </div>
+
+      {/* Failure breakdown */}
+      <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+        <div>
+          <div className="tw-text-sm tw-font-semibold tw-text-fg-primary tw-mb-2">Why calls fail</div>
+          <Table>
+            <THead><TR><Th>Reason</Th><Th>By</Th><Th>Kind</Th><Th>Count</Th></TR></THead>
+            <TBody>
+              {(data?.failureBreakdown || []).length === 0 && <Msg cols={4}>No failures in window</Msg>}
+              {(data?.failureBreakdown || []).map((r, i) => (
+                <TR key={i}>
+                  <Td>{r.reason}</Td><Td>{r.by}</Td>
+                  <Td><span className={r.kind === "tech" ? "tw-text-red-400" : "tw-text-fg-tertiary"}>{r.kind}</span></Td>
+                  <Td>{r.count}</Td>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </div>
+
+        {/* Worst listeners */}
+        <div>
+          <div className="tw-text-sm tw-font-semibold tw-text-fg-primary tw-mb-2">Worst-affected listeners (timeouts)</div>
+          <Table>
+            <THead><TR><Th>Listener</Th><Th>Timeouts</Th><Th>Connected</Th><Th>Miss %</Th></TR></THead>
+            <TBody>
+              {(data?.worstListeners || []).length === 0 && <Msg cols={4}>None</Msg>}
+              {(data?.worstListeners || []).map((w) => (
+                <TR key={w.listenerId}>
+                  <Td>{w.name}</Td><Td>{w.timeouts}</Td><Td>{w.connected}</Td>
+                  <Td className={w.missPct >= 50 ? "tw-text-red-400" : ""}>{w.missPct != null ? `${w.missPct}%` : "—"}</Td>
+                </TR>
+              ))}
+            </TBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* App versions */}
+      <div className="tw-mt-4">
+        <div className="tw-text-sm tw-font-semibold tw-text-fg-primary tw-mb-2">App versions in the field (reporting calls)</div>
+        <Table>
+          <THead><TR><Th>Version</Th><Th>Platform</Th><Th>Calls</Th></TR></THead>
+          <TBody>
+            {(data?.versions || []).length === 0 && <Msg cols={3}>No telemetry</Msg>}
+            {(data?.versions || []).map((v, i) => (
+              <TR key={i}>
+                <Td className={String(v.app_version).includes("old") ? "tw-text-amber-400" : ""}>{v.app_version}</Td>
+                <Td>{v.platform}</Td><Td>{v.count}</Td>
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+      </div>
+
+      {/* Recent failed attempts */}
+      <div className="tw-mt-4">
+        <div className="tw-text-sm tw-font-semibold tw-text-fg-primary tw-mb-2">Recent failed attempts</div>
+        <Table>
+          <THead><TR><Th>When</Th><Th>Type</Th><Th>Reason</Th><Th>By</Th><Th>User</Th><Th>Listener</Th></TR></THead>
+          <TBody>
+            {(data?.recentFails || []).length === 0 && <Msg cols={6}>None</Msg>}
+            {(data?.recentFails || []).map((r, i) => (
+              <TR key={i}>
+                <Td>{new Date(r.rejectedAt).toLocaleString()}</Td>
+                <Td>{r.type}</Td><Td>{r.reason}</Td><Td>{r.rejectedBy}</Td>
+                <Td className="tw-text-fg-tertiary">{String(r.userId).slice(0, 8)}</Td>
+                <Td className="tw-text-fg-tertiary">{String(r.listenerId).slice(0, 8)}</Td>
+              </TR>
+            ))}
+          </TBody>
+        </Table>
+      </div>
     </div>
   );
 }
