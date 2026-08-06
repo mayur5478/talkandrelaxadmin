@@ -6,10 +6,21 @@ import { getCookie } from "../cookie_helper/cookie";
 // which sets the multipart Content-Type (with boundary) automatically.
 function buildFormData(payload) {
   const fd = new FormData();
+  // Channel: "fcm" (default) | "whatsapp" | "sms"
+  if (payload.channel != null) fd.append("channel", payload.channel);
   if (payload.title != null) fd.append("title", payload.title);
   if (payload.body  != null) fd.append("body",  payload.body);
   if (payload.userIds && Array.isArray(payload.userIds)) {
     fd.append("userIds", JSON.stringify(payload.userIds));
+  }
+  // WhatsApp / SMS template fields
+  if (payload.templateName != null) fd.append("templateName", payload.templateName);
+  if (payload.languageCode != null) fd.append("languageCode", payload.languageCode);
+  if (payload.templateParams != null) {
+    fd.append(
+      "templateParams",
+      Array.isArray(payload.templateParams) ? JSON.stringify(payload.templateParams) : payload.templateParams
+    );
   }
   if (payload.data != null) {
     fd.append("data", typeof payload.data === "string" ? payload.data : JSON.stringify(payload.data));

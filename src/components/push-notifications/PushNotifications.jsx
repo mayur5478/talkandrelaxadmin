@@ -31,7 +31,16 @@ const MODES = [
   { value: "selective", label: "Selective" },
 ];
 
-const defaultForm = { title: "", body: "" };
+// Delivery channels. FCM = in-app push (needs a device token, so it misses
+// logged-out users). WhatsApp/SMS reach by mobile number and require an
+// approved template (content is fixed in the template, only variables vary).
+const CHANNELS = [
+  { value: "fcm",      label: "App Push (FCM)" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "sms",      label: "SMS" },
+];
+
+const defaultForm = { title: "", body: "", templateName: "", languageCode: "en" };
 
 // Image upload constraints — must match backend (routes/admin/pushNotification/pushNotification.js)
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -71,7 +80,7 @@ function ResultBadge({ result }) {
       )}
       {result.skipped > 0 && (
         <div className="pn-result__row pn-result__row--warn">
-          <span className="pn-result__label">Skipped (no token)</span>
+          <span className="pn-result__label">Skipped (unreachable)</span>
           <span className="pn-result__value">{result.skipped}</span>
         </div>
       )}
@@ -354,6 +363,7 @@ function HistoryPanel() {
                 >
                   <div className="pn-history-item__header">
                     <span className={`pn-badge pn-badge--${item.target}`}>{targetLabel(item.target)}</span>
+                    <span className="pn-badge" style={{ textTransform: "uppercase" }}>{item.channel || "fcm"}</span>
                     {isCancelled && (
                       <span className="pn-badge pn-badge--cancelled" title="No further retries allowed">
                         ✕ Cancelled
@@ -478,9 +488,11 @@ function HistoryPanel() {
 // ─── Main page ────────────────────────────────────────────────────────────────
 function PushNotifications() {
   const [mode, setMode]               = useState("broadcast");
+  const [channel, setChannel]         = useState("fcm");
   const [target, setTarget]           = useState("users");
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [form, setForm]               = useState(defaultForm);
+  const [templateParams, setTemplateParams] = useState([]); // string[] for {{1}},{{2}}…
   const [image, setImage]             = useState(null); // File | null
   const [lastResult, setLastResult]   = useState(null);
   const [errorMsg, setErrorMsg]       = useState("");
@@ -492,6 +504,7 @@ function PushNotifications() {
   const [sendToSelected,  { isLoading: sendingSelected }]  = useSendToSelectedMutation();
 
   const isSending = sendingUsers || sendingListeners || sendingAll || sendingSelected;
+  const isFcm = channel === "fcm";
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -499,11 +512,25 @@ function PushNotifications() {
     setLastResult(null);
   };
 
+  const resetAfterChannelChange = (next) => {
+    setChannel(next);
+    setLastResult(null);
+    setErrorMsg("");
+  };
+
+  // Template variable editing (WhatsApp/SMS).
+  const addParam    = () => setTemplateParams((p) => [...p, ""]);
+  const updateParam = (i, v) => setTemplateParams((p) => p.map((x, idx) => (idx === i ? v : x)));
+  const removeParam = (i) => setTemplateParams((p) => p.filter((_, idx) => idx !== i));
+
+  // Reachable audience count depends on the channel: FCM counts device tokens,
+  // WhatsApp/SMS count mobile numbers (stats.mobile.*).
   const broadcastCount = () => {
     if (!stats) return "—";
-    if (target === "users") return stats.userCount;
-    if (target === "listeners") return stats.listenerCount;
-    return stats.totalCount;
+    const src = isFcm ? stats : (stats.mobile || {});
+    if (target === "users") return src.userCount ?? "—";
+    if (target === "listeners") return src.listenerCount ?? "—";
+    return src.totalCount ?? "—";
   };
 
   const addRecipient = (r) => {
@@ -514,17 +541,34 @@ function PushNotifications() {
   const removeRecipient = (id) => setSelectedRecipients((prev) => prev.filter((r) => r.id !== id));
 
   const handleSend = async () => {
-    if (!form.title.trim() || !form.body.trim()) { setErrorMsg("Please fill in both title and message."); return; }
+    // Per-channel validation.
+    if (isFcm) {
+      if (!form.title.trim() || !form.body.trim()) { setErrorMsg("Please fill in both title and message."); return; }
+    } else if (!form.templateName.trim()) {
+      setErrorMsg("Please enter the approved template name."); return;
+    }
     if (mode === "selective" && selectedRecipients.length === 0) { setErrorMsg("Please select at least one recipient."); return; }
     setErrorMsg("");
     setLastResult(null);
 
     try {
-      const payload = {
-        title: form.title.trim(),
-        body:  form.body.trim(),
-        ...(image ? { image } : {}),
-      };
+      const cleanParams = templateParams.map((p) => p.trim()).filter((p) => p.length > 0);
+      const payload = isFcm
+        ? {
+            channel,
+            title: form.title.trim(),
+            body:  form.body.trim(),
+            ...(image ? { image } : {}),
+          }
+        : {
+            channel,
+            templateName: form.templateName.trim(),
+            languageCode: (form.languageCode || "en").trim() || "en",
+            ...(cleanParams.length ? { templateParams: cleanParams } : {}),
+            // WhatsApp media-template header image (optional; SMS ignores it).
+            ...(channel === "whatsapp" && image ? { image } : {}),
+          };
+
       let res;
       if (mode === "selective") {
         res = await sendToSelected({ ...payload, userIds: selectedRecipients.map((r) => r.id) }).unwrap();
@@ -535,6 +579,7 @@ function PushNotifications() {
       }
       setLastResult(res);
       setForm(defaultForm);
+      setTemplateParams([]);
       setImage(null);
       if (mode === "selective") setSelectedRecipients([]);
     } catch (err) {
@@ -542,7 +587,8 @@ function PushNotifications() {
     }
   };
 
-  const canSend = !isSending && form.title.trim() && form.body.trim() && (mode === "broadcast" || selectedRecipients.length > 0);
+  const contentReady = isFcm ? (form.title.trim() && form.body.trim()) : form.templateName.trim();
+  const canSend = !isSending && contentReady && (mode === "broadcast" || selectedRecipients.length > 0);
 
   return (
     <div className="pn-page">
@@ -565,6 +611,26 @@ function PushNotifications() {
             ))}
           </div>
 
+          {/* Delivery channel */}
+          <div className="pn-field">
+            <label className="pn-label">Channel</label>
+            <div className="pn-target-group">
+              {CHANNELS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  className={`pn-target-btn ${channel === value ? "pn-target-btn--active" : ""}`}
+                  onClick={() => resetAfterChannelChange(value)}
+                  disabled={isSending}
+                >{label}</button>
+              ))}
+            </div>
+            {!isFcm && (
+              <p className="pn-audience-count">
+                {channel === "whatsapp" ? "WhatsApp" : "SMS"} reaches users by mobile number — only an approved template can be sent.
+              </p>
+            )}
+          </div>
+
           {mode === "broadcast" && (
             <div className="pn-field">
               <label className="pn-label">Send To</label>
@@ -579,7 +645,7 @@ function PushNotifications() {
                 ))}
               </div>
               {!statsLoading && stats && (
-                <p className="pn-audience-count">{broadcastCount()} device{broadcastCount() !== 1 ? "s" : ""} will receive this</p>
+                <p className="pn-audience-count">{broadcastCount()} recipient{broadcastCount() !== 1 ? "s" : ""} will receive this</p>
               )}
             </div>
           )}
@@ -594,25 +660,75 @@ function PushNotifications() {
             </div>
           )}
 
-          <div className="pn-field">
-            <label className="pn-label" htmlFor="pn-title">Notification Title</label>
-            <input id="pn-title" className="pn-input" type="text" name="title" placeholder="e.g. New Feature Available!" value={form.title} onChange={handleChange} maxLength={100} disabled={isSending} />
-            <span className="pn-char-count">{form.title.length}/100</span>
-          </div>
+          {isFcm ? (
+            <>
+              <div className="pn-field">
+                <label className="pn-label" htmlFor="pn-title">Notification Title</label>
+                <input id="pn-title" className="pn-input" type="text" name="title" placeholder="e.g. New Feature Available!" value={form.title} onChange={handleChange} maxLength={100} disabled={isSending} />
+                <span className="pn-char-count">{form.title.length}/100</span>
+              </div>
 
-          <div className="pn-field">
-            <label className="pn-label" htmlFor="pn-body">Message</label>
-            <textarea id="pn-body" className="pn-textarea" name="body" placeholder="e.g. Check out the latest updates in your app..." value={form.body} onChange={handleChange} maxLength={300} rows={4} disabled={isSending} />
-            <span className="pn-char-count">{form.body.length}/300</span>
-          </div>
+              <div className="pn-field">
+                <label className="pn-label" htmlFor="pn-body">Message</label>
+                <textarea id="pn-body" className="pn-textarea" name="body" placeholder="e.g. Check out the latest updates in your app..." value={form.body} onChange={handleChange} maxLength={300} rows={4} disabled={isSending} />
+                <span className="pn-char-count">{form.body.length}/300</span>
+              </div>
 
-          {/* Optional image attachment */}
-          <ImagePicker
-            image={image}
-            onPick={(f) => { setImage(f); setLastResult(null); setErrorMsg(""); }}
-            onClear={() => setImage(null)}
-            disabled={isSending}
-          />
+              {/* Optional image attachment (FCM notification image) */}
+              <ImagePicker
+                image={image}
+                onPick={(f) => { setImage(f); setLastResult(null); setErrorMsg(""); }}
+                onClear={() => setImage(null)}
+                disabled={isSending}
+              />
+            </>
+          ) : (
+            <>
+              <div className="pn-field">
+                <label className="pn-label" htmlFor="pn-template">Approved Template Name</label>
+                <input id="pn-template" className="pn-input" type="text" name="templateName" placeholder="e.g. outage_fixed_login" value={form.templateName} onChange={handleChange} disabled={isSending} autoComplete="off" />
+                <span className="pn-char-count">Must exactly match a template approved in your {channel === "whatsapp" ? "WhatsApp (SmartPing)" : "DLT / 2Factor"} account.</span>
+              </div>
+
+              <div className="pn-field">
+                <label className="pn-label" htmlFor="pn-lang">Template Language Code</label>
+                <input id="pn-lang" className="pn-input" type="text" name="languageCode" placeholder="en" value={form.languageCode} onChange={handleChange} disabled={isSending} style={{ maxWidth: 140 }} />
+              </div>
+
+              <div className="pn-field">
+                <label className="pn-label">
+                  Template Variables
+                  <span className="pn-selected-count"> (fill {"{{1}}"}, {"{{2}}"}… in order)</span>
+                </label>
+                {templateParams.length === 0 && (
+                  <p className="pn-no-selected">No variables. Add one for each placeholder in the template.</p>
+                )}
+                {templateParams.map((val, i) => (
+                  <div key={i} className="pn-search-wrap" style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                    <input
+                      className="pn-input"
+                      type="text"
+                      placeholder={`Variable {{${i + 1}}}`}
+                      value={val}
+                      onChange={(e) => { updateParam(i, e.target.value); setErrorMsg(""); setLastResult(null); }}
+                      disabled={isSending}
+                    />
+                    <button type="button" className="pn-chip__remove" onClick={() => removeParam(i)} disabled={isSending} title="Remove variable">×</button>
+                  </div>
+                ))}
+                <button type="button" className="pn-image-picker__btn" onClick={addParam} disabled={isSending}>+ Add variable</button>
+              </div>
+
+              {channel === "whatsapp" && (
+                <ImagePicker
+                  image={image}
+                  onPick={(f) => { setImage(f); setLastResult(null); setErrorMsg(""); }}
+                  onClear={() => setImage(null)}
+                  disabled={isSending}
+                />
+              )}
+            </>
+          )}
 
           {errorMsg   && <p className="pn-error">{errorMsg}</p>}
           {lastResult && <ResultBadge result={lastResult} />}
@@ -626,20 +742,32 @@ function PushNotifications() {
         <div className="pn-sidebar">
           {/* Stats */}
           <div className="pn-card pn-stats-card">
-            <h3 className="pn-card__title">Device Stats</h3>
+            <h3 className="pn-card__title">Reachability</h3>
             {statsLoading ? <p className="pn-stats-loading">Loading…</p> : (
               <>
                 <div className="pn-stat">
-                  <span className="pn-stat__label">Users with notifications</span>
+                  <span className="pn-stat__label">Users with app push (FCM)</span>
                   <span className="pn-stat__value pn-stat__value--blue">{stats?.userCount ?? "—"}</span>
                 </div>
                 <div className="pn-stat">
-                  <span className="pn-stat__label">Listeners with notifications</span>
+                  <span className="pn-stat__label">Listeners with app push (FCM)</span>
                   <span className="pn-stat__value pn-stat__value--green">{stats?.listenerCount ?? "—"}</span>
                 </div>
                 <div className="pn-stat pn-stat--total">
-                  <span className="pn-stat__label">Total reachable devices</span>
+                  <span className="pn-stat__label">Total FCM-reachable</span>
                   <span className="pn-stat__value">{stats?.totalCount ?? "—"}</span>
+                </div>
+                <div className="pn-stat" style={{ marginTop: 12 }}>
+                  <span className="pn-stat__label">Users with a mobile no. (WhatsApp/SMS)</span>
+                  <span className="pn-stat__value pn-stat__value--blue">{stats?.mobile?.userCount ?? "—"}</span>
+                </div>
+                <div className="pn-stat">
+                  <span className="pn-stat__label">Listeners with a mobile no. (WhatsApp/SMS)</span>
+                  <span className="pn-stat__value pn-stat__value--green">{stats?.mobile?.listenerCount ?? "—"}</span>
+                </div>
+                <div className="pn-stat pn-stat--total">
+                  <span className="pn-stat__label">Total mobile-reachable</span>
+                  <span className="pn-stat__value">{stats?.mobile?.totalCount ?? "—"}</span>
                 </div>
               </>
             )}

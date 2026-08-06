@@ -48,6 +48,7 @@ const PushNotifications   = lazy(() => import("../push-notifications/PushNotific
 const SupportManagement   = lazy(() => import("../support-management/SupportManagement"));
 const Agent               = lazy(() => import("../agent/Agent"));
 const AgentAudit          = lazy(() => import("../agent/AgentAudit"));
+const AppFeedback         = lazy(() => import("../app-feedback/AppFeedback"));
 
 const Main = () => {
   const {
@@ -113,6 +114,7 @@ const Main = () => {
           <Route path="/support-tickets" element={<SupportManagement />} />
           <Route path="/agent" element={<Agent />} />
           <Route path="/agent/audit" element={<AgentAudit />} />
+          <Route path="/app-feedback" element={<AppFeedback />} />
         </Routes>
       </Suspense>
     </AppShell>
