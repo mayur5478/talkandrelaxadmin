@@ -17,7 +17,7 @@
  *   listener/listener-list, listeners-list, listener-profile/:id,
  *   listener-applications, listener-profiles, listener-request-approval,
  *   reject-request, send-onboarding-form-1, send-onboarding-form-2,
- *   listener-profile-form-link
+ *   listener-profile-form-link, listener-profile-update
  *   admin/monthly-insights
  * Deliberately NOT granted: refunds, recharges, payouts/pay-salary, wallet,
  * GST, coupons, plans, admin management.
