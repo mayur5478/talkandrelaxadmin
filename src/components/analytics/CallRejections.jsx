@@ -1,9 +1,19 @@
 import React, { useState } from "react";
 import Rejections from "../payment-management/payment-list/rejections/Rejections";
 import MultiDatePicker from "../user-management/user-list/date-picker/MultiDatePicker";
+import { RejectionFocusStrip } from "./RejectionFocus";
 
 function CallRejections() {
   const [dateRange, setDateRange] = useState([]);
+
+  // The strip summarises a rolling window, so it tracks the selected range's
+  // length rather than the exact dates — falls back to 7 days when unset.
+  const focusDays = (() => {
+    const [from, to] = dateRange;
+    if (!from || !to) return 7;
+    const d = Math.ceil((new Date(to) - new Date(from)) / 86400000) + 1;
+    return Math.min(Math.max(d, 1), 90);
+  })();
 
   return (
     <div className="tw-flex tw-flex-col tw-gap-4">
@@ -17,6 +27,8 @@ function CallRejections() {
           <MultiDatePicker onChange={setDateRange} />
         </div>
       </div>
+
+      <RejectionFocusStrip days={focusDays} />
 
       <Rejections
         fromDate={dateRange[0]}

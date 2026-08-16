@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./rejections.scss";
 import { useGetSessionRejectionsQuery } from "../../../../services/auth";
 import moment from "moment";
@@ -27,7 +27,7 @@ function Rejections({ fromDate, toDate }) {
     setPage(1);
   }, [fromDate, toDate, search, typeFilter]);
 
-  const { data, error, isLoading } = useGetSessionRejectionsQuery({
+  const { data, error, isLoading, isFetching } = useGetSessionRejectionsQuery({
     page,
     limit: pageSize,
     fromDate: fromDate?.toISOString(),
@@ -35,6 +35,14 @@ function Rejections({ fromDate, toDate }) {
     search: search || undefined,
     type: typeFilter,
   });
+
+  // RTK Query drops to `undefined` whenever the arguments change (new page, new
+  // filter), which made the whole table collapse into a skeleton on every page
+  // turn — the main reason this screen *felt* slow. Hold the last good page and
+  // dim it while the next one loads instead.
+  const lastGood = useRef(null);
+  if (data) lastGood.current = data;
+  const shown = data || lastGood.current;
 
   const handleViewUser = (id) => {
     navigate(`/dashboard/user-management/profile-view?id=${id}`);
@@ -49,11 +57,11 @@ function Rejections({ fromDate, toDate }) {
     setSearch(searchInput.trim());
   };
 
-  if (isLoading) return <TableSkeleton rows={8} cols={8} />;
-  if (error) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching rejections: {error.message}</div>;
+  if (isLoading && !shown) return <TableSkeleton rows={8} cols={8} />;
+  if (error && !shown) return <div className="tw-p-4 tw-text-fg-tertiary">Error fetching rejections: {error.message}</div>;
 
-  const total = data?.pagination?.total || 0;
-  const rejections = data?.data || [];
+  const total = shown?.pagination?.total || 0;
+  const rejections = shown?.data || [];
 
   return (
     <div className="tw-flex tw-flex-col tw-gap-3">
@@ -93,9 +101,10 @@ function Rejections({ fromDate, toDate }) {
           <option value="video">Video</option>
           <option value="chat">Chat</option>
         </select>
+        {isFetching && <span className="tw-text-[12px] tw-text-fg-tertiary">updating…</span>}
       </div>
 
-      <div className="tw-overflow-x-auto">
+      <div className={`tw-overflow-x-auto tw-transition-opacity ${isFetching ? "tw-opacity-60" : ""}`}>
         <Table>
           <THead>
             <TR>

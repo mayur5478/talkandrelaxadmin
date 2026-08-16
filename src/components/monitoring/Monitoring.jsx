@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useGetLiveQuery,
+  useGetOnlineNowQuery,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
   useGetCallHealthQuery,
@@ -13,7 +15,7 @@ import {
 } from "../../services/monitoring";
 import { Table, THead, TBody, TR, Th, Td } from "../v2/ui/table";
 
-const TABS = ["Live", "Call Health", "Call Quality", "Listener Scorecard", "Billing Integrity", "Alerts"];
+const TABS = ["Online Now", "Live", "Call Health", "Call Quality", "Listener Scorecard", "Billing Integrity", "Alerts"];
 
 const Card = ({ label, value, sub, tone }) => (
   <div className="tw-rounded-xl tw-border tw-border-border tw-bg-bg-secondary tw-p-4 tw-min-w-[150px]">
@@ -30,7 +32,12 @@ const Msg = ({ cols, children }) => (
 const sevTone = (s) => (s === "high" ? "tw-text-red-400" : s === "low" ? "tw-text-fg-tertiary" : "tw-text-amber-400");
 
 export default function Monitoring() {
-  const [tab, setTab] = useState("Live");
+  // Tab lives in the URL so the dashboard's "Online Users / Online Listeners"
+  // cards can deep-link straight to the Online Now list.
+  const [params, setParams] = useSearchParams();
+  const urlTab = params.get("tab");
+  const tab = TABS.includes(urlTab) ? urlTab : "Live";
+  const setTab = (t) => setParams(t === "Live" ? {} : { tab: t }, { replace: true });
   const [days, setDays] = useState(7);
   const [openSession, setOpenSession] = useState(null);
 
@@ -38,7 +45,7 @@ export default function Monitoring() {
     <div className="tw-p-4">
       <div className="tw-flex tw-items-center tw-justify-between tw-mb-4">
         <h1 className="tw-text-xl tw-font-semibold tw-text-fg-primary">Session & Call Monitoring</h1>
-        {tab !== "Live" && tab !== "Alerts" && (
+        {tab !== "Live" && tab !== "Alerts" && tab !== "Online Now" && (
           <select value={days} onChange={(e) => setDays(Number(e.target.value))}
             className="tw-bg-bg-secondary tw-border tw-border-border tw-rounded tw-px-2 tw-py-1 tw-text-sm">
             {[1, 7, 14, 30, 90].map((d) => <option key={d} value={d}>Last {d}d</option>)}
@@ -55,6 +62,7 @@ export default function Monitoring() {
         ))}
       </div>
 
+      {tab === "Online Now" && <OnlineNowTab />}
       {tab === "Live" && <LiveTab onOpen={setOpenSession} />}
       {tab === "Call Health" && <CallHealthTab days={days} />}
       {tab === "Call Quality" && <QualityTab days={days} />}
@@ -63,6 +71,119 @@ export default function Monitoring() {
       {tab === "Alerts" && <AlertsTab onOpen={setOpenSession} />}
 
       {openSession && <SessionModal id={openSession} onClose={() => setOpenSession(null)} />}
+    </div>
+  );
+}
+
+// ── Online Now ────────────────────────────────────────────────────────────────
+// Names (clickable to the profile) of everyone currently flagged online, split
+// into users and listeners. `is_online` on its own over-reports: a phone the OS
+// killed still advertises online. Each row is therefore cross-checked against
+// the socket registry and labelled live or ghost, so admin can see the real
+// reachable pool, not the flattering number.
+const ago = (t) => {
+  if (!t) return "—";
+  const s = Math.floor((Date.now() - new Date(t).getTime()) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+};
+
+function PresencePill({ presence }) {
+  const live = presence === "live";
+  return (
+    <span
+      className={`tw-inline-flex tw-items-center tw-gap-1 tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full ${
+        live ? "tw-bg-green-500/10 tw-text-green-400" : "tw-bg-amber-500/10 tw-text-amber-400"
+      }`}
+      title={live ? "Socket confirmed — actually reachable" : "Flagged online but no live socket — will not receive calls"}
+    >
+      <span className={`tw-w-1.5 tw-h-1.5 tw-rounded-full ${live ? "tw-bg-green-400" : "tw-bg-amber-400"}`} />
+      {live ? "live" : "ghost"}
+    </span>
+  );
+}
+
+function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen }) {
+  return (
+    <div>
+      <div className="tw-flex tw-items-baseline tw-gap-3 tw-mb-2">
+        <div className="tw-text-sm tw-font-semibold tw-text-fg-primary">{title}</div>
+        <div className="tw-text-xs tw-text-fg-tertiary">
+          {tally?.total ?? 0} online · <span className="tw-text-green-400">{tally?.live ?? 0} live</span>
+          {" · "}<span className="tw-text-amber-400">{tally?.ghost ?? 0} ghost</span>
+          {" · "}{tally?.in_session ?? 0} in session
+        </div>
+      </div>
+      <Table>
+        <THead>
+          <TR><Th>Name</Th><Th>Presence</Th><Th>In session</Th><Th>Mobile</Th><Th>Last seen</Th></TR>
+        </THead>
+        <TBody striped>
+          {isLoading ? <Msg cols={5}>Loading…</Msg> :
+            rows.length === 0 ? <Msg cols={5}>Nobody online</Msg> :
+              rows.map((p) => (
+                <TR key={p.id}>
+                  <Td>
+                    <button
+                      onClick={() => onOpen(p)}
+                      className="tw-text-accent hover:tw-underline tw-font-medium tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer"
+                    >
+                      {p.fullName || "Unnamed"}
+                    </button>
+                  </Td>
+                  <Td><PresencePill presence={p.presence} /></Td>
+                  <Td>{p.in_session ? <span className="tw-text-accent">yes</span> : <span className="tw-text-fg-tertiary">—</span>}</Td>
+                  <Td className="tw-text-fg-tertiary tw-text-xs">{p.mobile_number || "—"}</Td>
+                  <Td className="tw-text-fg-tertiary tw-text-xs">{ago(p.socket_last_seen || p.last_seen)}</Td>
+                </TR>
+              ))}
+        </TBody>
+      </Table>
+    </div>
+  );
+}
+
+function OnlineNowTab() {
+  const navigate = useNavigate();
+  const { data, isLoading, isFetching } = useGetOnlineNowQuery(
+    { role: "all", limit: 300 },
+    { pollingInterval: 15000 }
+  );
+  const [hideGhosts, setHideGhosts] = useState(false);
+
+  const filter = (arr = []) => (hideGhosts ? arr.filter((p) => p.presence === "live") : arr);
+  const users = filter(data?.users);
+  const listeners = filter(data?.listeners);
+  const c = data?.counts || {};
+
+  const open = (p) =>
+    navigate(
+      p.role === "listener"
+        ? `/dashboard/listener-management/profile-view?id=${p.id}`
+        : `/dashboard/user-management/profile-view?id=${p.id}`
+    );
+
+  return (
+    <div>
+      <div className="tw-flex tw-gap-3 tw-mb-4 tw-flex-wrap tw-items-center">
+        <Card label="Users online" value={c.users?.total} sub={`${c.users?.live ?? 0} live · ${c.users?.ghost ?? 0} ghost`} tone="tw-text-accent" />
+        <Card label="Listeners online" value={c.listeners?.total} sub={`${c.listeners?.live ?? 0} live · ${c.listeners?.ghost ?? 0} ghost`} tone="tw-text-accent" />
+        <Card label="Reachable listeners" value={c.listeners?.live}
+          sub="socket-confirmed — the real pool"
+          tone={c.listeners?.total && c.listeners.live / c.listeners.total >= 0.6 ? "tw-text-green-400" : "tw-text-red-400"} />
+        <Card label="Auto-refresh" value="15s" sub={isFetching ? "updating…" : "live"} />
+        <label className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-fg-secondary tw-cursor-pointer">
+          <input type="checkbox" checked={hideGhosts} onChange={(e) => setHideGhosts(e.target.checked)} />
+          Hide ghosts
+        </label>
+      </div>
+
+      <div className="tw-grid tw-grid-cols-1 xl:tw-grid-cols-2 tw-gap-6">
+        <OnlinePeopleTable title="Listeners online" rows={listeners} isLoading={isLoading} tally={c.listeners} onOpen={open} />
+        <OnlinePeopleTable title="Users online" rows={users} isLoading={isLoading} tally={c.users} onOpen={open} />
+      </div>
     </div>
   );
 }
