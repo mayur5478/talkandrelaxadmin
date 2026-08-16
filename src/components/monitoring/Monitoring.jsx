@@ -3,6 +3,9 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useGetLiveQuery,
   useGetOnlineNowQuery,
+  useForceOfflineMutation,
+  useWakeListenerMutation,
+  useSweepGhostsMutation,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
   useGetCallHealthQuery,
@@ -105,7 +108,40 @@ function PresencePill({ presence }) {
   );
 }
 
-function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen }) {
+// What the person is doing this second. "calling"/"being called" come from the
+// Redis ring keys, which is the only place an in-flight call exists — Sessions
+// only learns about it once it connects.
+function ActivityCell({ activity, onOpenPeer }) {
+  const a = activity || { kind: "idle" };
+  if (a.kind === "idle") return <span className="tw-text-fg-tertiary">—</span>;
+
+  const label = {
+    in_session: "in call with",
+    calling: "ringing",
+    being_called: "rung by",
+  }[a.kind] || a.kind;
+
+  const tone = a.kind === "in_session" ? "tw-text-green-400" : "tw-text-accent";
+
+  return (
+    <span className="tw-text-xs">
+      <span className={tone}>{label}</span>{" "}
+      {a.peer_id ? (
+        <button
+          onClick={() => onOpenPeer(a.peer_id, a.peer_role)}
+          className="tw-text-fg-primary hover:tw-underline tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer"
+        >
+          {a.peer_name || String(a.peer_id).slice(0, 8)}
+        </button>
+      ) : "—"}
+      {a.type ? <span className="tw-text-fg-tertiary"> ({a.type})</span> : null}
+    </span>
+  );
+}
+
+function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen, onOpenPeer, actions }) {
+  const showActions = !!actions;
+  const cols = showActions ? 6 : 5;
   return (
     <div>
       <div className="tw-flex tw-items-baseline tw-gap-3 tw-mb-2">
@@ -114,15 +150,19 @@ function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen }) {
           {tally?.total ?? 0} online · <span className="tw-text-green-400">{tally?.live ?? 0} live</span>
           {" · "}<span className="tw-text-amber-400">{tally?.ghost ?? 0} ghost</span>
           {" · "}{tally?.in_session ?? 0} in session
+          {tally?.calling ? ` · ${tally.calling} ringing` : ""}
         </div>
       </div>
       <Table>
         <THead>
-          <TR><Th>Name</Th><Th>Presence</Th><Th>In session</Th><Th>Mobile</Th><Th>Last seen</Th></TR>
+          <TR>
+            <Th>Name</Th><Th>Presence</Th><Th>Doing now</Th><Th>Mobile</Th><Th>Last seen</Th>
+            {showActions && <Th>Actions</Th>}
+          </TR>
         </THead>
         <TBody striped>
-          {isLoading ? <Msg cols={5}>Loading…</Msg> :
-            rows.length === 0 ? <Msg cols={5}>Nobody online</Msg> :
+          {isLoading ? <Msg cols={cols}>Loading…</Msg> :
+            rows.length === 0 ? <Msg cols={cols}>Nobody online</Msg> :
               rows.map((p) => (
                 <TR key={p.id}>
                   <Td>
@@ -134,9 +174,10 @@ function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen }) {
                     </button>
                   </Td>
                   <Td><PresencePill presence={p.presence} /></Td>
-                  <Td>{p.in_session ? <span className="tw-text-accent">yes</span> : <span className="tw-text-fg-tertiary">—</span>}</Td>
+                  <Td><ActivityCell activity={p.activity} onOpenPeer={onOpenPeer} /></Td>
                   <Td className="tw-text-fg-tertiary tw-text-xs">{p.mobile_number || "—"}</Td>
                   <Td className="tw-text-fg-tertiary tw-text-xs">{ago(p.socket_last_seen || p.last_seen)}</Td>
+                  {showActions && <Td>{actions(p)}</Td>}
                 </TR>
               ))}
         </TBody>
@@ -147,23 +188,96 @@ function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen }) {
 
 function OnlineNowTab() {
   const navigate = useNavigate();
-  const { data, isLoading, isFetching } = useGetOnlineNowQuery(
+  const { data, isLoading, isFetching, refetch } = useGetOnlineNowQuery(
     { role: "all", limit: 300 },
     { pollingInterval: 15000 }
   );
   const [hideGhosts, setHideGhosts] = useState(false);
+  const [busyId, setBusyId] = useState(null);
+  const [note, setNote] = useState(null);
+  const [sweepPreview, setSweepPreview] = useState(null);
+  const [minAgeMin, setMinAgeMin] = useState(45);
+
+  const [forceOffline] = useForceOfflineMutation();
+  const [wakeListener] = useWakeListenerMutation();
+  const [sweepGhosts, { isLoading: sweeping }] = useSweepGhostsMutation();
 
   const filter = (arr = []) => (hideGhosts ? arr.filter((p) => p.presence === "live") : arr);
   const users = filter(data?.users);
   const listeners = filter(data?.listeners);
   const c = data?.counts || {};
+  const rings = data?.in_flight_rings || [];
 
-  const open = (p) =>
+  const openById = (id, role) =>
     navigate(
-      p.role === "listener"
-        ? `/dashboard/listener-management/profile-view?id=${p.id}`
-        : `/dashboard/user-management/profile-view?id=${p.id}`
+      role === "listener"
+        ? `/dashboard/listener-management/profile-view?id=${id}`
+        : `/dashboard/user-management/profile-view?id=${id}`
     );
+  const open = (p) => openById(p.id, p.role);
+
+  const run = async (id, fn) => {
+    setBusyId(id);
+    setNote(null);
+    try {
+      const res = await fn().unwrap();
+      setNote({ ok: res.success !== false, text: res.message });
+      refetch();
+    } catch (e) {
+      setNote({ ok: false, text: e?.data?.message || "Action failed" });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  // Dry run first, always. The confirm step applies it.
+  const previewSweep = async () => {
+    setNote(null);
+    try {
+      const res = await sweepGhosts({ minAgeMin, apply: false }).unwrap();
+      setSweepPreview(res);
+    } catch (e) {
+      setNote({ ok: false, text: e?.data?.message || "Sweep preview failed" });
+    }
+  };
+
+  const applySweep = async () => {
+    try {
+      const res = await sweepGhosts({ minAgeMin, apply: true }).unwrap();
+      setNote({ ok: true, text: res.message });
+      setSweepPreview(null);
+      refetch();
+    } catch (e) {
+      setNote({ ok: false, text: e?.data?.message || "Sweep failed" });
+    }
+  };
+
+  // Only ghosts get actions — a live listener is reachable and must not be
+  // knocked offline.
+  const listenerActions = (p) => {
+    if (p.presence !== "ghost") return <span className="tw-text-fg-tertiary tw-text-xs">—</span>;
+    const busy = busyId === p.id;
+    return (
+      <span className="tw-flex tw-gap-2">
+        <button
+          disabled={busy}
+          onClick={() => run(p.id, () => wakeListener({ userId: p.id }))}
+          title="Push the listener and re-check for a socket after 10s"
+          className="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded tw-border tw-border-border tw-text-fg-secondary hover:tw-text-fg-primary tw-cursor-pointer disabled:tw-opacity-40"
+        >
+          {busy ? "…" : "Ping"}
+        </button>
+        <button
+          disabled={busy}
+          onClick={() => run(p.id, () => forceOffline({ userId: p.id, notify: true }))}
+          title="Stop advertising them and send the go-back-online reminder"
+          className="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded tw-border tw-border-amber-500/40 tw-text-amber-400 hover:tw-bg-amber-500/10 tw-cursor-pointer disabled:tw-opacity-40"
+        >
+          Force offline
+        </button>
+      </span>
+    );
+  };
 
   return (
     <div>
@@ -173,6 +287,7 @@ function OnlineNowTab() {
         <Card label="Reachable listeners" value={c.listeners?.live}
           sub="socket-confirmed — the real pool"
           tone={c.listeners?.total && c.listeners.live / c.listeners.total >= 0.6 ? "tw-text-green-400" : "tw-text-red-400"} />
+        <Card label="Rings in flight" value={rings.length} sub="calls connecting right now" />
         <Card label="Auto-refresh" value="15s" sub={isFetching ? "updating…" : "live"} />
         <label className="tw-flex tw-items-center tw-gap-2 tw-text-sm tw-text-fg-secondary tw-cursor-pointer">
           <input type="checkbox" checked={hideGhosts} onChange={(e) => setHideGhosts(e.target.checked)} />
@@ -180,9 +295,108 @@ function OnlineNowTab() {
         </label>
       </div>
 
+      {/* Ghost sweep — dry run, then confirm */}
+      <div className="tw-flex tw-items-center tw-gap-3 tw-flex-wrap tw-mb-3 tw-p-3 tw-rounded-xl tw-border tw-border-border tw-bg-bg-secondary">
+        <span className="tw-text-sm tw-font-medium tw-text-fg-primary">Ghost sweep</span>
+        <label className="tw-text-xs tw-text-fg-tertiary tw-flex tw-items-center tw-gap-2">
+          socket dead longer than
+          <input
+            type="number"
+            min={10}
+            value={minAgeMin}
+            onChange={(e) => setMinAgeMin(Number(e.target.value))}
+            className="tw-w-16 tw-bg-bg-primary tw-border tw-border-border tw-rounded tw-px-2 tw-py-0.5 tw-text-fg-primary"
+          />
+          min
+        </label>
+        <button
+          onClick={previewSweep}
+          disabled={sweeping}
+          className="tw-text-xs tw-px-3 tw-py-1 tw-rounded tw-border tw-border-border tw-text-fg-secondary hover:tw-text-fg-primary tw-cursor-pointer disabled:tw-opacity-40"
+        >
+          {sweeping ? "Checking…" : "Preview"}
+        </button>
+        <span className="tw-text-xs tw-text-fg-tertiary">
+          Nothing changes until you confirm. Recent drops are never swept — they are usually mid-reconnect.
+        </span>
+      </div>
+
+      {sweepPreview && (
+        <div className="tw-mb-3 tw-p-3 tw-rounded-xl tw-border tw-border-amber-500/30 tw-bg-amber-500/10">
+          <div className="tw-text-sm tw-text-amber-400 tw-font-medium tw-mb-1">
+            {sweepPreview.message}
+          </div>
+          <div className="tw-text-xs tw-text-fg-secondary tw-mb-2 tw-max-h-32 tw-overflow-auto">
+            {(sweepPreview.targets || []).map((t) => (
+              <div key={t.userId}>
+                {t.name} — dead {t.dead_min}min{t.has_token ? "" : " (no token, cannot remind)"}
+              </div>
+            ))}
+          </div>
+          <div className="tw-flex tw-gap-2">
+            <button
+              onClick={applySweep}
+              disabled={sweeping || !sweepPreview.would_affect}
+              className="tw-text-xs tw-px-3 tw-py-1 tw-rounded tw-bg-amber-500/20 tw-text-amber-300 tw-border tw-border-amber-500/40 tw-cursor-pointer disabled:tw-opacity-40"
+            >
+              Set these offline + remind
+            </button>
+            <button
+              onClick={() => setSweepPreview(null)}
+              className="tw-text-xs tw-px-3 tw-py-1 tw-rounded tw-border tw-border-border tw-text-fg-tertiary tw-cursor-pointer"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {note && (
+        <div className={`tw-mb-3 tw-text-sm ${note.ok ? "tw-text-green-400" : "tw-text-red-400"}`}>
+          {note.text}
+        </div>
+      )}
+
       <div className="tw-grid tw-grid-cols-1 xl:tw-grid-cols-2 tw-gap-6">
-        <OnlinePeopleTable title="Listeners online" rows={listeners} isLoading={isLoading} tally={c.listeners} onOpen={open} />
-        <OnlinePeopleTable title="Users online" rows={users} isLoading={isLoading} tally={c.users} onOpen={open} />
+        <OnlinePeopleTable
+          title="Listeners online" rows={listeners} isLoading={isLoading}
+          tally={c.listeners} onOpen={open} onOpenPeer={openById} actions={listenerActions}
+        />
+        <OnlinePeopleTable
+          title="Users online" rows={users} isLoading={isLoading}
+          tally={c.users} onOpen={open} onOpenPeer={openById}
+        />
+      </div>
+
+      {/* Every ring in flight, including pairs where neither side is listed above */}
+      <div className="tw-mt-6">
+        <div className="tw-text-sm tw-font-semibold tw-text-fg-primary tw-mb-2">
+          Rings in flight ({rings.length})
+        </div>
+        <Table>
+          <THead><TR><Th>User</Th><Th>Listener</Th><Th>Type</Th><Th>Request</Th></TR></THead>
+          <TBody striped>
+            {rings.length === 0 ? <Msg cols={4}>No calls connecting right now</Msg> :
+              rings.map((r) => (
+                <TR key={r.requestId || `${r.userId}-${r.listenerId}`}>
+                  <Td>
+                    <button onClick={() => openById(r.userId, "user")}
+                      className="tw-text-accent hover:tw-underline tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer">
+                      {r.user_name || String(r.userId || "").slice(0, 8)}
+                    </button>
+                  </Td>
+                  <Td>
+                    <button onClick={() => openById(r.listenerId, "listener")}
+                      className="tw-text-accent hover:tw-underline tw-bg-transparent tw-border-0 tw-p-0 tw-cursor-pointer">
+                      {r.listener_name || String(r.listenerId || "").slice(0, 8)}
+                    </button>
+                  </Td>
+                  <Td>{r.type || "—"}</Td>
+                  <Td className="tw-text-fg-tertiary tw-text-xs">{String(r.requestId || "").slice(0, 12)}</Td>
+                </TR>
+              ))}
+          </TBody>
+        </Table>
       </div>
     </div>
   );

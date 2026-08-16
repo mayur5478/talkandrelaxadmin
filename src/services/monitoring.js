@@ -24,6 +24,28 @@ export const monitoringApi = createApi({
     getRejectionFocus: builder.query({
       query: (days = 7) => `monitoring/rejection-focus?days=${days}`,
     }),
+    // Ghost controls. sweepGhosts is a DRY RUN unless apply:true is sent.
+    forceOffline: builder.mutation({
+      query: ({ userId, notify = true }) => ({
+        url: `monitoring/force-offline`,
+        method: "POST",
+        body: { userId, notify },
+      }),
+    }),
+    wakeListener: builder.mutation({
+      query: ({ userId }) => ({
+        url: `monitoring/wake`,
+        method: "POST",
+        body: { userId },
+      }),
+    }),
+    sweepGhosts: builder.mutation({
+      query: ({ minAgeMin = 45, apply = false, notify = true } = {}) => ({
+        url: `monitoring/sweep-ghosts`,
+        method: "POST",
+        body: { minAgeMin, apply, notify },
+      }),
+    }),
     getListeners: builder.query({ query: (days = 7) => `monitoring/listeners?days=${days}` }),
     getBillingIntegrity: builder.query({ query: (days = 7) => `monitoring/billing-integrity?days=${days}` }),
     getCallHealth: builder.query({ query: (days = 7) => `monitoring/call-health?days=${days}` }),
@@ -52,6 +74,9 @@ export const {
   useGetLiveQuery,
   useGetOnlineNowQuery,
   useGetRejectionFocusQuery,
+  useForceOfflineMutation,
+  useWakeListenerMutation,
+  useSweepGhostsMutation,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
   useGetCallHealthQuery,
