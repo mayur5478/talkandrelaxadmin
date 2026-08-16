@@ -14,6 +14,16 @@ export const monitoringApi = createApi({
   tagTypes: ["Alerts"],
   endpoints: (builder) => ({
     getLive: builder.query({ query: () => `monitoring/live` }),
+    // Who is online right now, by name — users and listeners, with the
+    // socket-verified presence flag (live vs ghost).
+    getOnlineNow: builder.query({
+      query: ({ role = "all", limit = 200 } = {}) =>
+        `monitoring/online-now?role=${role}&limit=${limit}`,
+    }),
+    // HR view of call rejections: per-listener scorecard + "where to focus".
+    getRejectionFocus: builder.query({
+      query: (days = 7) => `monitoring/rejection-focus?days=${days}`,
+    }),
     getListeners: builder.query({ query: (days = 7) => `monitoring/listeners?days=${days}` }),
     getBillingIntegrity: builder.query({ query: (days = 7) => `monitoring/billing-integrity?days=${days}` }),
     getCallHealth: builder.query({ query: (days = 7) => `monitoring/call-health?days=${days}` }),
@@ -40,6 +50,8 @@ export const monitoringApi = createApi({
 
 export const {
   useGetLiveQuery,
+  useGetOnlineNowQuery,
+  useGetRejectionFocusQuery,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
   useGetCallHealthQuery,

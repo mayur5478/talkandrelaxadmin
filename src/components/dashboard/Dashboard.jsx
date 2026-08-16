@@ -6,6 +6,7 @@
  */
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Users, UserCheck, Headphones, Activity,
@@ -243,6 +244,7 @@ function fmtDetailCount(item) {
 /* ───────────────────────────────── page ────────────────────────────── */
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { data, isLoading, error } = useDashboardQuery();
   const [showUserModal, setShowUserModal] = React.useState(false);
   const [showListenerModal, setShowListenerModal] = React.useState(false);
@@ -351,6 +353,10 @@ const Dashboard = () => {
   const onlineUsers     = details[17];
   const activeStatus    = details[18];
 
+  // The two online cards are counts only; clicking one opens the named list
+  // (Monitoring → Online Now), which also shows who is a ghost.
+  const openOnlineList = () => navigate('/dashboard/monitoring?tab=Online+Now');
+
   /* ── render ── */
 
   return (
@@ -454,7 +460,15 @@ const Dashboard = () => {
           />
         </motion.div>
 
-        <motion.div variants={kpiItem}>
+        <motion.div
+          variants={kpiItem}
+          onClick={openOnlineList}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openOnlineList(); }}
+          title="See who is online, by name"
+          className="tw-cursor-pointer"
+        >
           <KpiPromoted
             icon={<Activity size={14} aria-hidden />}
             label={onlineUsers?.title || 'Online Users'}
@@ -464,7 +478,15 @@ const Dashboard = () => {
         </motion.div>
 
         {/* Online Listeners — 5th card */}
-        <motion.div variants={kpiItem}>
+        <motion.div
+          variants={kpiItem}
+          onClick={openOnlineList}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openOnlineList(); }}
+          title="See who is online, by name"
+          className="tw-cursor-pointer"
+        >
           <KpiPromoted
             icon={
               <span className="tw-relative tw-flex tw-items-center tw-justify-center">
