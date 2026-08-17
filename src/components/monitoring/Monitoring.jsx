@@ -17,8 +17,12 @@ import {
   useGetSessionDetailQuery,
 } from "../../services/monitoring";
 import { Table, THead, TBody, TR, Th, Td } from "../v2/ui/table";
+import { isHR } from "../../utils/roles";
 
-const TABS = ["Online Now", "Live", "Call Health", "Call Quality", "Listener Scorecard", "Billing Integrity", "Alerts"];
+const ALL_TABS = ["Online Now", "Live", "Call Health", "Call Quality", "Listener Scorecard", "Billing Integrity", "Alerts"];
+// HR was granted Online Now only. Every other tab calls an admin-only endpoint,
+// so showing them would just hand HR a row of 403s.
+const HR_TABS = ["Online Now"];
 
 const Card = ({ label, value, sub, tone }) => (
   <div className="tw-rounded-xl tw-border tw-border-border tw-bg-bg-secondary tw-p-4 tw-min-w-[150px]">
@@ -35,12 +39,18 @@ const Msg = ({ cols, children }) => (
 const sevTone = (s) => (s === "high" ? "tw-text-red-400" : s === "low" ? "tw-text-fg-tertiary" : "tw-text-amber-400");
 
 export default function Monitoring() {
+  // Read the role per-render, not at import time — otherwise the tab list is
+  // whatever the role was when the bundle first loaded.
+  const hr = isHR();
+  const TABS = hr ? HR_TABS : ALL_TABS;
+  const defaultTab = hr ? "Online Now" : "Live";
+
   // Tab lives in the URL so the dashboard's "Online Users / Online Listeners"
   // cards can deep-link straight to the Online Now list.
   const [params, setParams] = useSearchParams();
   const urlTab = params.get("tab");
-  const tab = TABS.includes(urlTab) ? urlTab : "Live";
-  const setTab = (t) => setParams(t === "Live" ? {} : { tab: t }, { replace: true });
+  const tab = TABS.includes(urlTab) ? urlTab : defaultTab;
+  const setTab = (t) => setParams(t === defaultTab ? {} : { tab: t }, { replace: true });
   const [days, setDays] = useState(7);
   const [openSession, setOpenSession] = useState(null);
 
@@ -188,6 +198,10 @@ function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen, onOpenPeer, 
 
 function OnlineNowTab() {
   const navigate = useNavigate();
+  // Ghost actions write to listener presence and fire pushes, so they are
+  // admin-only. Hiding them here just avoids showing HR a button that 403s —
+  // the backend route is what actually enforces this.
+  const canAct = !isHR();
   const { data, isLoading, isFetching, refetch } = useGetOnlineNowQuery(
     { role: "all", limit: 300 },
     { pollingInterval: 15000 }
@@ -295,7 +309,8 @@ function OnlineNowTab() {
         </label>
       </div>
 
-      {/* Ghost sweep — dry run, then confirm */}
+      {/* Ghost sweep — dry run, then confirm. Admin only. */}
+      {canAct && (
       <div className="tw-flex tw-items-center tw-gap-3 tw-flex-wrap tw-mb-3 tw-p-3 tw-rounded-xl tw-border tw-border-border tw-bg-bg-secondary">
         <span className="tw-text-sm tw-font-medium tw-text-fg-primary">Ghost sweep</span>
         <label className="tw-text-xs tw-text-fg-tertiary tw-flex tw-items-center tw-gap-2">
@@ -320,6 +335,7 @@ function OnlineNowTab() {
           Nothing changes until you confirm. Recent drops are never swept — they are usually mid-reconnect.
         </span>
       </div>
+      )}
 
       {sweepPreview && (
         <div className="tw-mb-3 tw-p-3 tw-rounded-xl tw-border tw-border-amber-500/30 tw-bg-amber-500/10">
@@ -360,7 +376,8 @@ function OnlineNowTab() {
       <div className="tw-grid tw-grid-cols-1 xl:tw-grid-cols-2 tw-gap-6">
         <OnlinePeopleTable
           title="Listeners online" rows={listeners} isLoading={isLoading}
-          tally={c.listeners} onOpen={open} onOpenPeer={openById} actions={listenerActions}
+          tally={c.listeners} onOpen={open} onOpenPeer={openById}
+          actions={canAct ? listenerActions : undefined}
         />
         <OnlinePeopleTable
           title="Users online" rows={users} isLoading={isLoading}

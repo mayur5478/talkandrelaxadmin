@@ -19,8 +19,14 @@
  *   reject-request, send-onboarding-form-1, send-onboarding-form-2,
  *   listener-profile-form-link, listener-profile-update
  *   admin/monthly-insights
+ *   admin/get-session-rejections      (Call Rejections table)
+ *   monitoring/online-now             (Online Now list)
+ *   monitoring/rejection-focus        (rejection scorecard + focus strip)
  * Deliberately NOT granted: refunds, recharges, payouts/pay-salary, wallet,
- * GST, coupons, plans, admin management.
+ * GST, coupons, plans, admin management, and the ghost write actions
+ * (monitoring/force-offline, /wake, /sweep-ghosts) — those change listener
+ * presence and fire push notifications, so they stay admin-only. The Monitoring
+ * page hides those buttons for HR, but the backend route is what enforces it.
  */
 
 export const ROLE_ADMIN = 'admin';
@@ -60,6 +66,13 @@ export const HR_ALLOWED_PREFIXES = [
   '/dashboard/business-insights',
   // Status & stories — HR moderates listener status posts.
   '/dashboard/status',
+  // Monitoring — HR gets the Online Now tab only (who is actually reachable
+  // right now). The page itself narrows the tab list for HR; the other tabs
+  // call admin-only endpoints and would 403.
+  '/dashboard/monitoring',
+  // Call Rejections — the raw table plus the "where to focus" summary, so HR
+  // can see who is declining calls and why.
+  '/dashboard/rejections',
 ];
 
 /**
