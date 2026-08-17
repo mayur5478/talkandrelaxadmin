@@ -198,10 +198,11 @@ function OnlinePeopleTable({ title, rows, isLoading, tally, onOpen, onOpenPeer, 
 
 function OnlineNowTab() {
   const navigate = useNavigate();
-  // Ghost actions write to listener presence and fire pushes, so they are
-  // admin-only. Hiding them here just avoids showing HR a button that 403s —
-  // the backend route is what actually enforces this.
-  const canAct = !isHR();
+  // HR gets the per-row actions (they act on one named listener, and
+  // force-offline refuses if that listener is actually reachable) but not the
+  // bulk sweep, where one confirm can offline and push up to 200 people.
+  // Hiding is only cosmetic — the route declarations enforce this.
+  const canSweep = !isHR();
   const { data, isLoading, isFetching, refetch } = useGetOnlineNowQuery(
     { role: "all", limit: 300 },
     { pollingInterval: 15000 }
@@ -310,7 +311,7 @@ function OnlineNowTab() {
       </div>
 
       {/* Ghost sweep — dry run, then confirm. Admin only. */}
-      {canAct && (
+      {canSweep && (
       <div className="tw-flex tw-items-center tw-gap-3 tw-flex-wrap tw-mb-3 tw-p-3 tw-rounded-xl tw-border tw-border-border tw-bg-bg-secondary">
         <span className="tw-text-sm tw-font-medium tw-text-fg-primary">Ghost sweep</span>
         <label className="tw-text-xs tw-text-fg-tertiary tw-flex tw-items-center tw-gap-2">
@@ -377,7 +378,7 @@ function OnlineNowTab() {
         <OnlinePeopleTable
           title="Listeners online" rows={listeners} isLoading={isLoading}
           tally={c.listeners} onOpen={open} onOpenPeer={openById}
-          actions={canAct ? listenerActions : undefined}
+          actions={listenerActions}
         />
         <OnlinePeopleTable
           title="Users online" rows={users} isLoading={isLoading}

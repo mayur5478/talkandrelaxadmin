@@ -22,11 +22,14 @@
  *   admin/get-session-rejections      (Call Rejections table)
  *   monitoring/online-now             (Online Now list)
  *   monitoring/rejection-focus        (rejection scorecard + focus strip)
+ *   monitoring/force-offline, /wake   (per-row ghost actions, one listener at a
+ *                                      time; force-offline refuses if that
+ *                                      listener actually has a live socket)
  * Deliberately NOT granted: refunds, recharges, payouts/pay-salary, wallet,
- * GST, coupons, plans, admin management, and the ghost write actions
- * (monitoring/force-offline, /wake, /sweep-ghosts) — those change listener
- * presence and fire push notifications, so they stay admin-only. The Monitoring
- * page hides those buttons for HR, but the backend route is what enforces it.
+ * GST, coupons, plans, admin management, and monitoring/sweep-ghosts — one
+ * confirmed sweep can offline and push up to 200 listeners, which is a
+ * different class of action from clicking a single row. The Monitoring page
+ * hides the sweep bar for HR, but the backend route is what enforces it.
  */
 
 export const ROLE_ADMIN = 'admin';
