@@ -330,24 +330,51 @@ function Users() {
   // mutation the Application Requests page uses. This replaces the legacy
   // "Send Link" button removed in 318da5a, which mailed a generic template
   // pointing at the misspelled /listerner-questions URL.
-  const handleSendForm1 = async (id, name, alreadySent) => {
-    const result = await Swal.fire({
-      title: alreadySent ? "Resend onboarding form?" : "Send onboarding form?",
-      text: alreadySent
-        ? `${name} has already been sent Form 1. Send it again?`
-        : `Email the listener onboarding form to ${name}?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: alreadySent ? "Yes, resend" : "Yes, send",
-    });
+  const handleSendForm1 = async (id, name, alreadySent, email) => {
+    const onFile = (email || "").trim();
+    const title = alreadySent ? "Resend onboarding form?" : "Send onboarding form?";
+
+    // Most users sign up on mobile with no email, so the form had nowhere to go
+    // and the send failed with a generic error. Ask for the address instead of
+    // firing a request that cannot succeed.
+    const result = onFile
+      ? await Swal.fire({
+          title,
+          text: alreadySent
+            ? `${name} has already been sent Form 1. Send it again to ${onFile}?`
+            : `Email the listener onboarding form to ${name} at ${onFile}?`,
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: alreadySent ? "Yes, resend" : "Yes, send",
+        })
+      : await Swal.fire({
+          title,
+          text: `${name} has no email address on file. Enter one to send the onboarding form — it will be saved to their account.`,
+          icon: "question",
+          input: "email",
+          inputPlaceholder: "listener@example.com",
+          inputValidator: (value) =>
+            !value?.trim() ? "An email address is required" : undefined,
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Save & send",
+        });
 
     if (!result.isConfirmed) return;
 
     try {
-      await sendOnboardingForm1(id).unwrap();
-      Swal.fire("Sent!", `Onboarding form emailed to ${name}.`, "success");
+      await sendOnboardingForm1({
+        id,
+        email: onFile || result.value?.trim(),
+      }).unwrap();
+      Swal.fire(
+        "Sent!",
+        `Onboarding form emailed to ${onFile || result.value?.trim()}.`,
+        "success",
+      );
       refetch();
     } catch (err) {
       Swal.fire(
@@ -469,13 +496,14 @@ function Users() {
                     <Th>Account Freeze</Th>
                     <Th>Devices</Th>
                     <Th>Location</Th>
+                    <Th>Source</Th>
                     {!isHR() && <Th>Action</Th>}
                   </TR>
                 </THead>
                 <TBody>
                   {error ? (
                     <TR>
-                      <Td colSpan={12} className="tw-text-center tw-text-fg-tertiary">Error loading users</Td>
+                      <Td colSpan={13} className="tw-text-center tw-text-fg-tertiary">Error loading users</Td>
                     </TR>
                   ) : (
                     visibleUsers.map((user, index) => (
@@ -522,6 +550,11 @@ function Users() {
                         <Td>{user?.device_type}</Td>
                         <Td>
                           {[user?.geo_city, user?.geo_state].filter(Boolean).join(", ") || user?.state || "—"}
+                        </Td>
+                        <Td>
+                          {user?.source === "spotify_int"
+                            ? "Spotify"
+                            : (user?.source || "—")}
                         </Td>
                         {/* HR's user list is read-only. Every control below is
                             either admin-only on the backend or outside HR's
@@ -573,6 +606,7 @@ function Users() {
                                     user.id,
                                     user.fullName,
                                     user?.listener_request_status === "processing",
+                                    user.email,
                                   )
                                 }
                               >

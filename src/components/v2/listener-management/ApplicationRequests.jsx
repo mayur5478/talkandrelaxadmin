@@ -148,6 +148,7 @@ export default function ApplicationRequestsV2() {
                   <Th>Sr.</Th>
                   <Th>Applicant</Th>
                   <Th>Contact</Th>
+                  <Th>Form submitted</Th>
                   <Th>Status</Th>
                   <Th align="right">Actions</Th>
                 </TR>
@@ -170,6 +171,16 @@ export default function ApplicationRequestsV2() {
                         </div>
                       </Td>
                       <Td>{r.mobile_number || '—'}</Td>
+                      {/* Rows come back newest-submission-first; "Not yet" means
+                          the Form 1 link was sent but never returned. */}
+                      <Td>
+                        {r.form_submitted_at
+                          ? new Date(r.form_submitted_at).toLocaleString('en-IN', {
+                              day: '2-digit', month: 'short', year: 'numeric',
+                              hour: '2-digit', minute: '2-digit',
+                            })
+                          : <span className="tw-text-fg-tertiary">Not yet</span>}
+                      </Td>
                       <Td><Pill tone={status.tone}>{status.label}</Pill></Td>
                       <Td align="right">
                         <div className="tw-inline-flex tw-items-center tw-gap-1">

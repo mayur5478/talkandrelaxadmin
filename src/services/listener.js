@@ -45,18 +45,27 @@ export const listenerApi = createApi({
       }),
     }),
 
+    // Accepts either a bare userId (legacy callers) or { id, email }. The email
+    // is optional and only needed for candidates who signed up on mobile and
+    // therefore have no address on file — the backend saves whatever is passed.
     sendOnboardingForm1: builder.mutation({
-      query: (userId) => ({
+      query: (arg) => ({
         url: `listener/send-onboarding-form-1`,
         method: "POST",
-        body: { id: userId },
+        body:
+          typeof arg === "object" && arg !== null
+            ? { id: arg.id, email: arg.email }
+            : { id: arg },
       }),
     }),
     sendOnboardingForm2: builder.mutation({
-      query: (userId) => ({
+      query: (arg) => ({
         url: `listener/send-onboarding-form-2`,
         method: "POST",
-        body: { id: userId },
+        body:
+          typeof arg === "object" && arg !== null
+            ? { id: arg.id, email: arg.email }
+            : { id: arg },
       }),
     }),
     rejectRequest: builder.mutation({
