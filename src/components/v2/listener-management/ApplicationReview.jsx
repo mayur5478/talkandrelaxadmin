@@ -11,14 +11,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, User, FileText, Music, Download, Edit2,
   Briefcase, CreditCard, Building, Hash,
-  ChevronDown, ChevronUp, X, Send,
+  ChevronDown, ChevronUp, X, Link2,
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import ReactAudioPlayer from 'react-h5-audio-player';
 import 'react-h5-audio-player/lib/styles.css';
 import moment from 'moment';
 
-import { useListenerProfileQuery, useSendOnboardingForm1Mutation, useSendOnboardingForm2Mutation } from '../../../services/listener';
+import { useListenerProfileQuery } from '../../../services/listener';
 import { useFormDataQuery } from '../../../services/user';
 import { useUpdateListenerProfileMutation } from '../../../services/auth';
 import {
@@ -28,7 +28,7 @@ import {
 } from '../ui';
 import { PageHeader } from '../_lib/PageHeader';
 import RejectionModal from '../../listener-management/reject-request-modal/RejectionModal';
-import LinkShare from '../../common/link-share/LinkShare';
+import OnboardingLinkModal from './OnboardingLinkModal';
 
 /* ─── tiny helpers ─────────────────────────────────────────────────── */
 
@@ -524,44 +524,28 @@ function Form2Panel({ id }) {
 export default function ApplicationReview() {
   const location = useLocation();
   const navigate  = useNavigate();
-  const { toast } = useToast();
   const id = new URLSearchParams(location.search).get('id');
 
   const [tab, setTab] = useState('form1');
   const [rejectOpen, setRejectOpen]         = useState(false);
   const [linkOpen, setLinkOpen]             = useState(false);
-  const [pendingUserId, setPendingUserId]   = useState(null);
-  const [pendingUserName, setPendingUserName] = useState(null);
   const [pendingFormStep, setPendingFormStep] = useState(null);
-
-  const [sendForm1, { isLoading: isSending1 }] = useSendOnboardingForm1Mutation();
-  const [sendForm2, { isLoading: isSending2 }] = useSendOnboardingForm2Mutation();
 
   // Get listener name for the header
   const { data: profileData, refetch } = useListenerProfileQuery(id);
   const listenerName = profileData?.profile?.listenerProfileData?.[0]?.display_name
     || profileData?.profile?.fullName || 'Listener';
+  // Powers the "Open in WhatsApp" shortcut in the link modal.
+  const applicantMobile = profileData?.profile?.mobile_number || '';
 
   const openSend = (step) => {
-    setPendingUserId(id);
-    setPendingUserName(listenerName);
     setPendingFormStep(step);
     setLinkOpen(true);
   };
 
-  const confirmSend = async () => {
-    try {
-      if (pendingFormStep === 1) await sendForm1(pendingUserId).unwrap();
-      else                       await sendForm2(pendingUserId).unwrap();
-      toast({ title: `Form ${pendingFormStep} sent to ${pendingUserName}`, tone: 'success' });
-    } catch (err) {
-      toast({ title: 'Send failed', description: err?.data?.message || 'Please try again.', tone: 'danger' });
-    } finally {
-      setPendingUserId(null);
-      setPendingUserName(null);
-      setPendingFormStep(null);
-      setLinkOpen(false);
-    }
+  const closeLink = () => {
+    setLinkOpen(false);
+    setPendingFormStep(null);
   };
 
   if (!id) {
@@ -580,10 +564,10 @@ export default function ApplicationReview() {
         primaryAction={
           <div className="tw-flex tw-items-center tw-gap-2">
             <Button variant="outline" size="sm" onClick={() => openSend(1)}>
-              <Send size={13} aria-hidden /> Send Form 1
+              <Link2 size={13} aria-hidden /> Form 1 link
             </Button>
             <Button size="sm" onClick={() => openSend(2)}>
-              <Send size={13} aria-hidden /> Send Form 2
+              <Link2 size={13} aria-hidden /> Form 2 link
             </Button>
             <Button variant="outline" size="sm" onClick={() => { setRejectOpen(true); }}>
               <X size={13} className="tw-text-fg-danger" aria-hidden /> Reject
@@ -626,14 +610,12 @@ export default function ApplicationReview() {
         refetch={refetch}
         onHide={() => setRejectOpen(false)}
       />
-      <LinkShare
-        show={linkOpen}
-        onHide={() => setLinkOpen(false)}
-        onConfirm={confirmSend}
-        userId={pendingUserId}
-        userName={pendingUserName}
+      <OnboardingLinkModal
+        open={linkOpen}
+        onClose={closeLink}
+        user={{ id, fullName: listenerName, mobile_number: applicantMobile }}
         formStep={pendingFormStep}
-        isMutationLoading={isSending1 || isSending2}
+        onIssued={refetch}
       />
     </div>
   );

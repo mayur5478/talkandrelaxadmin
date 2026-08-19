@@ -14,7 +14,7 @@ import {
   TableSkeleton,
   Pagination,
 } from "../../v2/ui";
-import { Search, Eye, PencilLine, Trash2, Undo2, Wallet, RotateCcw, PhoneOff, Send } from "lucide-react";
+import { Search, Eye, PencilLine, Trash2, Undo2, Wallet, RotateCcw, PhoneOff, Link2 } from "lucide-react";
 
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import ExcelJS from "exceljs";
@@ -30,7 +30,7 @@ import AccountFreeze from "../../common/account-freeze/AccountFreeze.jsx";
 import Delete from "../../common/delete/Delete.jsx";
 import { useResetAllStuckStatesMutation } from "../../../services/auth.js";
 import { isHR } from "../../../utils/roles";
-import { useSendOnboardingForm1Mutation } from "../../../services/listener";
+import OnboardingLinkModal from "../../v2/listener-management/OnboardingLinkModal";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
@@ -65,7 +65,7 @@ function Users() {
   const [dateRange, setDateRange] = useState([]);
   const [showArchived, setShowArchived] = useState(false);
   const [resetAllStuckStates, { isLoading: isResetAllLoading }] = useResetAllStuckStatesMutation();
-  const [sendOnboardingForm1, { isLoading: isSendingForm1 }] = useSendOnboardingForm1Mutation();
+  const [formLinkUser, setFormLinkUser] = useState(null);
   const [accountFreeze, { isLoading: isFreezeLoading }] =
     useAccountFreezeMutation();
   const { data, error, isLoading, refetch } = useUserListQuery({
@@ -326,64 +326,10 @@ function Users() {
     setShowResetModal(true);
   };
 
-  // Sends the personalised, token-based onboarding Form 1 email — the same
-  // mutation the Application Requests page uses. This replaces the legacy
-  // "Send Link" button removed in 318da5a, which mailed a generic template
-  // pointing at the misspelled /listerner-questions URL.
-  const handleSendForm1 = async (id, name, alreadySent, email) => {
-    const onFile = (email || "").trim();
-    const title = alreadySent ? "Resend onboarding form?" : "Send onboarding form?";
-
-    // Most users sign up on mobile with no email, so the form had nowhere to go
-    // and the send failed with a generic error. Ask for the address instead of
-    // firing a request that cannot succeed.
-    const result = onFile
-      ? await Swal.fire({
-          title,
-          text: alreadySent
-            ? `${name} has already been sent Form 1. Send it again to ${onFile}?`
-            : `Email the listener onboarding form to ${name} at ${onFile}?`,
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: alreadySent ? "Yes, resend" : "Yes, send",
-        })
-      : await Swal.fire({
-          title,
-          text: `${name} has no email address on file. Enter one to send the onboarding form — it will be saved to their account.`,
-          icon: "question",
-          input: "email",
-          inputPlaceholder: "listener@example.com",
-          inputValidator: (value) =>
-            !value?.trim() ? "An email address is required" : undefined,
-          showCancelButton: true,
-          confirmButtonColor: "#3085d6",
-          cancelButtonColor: "#d33",
-          confirmButtonText: "Save & send",
-        });
-
-    if (!result.isConfirmed) return;
-
-    try {
-      await sendOnboardingForm1({
-        id,
-        email: onFile || result.value?.trim(),
-      }).unwrap();
-      Swal.fire(
-        "Sent!",
-        `Onboarding form emailed to ${onFile || result.value?.trim()}.`,
-        "success",
-      );
-      refetch();
-    } catch (err) {
-      Swal.fire(
-        "Error",
-        err?.data?.message || "Could not send the onboarding form",
-        "error",
-      );
-    }
-  };
+  // Onboarding forms are handed out as a copyable link, not emailed. Users
+  // register in the app with a mobile number and no email address, so emailing
+  // the form had no recipient for most of this list.
+  const openFormLink = (user) => setFormLinkUser(user);
 
   const handleGlobalReset = async () => {
     const result = await Swal.fire({
@@ -597,20 +543,12 @@ function Users() {
                                 size="sm"
                                 aria-label={
                                   user?.listener_request_status === "processing"
-                                    ? "Resend Onboarding Form"
-                                    : "Send Onboarding Form"
+                                    ? "New Onboarding Form Link"
+                                    : "Get Onboarding Form Link"
                                 }
-                                disabled={isSendingForm1}
-                                onClick={() =>
-                                  handleSendForm1(
-                                    user.id,
-                                    user.fullName,
-                                    user?.listener_request_status === "processing",
-                                    user.email,
-                                  )
-                                }
+                                onClick={() => openFormLink(user)}
                               >
-                                <Send size={14} />
+                                <Link2 size={14} />
                               </IconButton>
                             )}
                             {user.is_session_running && !isHR() && (
@@ -691,6 +629,13 @@ function Users() {
         show={editUserModal}
         onHide={() => setEditUserModal(false)}
         id={id}
+      />
+      <OnboardingLinkModal
+        open={!!formLinkUser}
+        onClose={() => setFormLinkUser(null)}
+        user={formLinkUser}
+        formStep={1}
+        onIssued={refetch}
       />
     </div>
   );

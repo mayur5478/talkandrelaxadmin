@@ -45,6 +45,15 @@ export const listenerApi = createApi({
       }),
     }),
 
+    // Mints a form link without emailing it, for pasting into WhatsApp/SMS.
+    onboardingFormLink: builder.mutation({
+      query: ({ id, formStep }) => ({
+        url: `listener/onboarding-form-link`,
+        method: "POST",
+        body: { id, formStep },
+      }),
+    }),
+
     // Accepts either a bare userId (legacy callers) or { id, email }. The email
     // is optional and only needed for candidates who signed up on mobile and
     // therefore have no address on file — the backend saves whatever is passed.
@@ -192,6 +201,7 @@ export const {
   useProfileApprovalsQuery,
   useApplicationsQuery,
   useListenerProfileFormLinkMutation,
+  useOnboardingFormLinkMutation,
   useSendOnboardingForm1Mutation,
   useSendOnboardingForm2Mutation,
   useRejectRequestMutation,

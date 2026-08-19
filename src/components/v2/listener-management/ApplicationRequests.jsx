@@ -1,24 +1,19 @@
 /*
  * Application requests — v2 migration.
  *
- * Preserves the legacy Send Form 1 / Send Form 2 logic shipped earlier
- * in this thread (commits 2120e4b and e264fab). The mutation hooks,
- * request flow, and modal components are all reused as-is — only the
- * surrounding shell + table is rebuilt against the v2 design system.
+ * Forms 1 and 2 are handed out as a copyable link rather than emailed.
+ * Candidates register in the app with a mobile number and no email address,
+ * so the email-only flow had no recipient for most of them.
  */
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Filter, X, Eye } from 'lucide-react';
-import {
-  useApplicationsQuery,
-  useSendOnboardingForm1Mutation,
-  useSendOnboardingForm2Mutation,
-} from '../../../services/listener';
+import { Download, X, Eye } from 'lucide-react';
+import { useApplicationsQuery } from '../../../services/listener';
 import {
   Card, Button, IconButton, Pill, Avatar,
   Table, THead, TBody, TR, Th, Td, TableSkeleton,
-  EmptyState, ErrorBanner, Tooltip, useToast,
+  EmptyState, ErrorBanner, Tooltip,
 } from '../ui';
 import { PageHeader } from '../_lib/PageHeader';
 import { Pagination } from '../_lib/Pagination';
@@ -26,8 +21,8 @@ import { SearchBar } from '../_lib/SearchBar';
 
 // Modals from legacy — reused verbatim, still functional.
 import RejectionModal from '../../listener-management/reject-request-modal/RejectionModal';
-import LinkShare from '../../common/link-share/LinkShare';
 import ExportExcel from '../../common/export-modal/ExportExcel';
+import OnboardingLinkModal from './OnboardingLinkModal';
 
 const STATUS_LABEL = {
   'confirmation request': { tone: 'warning', label: 'Pending review' },
@@ -39,7 +34,6 @@ const STATUS_LABEL = {
 
 export default function ApplicationRequestsV2() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [exportOpen, setExportOpen]     = useState(false);
   const [rejectOpen, setRejectOpen]     = useState(false);
   const [rejectedUser, setRejectedUser] = useState(null);
@@ -49,12 +43,8 @@ export default function ApplicationRequestsV2() {
   const [date, setDate]         = useState(null);
 
   const [linkOpen, setLinkOpen]               = useState(false);
-  const [pendingUserId, setPendingUserId]     = useState(null);
-  const [pendingUserName, setPendingUserName] = useState(null);
+  const [pendingUser, setPendingUser]         = useState(null);
   const [pendingFormStep, setPendingFormStep] = useState(null);
-
-  const [sendForm1, { isLoading: isSending1 }] = useSendOnboardingForm1Mutation();
-  const [sendForm2, { isLoading: isSending2 }] = useSendOnboardingForm2Mutation();
 
   const { data, isLoading, isError, error, refetch } = useApplicationsQuery({
     page, pageSize,
@@ -65,32 +55,16 @@ export default function ApplicationRequestsV2() {
   const rows = data?.data?.users ?? [];
   const pagination = data?.data?.pagination ?? { totalRecords: 0, totalPages: 1 };
 
-  const openSend = (userId, userName, step) => {
-    setPendingUserId(userId);
-    setPendingUserName(userName);
+  const openLink = (row, step) => {
+    setPendingUser(row);
     setPendingFormStep(step);
     setLinkOpen(true);
   };
 
-  const confirmSend = async () => {
-    try {
-      if (pendingFormStep === 1) await sendForm1(pendingUserId).unwrap();
-      else                       await sendForm2(pendingUserId).unwrap();
-      toast({ title: `Form ${pendingFormStep} sent`, tone: 'success' });
-      refetch();
-    } catch (err) {
-      console.error('[v2] Failed to send onboarding form:', err);
-      toast({
-        title: 'Send failed',
-        description: err?.data?.message || 'Please try again.',
-        tone: 'danger',
-      });
-    } finally {
-      setPendingUserId(null);
-      setPendingUserName(null);
-      setPendingFormStep(null);
-      setLinkOpen(false);
-    }
+  const closeLink = () => {
+    setLinkOpen(false);
+    setPendingUser(null);
+    setPendingFormStep(null);
   };
 
   return (
@@ -196,17 +170,15 @@ export default function ApplicationRequestsV2() {
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={isSending1}
-                            onClick={() => openSend(r.id, r.fullName, 1)}
+                            onClick={() => openLink(r, 1)}
                           >
-                            {r.listener_request_status === 'processing' ? 'Resend Form 1' : 'Send Form 1'}
+                            {r.listener_request_status === 'processing' ? 'New Form 1 link' : 'Form 1 link'}
                           </Button>
                           <Button
                             size="sm"
-                            disabled={isSending2}
-                            onClick={() => openSend(r.id, r.fullName, 2)}
+                            onClick={() => openLink(r, 2)}
                           >
-                            {r.listener_request_status === 'profile in process' ? 'Resend Form 2' : 'Send Form 2'}
+                            {r.listener_request_status === 'profile in process' ? 'New Form 2 link' : 'Form 2 link'}
                           </Button>
                           <Tooltip label="Reject">
                             <IconButton
@@ -246,14 +218,12 @@ export default function ApplicationRequestsV2() {
         refetch={refetch}
         onHide={() => setRejectOpen(false)}
       />
-      <LinkShare
-        show={linkOpen}
-        onHide={() => setLinkOpen(false)}
-        onConfirm={confirmSend}
-        userId={pendingUserId}
-        userName={pendingUserName}
+      <OnboardingLinkModal
+        open={linkOpen}
+        onClose={closeLink}
+        user={pendingUser}
         formStep={pendingFormStep}
-        isMutationLoading={isSending1 || isSending2}
+        onIssued={refetch}
       />
       <ExportExcel show={exportOpen} onHide={() => setExportOpen(false)} />
     </div>
