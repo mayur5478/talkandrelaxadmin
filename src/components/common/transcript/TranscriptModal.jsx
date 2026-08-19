@@ -195,7 +195,14 @@ export default function TranscriptModal({ open, onClose, sessionId, sessionMeta 
         ) : error ? (
           <ErrorBanner
             title="Failed to load transcript"
-            message={error?.data?.message || "Please try again."}
+            // The backend returns { message, error } — `error` carries the real
+            // cause (a SQL or Sequelize message). Showing only `message` made a
+            // column-name bug read as an unactionable "transcript error".
+            message={
+              [error?.data?.message, error?.data?.error]
+                .filter(Boolean)
+                .join(" — ") || "Please try again."
+            }
           />
         ) : isCall ? (
           <div className="tw-flex tw-flex-col tw-items-center tw-gap-2 tw-py-12 tw-text-center">
