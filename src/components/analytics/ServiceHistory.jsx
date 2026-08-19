@@ -22,13 +22,39 @@ const inputCls =
   "focus:tw-ring-2 focus:tw-ring-fg-info tw-transition-shadow tw-duration-fast " +
   "placeholder:tw-text-fg-tertiary";
 
+// How many months back the period dropdown offers. Anything older is still
+// reachable via "All time" or the custom range picker.
+const MONTHS_BACK = 24;
+
+const MONTH_OPTIONS = Array.from({ length: MONTHS_BACK }, (_, i) => {
+  const m = moment().subtract(i, "months");
+  return { value: m.format("YYYY-MM"), label: m.format("MMMM YYYY") };
+});
+
 function ServiceHistory() {
   const [searchUser,     setSearchUser]     = useState("");
   const [searchListener, setSearchListener] = useState("");
   const [dateRange,      setDateRange]      = useState([]);
+  // "cycle" sends no dates at all, which lets the backend apply its default
+  // payout window (26th -> 28th of the next month). That window is what the
+  // finance export is cut against, so it stays the default here.
+  const [period,         setPeriod]         = useState("cycle");
   const [excelSessionData, setExcelSessionData] = useState([]);
   const [exporting, setExporting] = useState(false);
   const servicesRefetchRef = useRef(null);
+
+  const applyPeriod = (value) => {
+    setPeriod(value);
+    if (value === "cycle") { setDateRange([]); return; }
+    if (value === "all") {
+      // The backend treats any explicit fromDate as authoritative, so an early
+      // epoch date is simply "everything".
+      setDateRange([new Date("1970-01-01T00:00:00"), new Date()]);
+      return;
+    }
+    const m = moment(value, "YYYY-MM");
+    setDateRange([m.clone().startOf("month").toDate(), m.clone().endOf("month").toDate()]);
+  };
 
   const exportToExcel = async () => {
     if (!excelSessionData || excelSessionData.length === 0) {
@@ -101,7 +127,27 @@ function ServiceHistory() {
           </p>
         </div>
         <div className="tw-flex tw-items-center tw-gap-3">
-          <MultiDatePicker onChange={setDateRange} />
+          <select
+            value={period}
+            onChange={(e) => applyPeriod(e.target.value)}
+            aria-label="Period"
+            className="tw-bg-bg-secondary tw-text-fg-primary tw-text-[13px] tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-px-3 tw-py-2 tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info tw-cursor-pointer"
+          >
+            <option value="cycle">Current payout cycle</option>
+            <option value="all">All time</option>
+            {MONTH_OPTIONS.map((m) => (
+              <option key={m.value} value={m.value}>{m.label}</option>
+            ))}
+            {/* Only reachable by using the range picker — shown so the control
+                never claims a period the table is not actually displaying. */}
+            {period === "custom" && <option value="custom">Custom range</option>}
+          </select>
+          <MultiDatePicker
+            onChange={(dates) => {
+              setDateRange(dates);
+              setPeriod(dates?.length ? "custom" : "cycle");
+            }}
+          />
           <Button
             variant="outline"
             size="sm"

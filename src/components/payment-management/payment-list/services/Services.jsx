@@ -83,6 +83,10 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   });
 
   useEffect(() => { if (onRefetch) onRefetch.current = refetch; }, [refetch, onRefetch]);
+  // Any filter change re-scopes the result set, so the old page number is
+  // meaningless — switching to a narrower period while deep in the pages would
+  // otherwise land on a blank table.
+  useEffect(() => { setPage(1); }, [searchUser, searchListener, dateRange]);
   useEffect(() => {
     if (data?.data) setExcelSessionData(data.data);
   }, [data]);
