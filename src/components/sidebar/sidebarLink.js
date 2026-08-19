@@ -194,4 +194,11 @@ export const links = [
     type: "button",
     group: "CONTENT",
   },
+  {
+    title: "Campaigns",
+    path: "/dashboard/campaigns",
+    icon: bell,
+    type: "button",
+    group: "CONTENT",
+  },
 ];

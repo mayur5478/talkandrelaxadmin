@@ -55,6 +55,13 @@ export const monitoringApi = createApi({
         `call-metrics/admin/list?days=${days}&filter=${filter}&page=${page}`,
     }),
     getSessionDetail: builder.query({ query: (id) => `monitoring/session/${id}` }),
+    // Chat transcript for one session. Backend is admin-only and additionally
+    // gated by CHAT_TRANSCRIPT_ENABLED, which comes back as a 403 with
+    // { disabled: true } so the UI can explain rather than just fail.
+    getSessionTranscript: builder.query({
+      query: ({ id, page = 1, limit = 200 }) =>
+        `monitoring/session/${id}/transcript?page=${page}&limit=${limit}`,
+    }),
     getAlerts: builder.query({
       query: ({ resolved = "false", page = 1 } = {}) => `monitoring/alerts?resolved=${resolved}&page=${page}`,
       providesTags: ["Alerts"],
@@ -83,6 +90,7 @@ export const {
   useGetCallQualityQuery,
   useGetCallQualityListQuery,
   useGetSessionDetailQuery,
+  useGetSessionTranscriptQuery,
   useGetAlertsQuery,
   useScanAlertsMutation,
   useResolveAlertMutation,

@@ -42,6 +42,40 @@ const CHANNELS = [
 
 const defaultForm = { title: "", body: "", templateName: "", languageCode: "en" };
 
+// Approved templates, per channel. `vars` order + length MUST match the
+// {{1}},{{2}}… placeholders as approved in the provider console — the dropdown
+// uses it to pre-size the variable inputs and label them. Add a row here when a
+// new template is approved (WhatsApp Template Report / DLT dashboard).
+const WHATSAPP_TEMPLATES = [
+  {
+    name: "feature_launch_announcement",
+    label: "Feature launch announcement",
+    languageCode: "en",
+    vars: ["User name", "Feature name", "One-line detail"],
+  },
+  {
+    name: "rate_change_notice",
+    label: "Rate change notice",
+    languageCode: "en",
+    vars: ["User name", "What changed", "New rate", "Old rate", "Effective date"],
+  },
+  {
+    name: "outage_fixed_login",
+    label: "Outage fixed / login",
+    languageCode: "en",
+    vars: ["Brand / name"],
+  },
+  {
+    name: "independence_day_offer_2026",
+    label: "Independence Day offer (₹5/min)",
+    languageCode: "en",
+    vars: [], // static body, no variables
+  },
+];
+const SMS_TEMPLATES = []; // none DLT-approved yet — SMS falls back to manual entry
+const TEMPLATES_BY_CHANNEL = { whatsapp: WHATSAPP_TEMPLATES, sms: SMS_TEMPLATES };
+const CUSTOM_TEMPLATE = "__custom__";
+
 // Image upload constraints — must match backend (routes/admin/pushNotification/pushNotification.js)
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIMES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -493,6 +527,7 @@ function PushNotifications() {
   const [selectedRecipients, setSelectedRecipients] = useState([]);
   const [form, setForm]               = useState(defaultForm);
   const [templateParams, setTemplateParams] = useState([]); // string[] for {{1}},{{2}}…
+  const [customTpl, setCustomTpl] = useState(false); // true = free-text template entry
   const [image, setImage]             = useState(null); // File | null
   const [lastResult, setLastResult]   = useState(null);
   const [errorMsg, setErrorMsg]       = useState("");
@@ -516,6 +551,32 @@ function PushNotifications() {
     setChannel(next);
     setLastResult(null);
     setErrorMsg("");
+    // Template registry differs per channel — clear any prior selection.
+    setForm((prev) => ({ ...prev, templateName: "" }));
+    setTemplateParams([]);
+    setCustomTpl(false);
+  };
+
+  // Templates available for the current channel, and the one currently picked.
+  const channelTemplates = TEMPLATES_BY_CHANNEL[channel] || [];
+  const activeTemplate = channelTemplates.find((t) => t.name === form.templateName) || null;
+
+  // Pick a template from the dropdown: pre-fill name, language, and size the
+  // variable inputs to its placeholder count. "__custom__" reveals free-text.
+  const onTemplateSelect = (e) => {
+    const v = e.target.value;
+    setErrorMsg("");
+    setLastResult(null);
+    if (v === CUSTOM_TEMPLATE) {
+      setCustomTpl(true);
+      setForm((prev) => ({ ...prev, templateName: "" }));
+      setTemplateParams([]);
+      return;
+    }
+    setCustomTpl(false);
+    const tpl = channelTemplates.find((t) => t.name === v) || null;
+    setForm((prev) => ({ ...prev, templateName: v, languageCode: tpl?.languageCode || prev.languageCode }));
+    setTemplateParams(tpl ? tpl.vars.map(() => "") : []);
   };
 
   // Template variable editing (WhatsApp/SMS).
@@ -685,8 +746,36 @@ function PushNotifications() {
           ) : (
             <>
               <div className="pn-field">
-                <label className="pn-label" htmlFor="pn-template">Approved Template Name</label>
-                <input id="pn-template" className="pn-input" type="text" name="templateName" placeholder="e.g. outage_fixed_login" value={form.templateName} onChange={handleChange} disabled={isSending} autoComplete="off" />
+                <label className="pn-label" htmlFor="pn-template">Approved Template</label>
+                {channelTemplates.length > 0 && (
+                  <select
+                    id="pn-template"
+                    className="pn-input"
+                    value={customTpl ? CUSTOM_TEMPLATE : form.templateName}
+                    onChange={onTemplateSelect}
+                    disabled={isSending}
+                  >
+                    <option value="">Select a template…</option>
+                    {channelTemplates.map((t) => (
+                      <option key={t.name} value={t.name}>{t.label} ({t.name})</option>
+                    ))}
+                    <option value={CUSTOM_TEMPLATE}>Other (enter manually)…</option>
+                  </select>
+                )}
+                {(customTpl || channelTemplates.length === 0) && (
+                  <input
+                    id="pn-template-custom"
+                    className="pn-input"
+                    type="text"
+                    name="templateName"
+                    placeholder="e.g. outage_fixed_login"
+                    value={form.templateName}
+                    onChange={handleChange}
+                    disabled={isSending}
+                    autoComplete="off"
+                    style={channelTemplates.length > 0 ? { marginTop: 8 } : undefined}
+                  />
+                )}
                 <span className="pn-char-count">Must exactly match a template approved in your {channel === "whatsapp" ? "WhatsApp (SmartPing)" : "DLT / 2Factor"} account.</span>
               </div>
 
@@ -708,7 +797,7 @@ function PushNotifications() {
                     <input
                       className="pn-input"
                       type="text"
-                      placeholder={`Variable {{${i + 1}}}`}
+                      placeholder={activeTemplate?.vars?.[i] ? `{{${i + 1}}} — ${activeTemplate.vars[i]}` : `Variable {{${i + 1}}}`}
                       value={val}
                       onChange={(e) => { updateParam(i, e.target.value); setErrorMsg(""); setLastResult(null); }}
                       disabled={isSending}

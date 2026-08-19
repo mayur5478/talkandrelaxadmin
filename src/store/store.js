@@ -12,6 +12,7 @@ import { agentApi } from "../services/agent";
 import { monitoringApi } from "../services/monitoring";
 import { systemResetApi } from "../services/systemReset";
 import { appFeedbackApi } from "../services/appFeedback";
+import { campaignApi } from "../services/campaign";
 export const store = configureStore({
   reducer: {
     [userApi.reducerPath]: userApi.reducer,
@@ -26,6 +27,7 @@ export const store = configureStore({
     [monitoringApi.reducerPath]: monitoringApi.reducer,
     [systemResetApi.reducerPath]: systemResetApi.reducer,
     [appFeedbackApi.reducerPath]: appFeedbackApi.reducer,
+    [campaignApi.reducerPath]: campaignApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -41,6 +43,7 @@ export const store = configureStore({
       monitoringApi.middleware,
       systemResetApi.middleware,
       appFeedbackApi.middleware,
+      campaignApi.middleware,
     ]),
 });
 

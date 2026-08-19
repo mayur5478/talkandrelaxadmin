@@ -118,6 +118,7 @@ export const navGroups = [
       { title: 'Report & Block',     path: '/dashboard/contact-queries/report-block', icon: MessageSquareWarning },
       { title: 'Support tickets',    path: '/dashboard/support-tickets',              icon: LifeBuoy },
       { title: 'Push notifications', path: '/dashboard/push-notifications',          icon: Bell },
+      { title: 'Campaigns',          path: '/dashboard/campaigns',                   icon: Bell },
       { title: 'App Feedback',       path: '/dashboard/app-feedback',                icon: MessageSquare },
     ],
   },

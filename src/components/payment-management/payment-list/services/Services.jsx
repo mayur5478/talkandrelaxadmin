@@ -3,13 +3,14 @@ import {
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
   Trash2, XCircle,
   UserX, HeadphonesIcon, Clock, ShieldOff, WifiOff,
-  Wallet, AlertCircle, CheckCircle2,
+  Wallet, AlertCircle, CheckCircle2, MessageSquareText,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSessionListQuery } from "../../../../services/listener";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import ForceEndModal from "../../../common/force-end/ForceEndModal.jsx";
+import TranscriptModal from "../../../common/transcript/TranscriptModal.jsx";
 import {
   Table, THead, TBody, TR, Th, Td,
   Pill, Spinner, ErrorBanner,
@@ -69,6 +70,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   const [nowTs,    setNowTs]    = useState(() => Date.now());
   const [showForceEndModal, setShowForceEndModal] = useState(false);
   const [forceEndTarget,    setForceEndTarget]    = useState({ id: "", name: "", userId: "" });
+  const [transcriptTarget,  setTranscriptTarget]  = useState(null);
   const navigate = useNavigate();
 
   const { data, error, isLoading, refetch } = useSessionListQuery({
@@ -232,6 +234,18 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                 {/* Actions */}
                 <Td className="tw-pr-4">
                   <div className="tw-flex tw-items-center tw-justify-center tw-gap-2">
+                    {/* Transcript — chat sessions only. Voice/video are not
+                        recorded, so there is nothing to show for a call. */}
+                    {String(s.service_type || "").toLowerCase() === "chat" && (
+                      <button
+                        type="button"
+                        onClick={() => setTranscriptTarget(s)}
+                        className="tw-bg-transparent tw-border-0 tw-p-1 tw-rounded-md tw-text-fg-tertiary hover:tw-text-fg-info hover:tw-bg-bg-secondary tw-transition-colors tw-duration-fast tw-cursor-pointer"
+                        title="View transcript"
+                      >
+                        <MessageSquareText size={14} aria-hidden />
+                      </button>
+                    )}
                     <button
                       type="button"
                       className="tw-bg-transparent tw-border-0 tw-p-1 tw-rounded-md tw-text-fg-tertiary hover:tw-text-fg-danger hover:tw-bg-bg-danger tw-transition-colors tw-duration-fast tw-cursor-pointer"
@@ -302,6 +316,13 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
           </div>
         </div>
       </div>
+
+      <TranscriptModal
+        open={!!transcriptTarget}
+        onClose={() => setTranscriptTarget(null)}
+        sessionId={transcriptTarget?.id}
+        sessionMeta={transcriptTarget}
+      />
 
       <ForceEndModal
         show={showForceEndModal}
