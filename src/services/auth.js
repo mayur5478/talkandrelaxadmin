@@ -43,18 +43,20 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    // Send the target state explicitly. Passing only { id } left is_freeze
+    // undefined on the server, which made the update a silent no-op.
     accountFreeze: builder.mutation({
-      query: (id) => ({
+      query: ({ id, is_freeze }) => ({
         url: `user/account-freeze`,
         method: "POST",
-        body: { id },
+        body: { id, is_freeze },
       }),
     }),
     walletFreeze: builder.mutation({
-      query: (id) => ({
+      query: ({ id, is_wallet_freeze }) => ({
         url: `user/wallet-freeze`,
         method: "POST",
-        body: { id },
+        body: { id, is_wallet_freeze },
       }),
     }),
     updateListenerProfile: builder.mutation({

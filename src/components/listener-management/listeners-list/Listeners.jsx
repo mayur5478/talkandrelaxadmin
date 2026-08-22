@@ -117,8 +117,8 @@ function Listeners() {
     if (direction === "prev" && page > 1) setPage((prev) => prev - 1);
   };
 
-  const handleToggle = (userId, userName) => {
-    setSelectedUser(userId);
+  const handleToggle = (userId, userName, isFrozen) => {
+    setSelectedUser({ id: userId, is_freeze: !isFrozen });
     setShowFreezeModal(true);
     setUserName(userName);
   };
@@ -134,8 +134,8 @@ function Listeners() {
       setUserName(null);
     }
   };
-  const handleWalletToggle = (userId, userName) => {
-    setSelectedUserWallet(userId);
+  const handleWalletToggle = (userId, userName, isFrozen) => {
+    setSelectedUserWallet({ id: userId, is_wallet_freeze: !isFrozen });
     setShowFreezeWalletModal(true);
     setUserNameWallet(userName);
   };
@@ -439,7 +439,7 @@ function Listeners() {
                             <input
                               type="checkbox"
                               checked={user?.account_freeze === true}
-                              onChange={() => handleToggle(user.id, user.fullName)}
+                              onChange={() => handleToggle(user.id, user.fullName, user?.account_freeze === true)}
                               className="tw-sr-only tw-peer"
                             />
                             <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
@@ -452,7 +452,7 @@ function Listeners() {
                             <input
                               type="checkbox"
                               checked={user?.wallet_freeze === true}
-                              onChange={() => handleWalletToggle(user.id, user.fullName)}
+                              onChange={() => handleWalletToggle(user.id, user.fullName, user?.wallet_freeze === true)}
                               className="tw-sr-only tw-peer"
                             />
                             <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
@@ -517,7 +517,7 @@ function Listeners() {
         show={showFreezeModal}
         onHide={() => setShowFreezeModal(false)}
         onConfirm={confirmFreeze}
-        userId={selectedUser}
+        userId={selectedUser?.id}
         userName={userName}
         isFreezeLoading={isFreezeLoading}
       />
@@ -525,7 +525,7 @@ function Listeners() {
         show={showFreezeWalletModal}
         onHide={() => setShowFreezeWalletModal(false)}
         onConfirm={confirmWallet}
-        userId={selectedUserWallet}
+        userId={selectedUserWallet?.id}
         userName={userNameWallet}
         isWalletFreezeLoading={isWalletFreezeLoading}
       />
