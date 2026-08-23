@@ -62,6 +62,14 @@ export const monitoringApi = createApi({
       query: ({ id, page = 1, limit = 200 }) =>
         `monitoring/session/${id}/transcript?page=${page}&limit=${limit}`,
     }),
+    // Call recording playback for one session. Returns a SHORT-LIVED presigned
+    // URL (default 5 min), so this must not be cached or prefetched — refetch on
+    // every open, or the <audio> src will 403 after expiry.
+    // 403 = CALL_RECORDING_ENABLED off, 404 = no recording yet, 410 = purged.
+    getSessionRecording: builder.query({
+      query: (id) => `monitoring/session/${id}/recording`,
+      keepUnusedDataFor: 0,
+    }),
     getAlerts: builder.query({
       query: ({ resolved = "false", page = 1 } = {}) => `monitoring/alerts?resolved=${resolved}&page=${page}`,
       providesTags: ["Alerts"],
@@ -91,6 +99,8 @@ export const {
   useGetCallQualityListQuery,
   useGetSessionDetailQuery,
   useGetSessionTranscriptQuery,
+  useLazyGetSessionRecordingQuery,
+  useGetSessionRecordingQuery,
   useGetAlertsQuery,
   useScanAlertsMutation,
   useResolveAlertMutation,

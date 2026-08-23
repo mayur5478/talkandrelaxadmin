@@ -3,7 +3,7 @@ import {
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
   Trash2, XCircle,
   UserX, HeadphonesIcon, Clock, ShieldOff, WifiOff,
-  Wallet, AlertCircle, CheckCircle2, MessageSquareText,
+  Wallet, AlertCircle, CheckCircle2, MessageSquareText, PlayCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSessionListQuery } from "../../../../services/listener";
@@ -11,6 +11,7 @@ import moment from "moment";
 import { useNavigate } from "react-router-dom";
 import ForceEndModal from "../../../common/force-end/ForceEndModal.jsx";
 import TranscriptModal from "../../../common/transcript/TranscriptModal.jsx";
+import RecordingModal from "../../../common/recording/RecordingModal.jsx";
 import {
   Table, THead, TBody, TR, Th, Td,
   Pill, Spinner, ErrorBanner,
@@ -71,6 +72,7 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
   const [showForceEndModal, setShowForceEndModal] = useState(false);
   const [forceEndTarget,    setForceEndTarget]    = useState({ id: "", name: "", userId: "" });
   const [transcriptTarget,  setTranscriptTarget]  = useState(null);
+  const [recordingTarget,   setRecordingTarget]   = useState(null);
   const navigate = useNavigate();
 
   const { data, error, isLoading, refetch } = useSessionListQuery({
@@ -238,8 +240,8 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                 {/* Actions */}
                 <Td className="tw-pr-4">
                   <div className="tw-flex tw-items-center tw-justify-center tw-gap-2">
-                    {/* Transcript — chat sessions only. Voice/video are not
-                        recorded, so there is nothing to show for a call. */}
+                    {/* Transcript — chat sessions only. Calls carry audio, not
+                        text, so they get the recording player instead. */}
                     {String(s.service_type || "").toLowerCase() === "chat" && (
                       <button
                         type="button"
@@ -248,6 +250,20 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                         title="View transcript"
                       >
                         <MessageSquareText size={14} aria-hidden />
+                      </button>
+                    )}
+                    {/* Recording — voice/video only. Shown for every call row:
+                        whether audio actually exists depends on when recording
+                        was switched on and on the retention window, and the
+                        modal reports which of those applies. */}
+                    {String(s.service_type || "").toLowerCase() !== "chat" && (
+                      <button
+                        type="button"
+                        onClick={() => setRecordingTarget(s)}
+                        className="tw-bg-transparent tw-border-0 tw-p-1 tw-rounded-md tw-text-fg-tertiary hover:tw-text-fg-info hover:tw-bg-bg-secondary tw-transition-colors tw-duration-fast tw-cursor-pointer"
+                        title="Play recording"
+                      >
+                        <PlayCircle size={14} aria-hidden />
                       </button>
                     )}
                     <button
@@ -326,6 +342,13 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
         onClose={() => setTranscriptTarget(null)}
         sessionId={transcriptTarget?.id}
         sessionMeta={transcriptTarget}
+      />
+
+      <RecordingModal
+        open={!!recordingTarget}
+        onClose={() => setRecordingTarget(null)}
+        sessionId={recordingTarget?.id}
+        sessionMeta={recordingTarget}
       />
 
       <ForceEndModal
