@@ -35,6 +35,8 @@ const WalletLedger        = lazy(() => import("../payment-management/wallet-ledg
 const Recharge            = lazy(() => import("../recharge-charges/recharge-plans/Recharge"));
 const GiftManagement      = lazy(() => import("../recharge-charges/gift-management/GiftManagement"));
 const CoupenManagement    = lazy(() => import("../recharge-charges/coupen-management/CoupenManagement"));
+const RechargeNudgeMessages = lazy(() => import("../recharge-charges/recharge-nudge-messages/RechargeNudgeMessages"));
+const RechargeFunnelConfig = lazy(() => import("../recharge-charges/recharge-funnel-config/RechargeFunnelConfig"));
 const ChargeManagement    = lazy(() => import("../recharge-charges/charge-management/ChargeManagement"));
 const PenaltyManage       = lazy(() => import("../recharge-charges/penalty-manage/Penaltymanage"));
 const ReportBlock         = lazy(() => import("../contact-quires-manage/report-block/ReportBlock"));
@@ -100,6 +102,8 @@ const Main = () => {
           <Route path="/recharge-charges/plans" element={<Recharge />} />
           <Route path="/recharge-charges/gift-manage" element={<GiftManagement />} />
           <Route path="/recharge-charges/coupen-manage" element={<CoupenManagement />} />
+          <Route path="/recharge-charges/recharge-nudge-messages" element={<RechargeNudgeMessages />} />
+          <Route path="/recharge-charges/recharge-funnel-config" element={<RechargeFunnelConfig />} />
           <Route path="/recharge-charges/charge-manage" element={<ChargeManagement />} />
           <Route path="/recharge-charges/penalty-manage" element={<PenaltyManage />} />
           <Route path="/business-insights" element={<BusinessInsights />} />

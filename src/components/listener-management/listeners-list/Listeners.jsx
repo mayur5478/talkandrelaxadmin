@@ -18,6 +18,7 @@ import {
   useListenerDeleteMutation,
   useListenerListQuery,
   useListenerSoftDeleteMutation,
+  useUpdateListenerPriorityMutation,
 } from "../../../services/listener";
 import DatePicker from "../../user-management/user-list/date-picker/DatePicker";
 import "./listeners.scss";
@@ -40,6 +41,53 @@ import ResetStateModal from "../../common/reset-state/ResetStateModal";
 import { useResetAllStuckStatesMutation } from "../../../services/auth";
 import Swal from "sweetalert2";
 import { isHR } from "../../../utils/roles";
+
+// First-match bandit priority control. -10..+10, added to alpha only (see
+// backend services/matchingService.js) — a boost accelerates a listener's
+// exposure to first-time callers but can't mask real non-conversion, since
+// beta still grows from actual failed trials regardless of this weight.
+function PriorityCell({ user, onSaved }) {
+  const [value, setValue] = useState(user?.admin_priority_weight ?? 0);
+  const [updatePriority, { isLoading }] = useUpdateListenerPriorityMutation();
+  const dirty = Number(value) !== Number(user?.admin_priority_weight ?? 0);
+
+  const handleSave = async () => {
+    try {
+      await updatePriority({ listenerId: user.id, weight: Number(value) }).unwrap();
+      onSaved?.();
+    } catch (err) {
+      console.error("Error updating listener priority:", err);
+      Swal.fire("Error", err?.data?.message || "Failed to update priority", "error");
+    }
+  };
+
+  const conversionPct =
+    typeof user?.first_match_conversion_rate === "number"
+      ? `${Math.round(user.first_match_conversion_rate * 100)}%`
+      : "—";
+
+  return (
+    <div className="tw-flex tw-items-center tw-gap-1">
+      <input
+        type="number"
+        min={-10}
+        max={10}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="tw-w-14 tw-h-7 tw-px-1 tw-text-[13px] tw-text-center tw-bg-bg-primary tw-text-fg-primary tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info"
+        title="First-match priority boost (-10 to +10)"
+      />
+      {dirty && (
+        <Button size="sm" variant="secondary" onClick={handleSave} disabled={isLoading}>
+          {isLoading ? "..." : "Save"}
+        </Button>
+      )}
+      <span className="tw-text-[11px] tw-text-fg-tertiary tw-whitespace-nowrap" title="First-timer conversion rate">
+        {conversionPct}
+      </span>
+    </div>
+  );
+}
 
 function Listeners() {
   const [modalShow, setModalShow] = useState(false);
@@ -411,6 +459,7 @@ function Listeners() {
                     {!isHR() && <Th>Wallet Balance</Th>}
                     {!isHR() && <Th>Account Freeze</Th>}
                     {!isHR() && <Th>Wallet Freeze</Th>}
+                    {!isHR() && <Th>First-Match Priority</Th>}
                     <Th>Devices</Th>
                     <Th>Action</Th>
                   </TR>
@@ -418,7 +467,7 @@ function Listeners() {
                 <TBody>
                   {isError ? (
                     <TR>
-                      <Td colSpan={10} className="tw-text-center tw-text-fg-tertiary">Error fetching data</Td>
+                      <Td colSpan={isHR() ? 7 : 11} className="tw-text-center tw-text-fg-tertiary">Error fetching data</Td>
                     </TR>
                   ) : (
                     data?.data?.users.map((user, index) => (
@@ -458,6 +507,11 @@ function Listeners() {
                             <div className="tw-w-9 tw-h-5 tw-bg-bg-secondary tw-rounded-full tw-peer peer-checked:tw-bg-fg-info tw-transition-colors tw-duration-200 after:tw-content-[''] after:tw-absolute after:tw-top-0.5 after:tw-left-0.5 after:tw-bg-white after:tw-rounded-full after:tw-h-4 after:tw-w-4 after:tw-transition-all peer-checked:after:tw-translate-x-4" />
                           </label>
                         </Td>
+                        )}
+                        {!isHR() && (
+                          <Td>
+                            <PriorityCell user={user} onSaved={refetch} />
+                          </Td>
                         )}
                         <Td>{user?.device_type}</Td>
                         <Td>

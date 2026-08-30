@@ -193,6 +193,15 @@ export const listenerApi = createApi({
         params: { fromDate, toDate },
       }),
     }),
+    // First-match bandit priority lever — see services/matchingService.js on
+    // the backend. weight is clamped server-side to [-10, 10].
+    updateListenerPriority: builder.mutation({
+      query: ({ listenerId, weight }) => ({
+        url: "listener/priority",
+        method: "PATCH",
+        body: { listenerId, weight },
+      }),
+    }),
   }),
 });
 
@@ -221,4 +230,5 @@ export const {
   useCreateSessionMutation,
   useBulkUpdateChargesMutation,
   useDailySummaryQuery,
+  useUpdateListenerPriorityMutation,
 } = listenerApi;

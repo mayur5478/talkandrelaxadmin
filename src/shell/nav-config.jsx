@@ -112,6 +112,8 @@ export const navGroups = [
           { title: 'Coupon management', path: '/dashboard/recharge-charges/coupen-manage' },
           { title: 'Charge ratio',     path: '/dashboard/recharge-charges/charge-manage' },
           { title: 'Penalty logs',     path: '/dashboard/recharge-charges/penalty-manage' },
+          { title: 'Recharge nudge messages', path: '/dashboard/recharge-charges/recharge-nudge-messages' },
+          { title: 'Recharge funnel test', path: '/dashboard/recharge-charges/recharge-funnel-config' },
         ],
       },
       { title: 'Status & stories',  path: '/dashboard/status',                       icon: Sparkles },
