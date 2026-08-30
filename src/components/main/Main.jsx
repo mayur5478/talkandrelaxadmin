@@ -45,6 +45,7 @@ const ServiceHistory      = lazy(() => import("../analytics/ServiceHistory"));
 const CallRejections      = lazy(() => import("../analytics/CallRejections"));
 const DailySummary        = lazy(() => import("../analytics/DailySummary"));
 const Status              = lazy(() => import("../status/Status"));
+const BlockedMobiles      = lazy(() => import("../blocked-mobiles/BlockedMobiles"));
 const UserProfile         = lazy(() => import("../user-management/user-profile-view/UserProfile"));
 const PushNotifications   = lazy(() => import("../push-notifications/PushNotifications"));
 const Campaigns           = lazy(() => import("../campaigns/Campaigns"));
@@ -111,6 +112,7 @@ const Main = () => {
           <Route path="/rejections" element={<CallRejections />} />
           <Route path="/daily-summary" element={<DailySummary />} />
           <Route path="/status" element={<Status />} />
+          <Route path="/blocked-mobiles" element={<BlockedMobiles />} />
           <Route path="/contact-queries/report-block" element={<ReportBlock />} />
           <Route path="/listener-management/profile-view" element={<ListenerProfileView />} />
           <Route path="user-management/profile-view" element={<UserProfile />} />
