@@ -167,7 +167,15 @@ function OnboardingForm() {
         if (res.status === 504 || res.status === 524) throw new Error("Upload timed out (slow connection). Try again on Wi-Fi.");
         throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${txt.slice(0, 120)}`);
       }
-      if (res.ok) { setSubmitted(true); }
+      if (res.ok) {
+        // Self-serve flow: backend hands back the Form 2 URL — continue the
+        // application in the same sitting instead of waiting for an admin.
+        if (data.form2Url) {
+          window.location.href = data.form2Url;
+          return;
+        }
+        setSubmitted(true);
+      }
       else {
         // Surface the underlying exception detail (server returns it in
         // `data.error` alongside the generic `data.message`).

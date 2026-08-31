@@ -331,6 +331,16 @@
     opacity: 0.7;
     cursor: not-allowed;
   }
+
+  &.secondary-btn {
+    background: transparent;
+    color: #6b4fbb;
+    border: 1px solid #6b4fbb;
+
+    &:hover:not(:disabled) {
+      background: #f3effc;
+    }
+  }
 }
 
 .onboarding-submit-error {
