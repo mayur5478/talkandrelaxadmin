@@ -43,6 +43,16 @@ export const storyApi = createApi({
       invalidatesTags: ["Story"],
     }),
 
+    // POST admin uploads a story on behalf of a listener (born approved)
+    adminAddStory: builder.mutation({
+      query: (formData) => ({
+        url: `/listener/admin-story`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Story"],
+    }),
+
     // POST approve story
     approveStory: builder.mutation({
       query: (listenerId) => ({
@@ -59,5 +69,6 @@ export const {
   useGetStoriesQuery,
   useDeleteStoryMutation,
   useAddStoryMutation,
+  useAdminAddStoryMutation,
   useApproveStoryMutation,
 } = storyApi;

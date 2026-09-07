@@ -24,17 +24,19 @@ export const listenerApi = createApi({
       }),
     }),
     applications: builder.query({
-      query: ({ page = 1, pageSize = 10, searchParams, date }) => ({
+      // view: "pending" (default) or "rejected" — rejected applications are
+      // listed in their own tab instead of mixed into the queue.
+      query: ({ page = 1, pageSize = 10, searchParams, date, view }) => ({
         url: `listener/listener-applications`,
         method: "GET",
-        params: { page, pageSize, searchParams, date },
+        params: { page, pageSize, searchParams, date, view },
       }),
     }),
     profileApprovals: builder.query({
-      query: ({ page = 1, pageSize = 10, searchParams, date }) => ({
+      query: ({ page = 1, pageSize = 10, searchParams, date, view }) => ({
         url: `listener/listener-profiles`,
         method: "GET",
-        params: { page, pageSize, searchParams, date },
+        params: { page, pageSize, searchParams, date, view },
       }),
     }),
     listenerProfileFormLink: builder.mutation({

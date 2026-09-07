@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import moment from "moment";
-import { ShieldOff, Trash2, MicOff } from "lucide-react";
+import { ShieldOff, Trash2, MicOff, Clock, RefreshCw } from "lucide-react";
 import { useLazyGetSessionRecordingQuery } from "../../../services/monitoring";
 import { Modal, ModalBody, Spinner, ErrorBanner } from "../../v2/ui";
 
@@ -26,14 +26,19 @@ export default function RecordingModal({ open, onClose, sessionId, sessionMeta }
   const rec = data?.data;
   const status = error?.status;
   const msg = error?.data?.message;
+  const recStatus = error?.data?.recording_status;
 
   const fmt = (d) => (d ? moment(d).format("DD/MM/YY, hh:mm A") : "—");
 
   // Each failure means something different to an admin, so they get distinct
-  // states rather than one generic "could not load".
+  // states rather than one generic "could not load". 'started'/'stopped' both
+  // mean a recording genuinely exists and is still being captured/uploaded —
+  // that reads very differently from "never recorded" and shouldn't share the
+  // same dead-end icon.
   const disabled = status === 403;
   const purged = status === 410;
-  const missing = status === 404;
+  const processing = status === 404 && (recStatus === "started" || recStatus === "stopped");
+  const missing = status === 404 && !processing;
 
   return (
     <Modal
@@ -41,9 +46,18 @@ export default function RecordingModal({ open, onClose, sessionId, sessionMeta }
       onClose={onClose}
       size="lg"
       title="Call recording"
+      // Field names come from the Service History row shape (username /
+      // listenerName / createdAt), NOT the session record. Duration is left to
+      // the API response below, which is the billing-accurate value.
       description={
         s
-          ? `${s.user_name} ↔ ${s.listener_name} · ${s.start_time ? moment(s.start_time).format("DD/MM/YY, hh:mm A") : "-"} · ${Math.round(Number(s.total_duration || 0))} min`
+          ? [
+              [s.username, s.listenerName].filter(Boolean).join(" ↔ "),
+              s.createdAt ? moment(s.createdAt).format("DD/MM/YY, hh:mm A") : null,
+              s.service_type,
+            ]
+              .filter(Boolean)
+              .join(" · ")
           : "Loading session…"
       }
     >
@@ -65,6 +79,20 @@ export default function RecordingModal({ open, onClose, sessionId, sessionMeta }
             <p className="tw-text-[12px] tw-text-fg-tertiary tw-m-0">
               Audio is removed automatically once its retention window ends.
             </p>
+          </div>
+        ) : processing ? (
+          <div className="tw-flex tw-flex-col tw-items-center tw-gap-3 tw-py-12 tw-text-center">
+            <Clock size={22} className="tw-text-fg-tertiary" aria-hidden />
+            <p className="tw-text-[13px] tw-text-fg-secondary tw-m-0">
+              {msg || "Recording is processing — check back in a minute."}
+            </p>
+            <button
+              type="button"
+              onClick={() => fetchRecording(sessionId)}
+              className="tw-flex tw-items-center tw-gap-1.5 tw-bg-transparent tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-px-3 tw-py-1.5 tw-text-[12px] tw-text-fg-secondary hover:tw-bg-bg-secondary tw-transition-colors tw-duration-fast tw-cursor-pointer"
+            >
+              <RefreshCw size={12} aria-hidden /> Check again
+            </button>
           </div>
         ) : missing ? (
           <div className="tw-flex tw-flex-col tw-items-center tw-gap-2 tw-py-12 tw-text-center">

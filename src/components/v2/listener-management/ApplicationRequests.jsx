@@ -14,6 +14,7 @@ import {
   Card, Button, IconButton, Pill, Avatar,
   Table, THead, TBody, TR, Th, Td, TableSkeleton,
   EmptyState, ErrorBanner, Tooltip,
+  Tabs, TabsList, Tab,
 } from '../ui';
 import { PageHeader } from '../_lib/PageHeader';
 import { Pagination } from '../_lib/Pagination';
@@ -32,11 +33,20 @@ const STATUS_LABEL = {
   'profile in process':   { tone: 'info',    label: 'Profile in process' },
 };
 
+const fmtDate = (d) =>
+  d
+    ? new Date(d).toLocaleString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      })
+    : null;
+
 export default function ApplicationRequestsV2() {
   const navigate = useNavigate();
   const [exportOpen, setExportOpen]     = useState(false);
   const [rejectOpen, setRejectOpen]     = useState(false);
   const [rejectedUser, setRejectedUser] = useState(null);
+  const [view, setView]         = useState('pending');
   const [page, setPage]         = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [search, setSearch]     = useState('');
@@ -47,13 +57,16 @@ export default function ApplicationRequestsV2() {
   const [pendingFormStep, setPendingFormStep] = useState(null);
 
   const { data, isLoading, isError, error, refetch } = useApplicationsQuery({
-    page, pageSize,
+    page, pageSize, view,
     searchParams: search || '',
     date: date ? new Date(date).toISOString().split('T')[0] : '',
   });
 
   const rows = data?.data?.users ?? [];
   const pagination = data?.data?.pagination ?? { totalRecords: 0, totalPages: 1 };
+  const isRejectedView = view === 'rejected';
+
+  const switchView = (v) => { setView(v); setPage(1); };
 
   const openLink = (row, step) => {
     setPendingUser(row);
@@ -78,6 +91,13 @@ export default function ApplicationRequestsV2() {
           </Button>
         }
       />
+
+      <Tabs value={view} onChange={switchView}>
+        <TabsList ariaLabel="Application queues">
+          <Tab value="pending">Pending</Tab>
+          <Tab value="rejected">Rejected</Tab>
+        </TabsList>
+      </Tabs>
 
       {/* Filter strip */}
       <Card className="tw-p-3">
@@ -111,8 +131,14 @@ export default function ApplicationRequestsV2() {
           <TableSkeleton rows={pageSize} cols={6} />
         ) : rows.length === 0 ? (
           <EmptyState
-            title="No applications"
-            description={search || date ? 'Try clearing your filters.' : 'New applicants will show up here.'}
+            title={isRejectedView ? 'No rejected applications' : 'No applications'}
+            description={
+              search || date
+                ? 'Try clearing your filters.'
+                : isRejectedView
+                  ? 'Rejected applications will show up here.'
+                  : 'New applicants will show up here.'
+            }
           />
         ) : (
           <>
@@ -122,8 +148,17 @@ export default function ApplicationRequestsV2() {
                   <Th>Sr.</Th>
                   <Th>Applicant</Th>
                   <Th>Contact</Th>
-                  <Th>Form submitted</Th>
-                  <Th>Status</Th>
+                  {isRejectedView ? (
+                    <>
+                      <Th>Rejected on</Th>
+                      <Th>Reason</Th>
+                    </>
+                  ) : (
+                    <>
+                      <Th>Form submitted</Th>
+                      <Th>Status</Th>
+                    </>
+                  )}
                   <Th align="right">Actions</Th>
                 </TR>
               </THead>
@@ -145,53 +180,80 @@ export default function ApplicationRequestsV2() {
                         </div>
                       </Td>
                       <Td>{r.mobile_number || '—'}</Td>
-                      {/* Rows come back newest-submission-first; "Not yet" means
-                          the Form 1 link was sent but never returned. */}
-                      <Td>
-                        {r.form_submitted_at
-                          ? new Date(r.form_submitted_at).toLocaleString('en-IN', {
-                              day: '2-digit', month: 'short', year: 'numeric',
-                              hour: '2-digit', minute: '2-digit',
-                            })
-                          : <span className="tw-text-fg-tertiary">Not yet</span>}
-                      </Td>
-                      <Td><Pill tone={status.tone}>{status.label}</Pill></Td>
-                      <Td align="right">
-                        <div className="tw-inline-flex tw-items-center tw-gap-1">
-                          <Tooltip label="View full application">
-                            <IconButton
-                              size="sm"
-                              aria-label="View full application"
-                              onClick={() => navigate(`/dashboard/listener-management/application-review?id=${r.id}`)}
-                            >
-                              <Eye size={14} />
-                            </IconButton>
-                          </Tooltip>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openLink(r, 1)}
-                          >
-                            {r.listener_request_status === 'processing' ? 'New Form 1 link' : 'Form 1 link'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            onClick={() => openLink(r, 2)}
-                          >
-                            {r.listener_request_status === 'profile in process' ? 'New Form 2 link' : 'Form 2 link'}
-                          </Button>
-                          <Tooltip label="Reject">
-                            <IconButton
-                              size="sm"
-                              variant="outline"
-                              aria-label="Reject"
-                              onClick={() => { setRejectedUser(r.id); setRejectOpen(true); }}
-                            >
-                              <X size={14} className="tw-text-fg-danger" />
-                            </IconButton>
-                          </Tooltip>
-                        </div>
-                      </Td>
+                      {isRejectedView ? (
+                        <>
+                          <Td>{fmtDate(r.rejected_at) || '—'}</Td>
+                          <Td>
+                            <span className="tw-text-[11px] tw-text-fg-secondary tw-line-clamp-2 tw-max-w-[260px]">
+                              {r.rejection_reason || '—'}
+                            </span>
+                          </Td>
+                          <Td align="right">
+                            <div className="tw-inline-flex tw-items-center tw-gap-1">
+                              <Tooltip label="View full application">
+                                <IconButton
+                                  size="sm"
+                                  aria-label="View full application"
+                                  onClick={() => navigate(`/dashboard/listener-management/application-review?id=${r.id}`)}
+                                >
+                                  <Eye size={14} />
+                                </IconButton>
+                              </Tooltip>
+                              {/* Re-issuing Form 1 lets a rejected candidate resubmit;
+                                  the row moves back to Pending once the link is minted. */}
+                              <Button size="sm" onClick={() => openLink(r, 1)}>
+                                New Form 1 link
+                              </Button>
+                            </div>
+                          </Td>
+                        </>
+                      ) : (
+                        <>
+                          {/* Rows come back newest-submission-first; "Not yet" means
+                              the Form 1 link was sent but never returned. */}
+                          <Td>
+                            {fmtDate(r.form_submitted_at)
+                              || <span className="tw-text-fg-tertiary">Not yet</span>}
+                          </Td>
+                          <Td><Pill tone={status.tone}>{status.label}</Pill></Td>
+                          <Td align="right">
+                            <div className="tw-inline-flex tw-items-center tw-gap-1">
+                              <Tooltip label="View full application">
+                                <IconButton
+                                  size="sm"
+                                  aria-label="View full application"
+                                  onClick={() => navigate(`/dashboard/listener-management/application-review?id=${r.id}`)}
+                                >
+                                  <Eye size={14} />
+                                </IconButton>
+                              </Tooltip>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => openLink(r, 1)}
+                              >
+                                {r.listener_request_status === 'processing' ? 'New Form 1 link' : 'Form 1 link'}
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => openLink(r, 2)}
+                              >
+                                {r.listener_request_status === 'profile in process' ? 'New Form 2 link' : 'Form 2 link'}
+                              </Button>
+                              <Tooltip label="Reject">
+                                <IconButton
+                                  size="sm"
+                                  variant="outline"
+                                  aria-label="Reject"
+                                  onClick={() => { setRejectedUser(r.id); setRejectOpen(true); }}
+                                >
+                                  <X size={14} className="tw-text-fg-danger" />
+                                </IconButton>
+                              </Tooltip>
+                            </div>
+                          </Td>
+                        </>
+                      )}
                     </TR>
                   );
                 })}

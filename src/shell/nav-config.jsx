@@ -30,6 +30,7 @@ import {
   Activity,
   Wrench,
   Ban,
+  Megaphone,
 } from 'lucide-react';
 
 export const navGroups = [
@@ -123,6 +124,7 @@ export const navGroups = [
       { title: 'Notifications',      path: '/dashboard/send-notification',            icon: Bell },
       { title: 'Support tickets',    path: '/dashboard/support-tickets',              icon: LifeBuoy },
       { title: 'Push notifications', path: '/dashboard/push-notifications',          icon: Bell },
+      { title: 'Listener announcements', path: '/dashboard/announcements',           icon: Megaphone },
       { title: 'Campaigns',          path: '/dashboard/campaigns',                   icon: Bell },
       { title: 'App Feedback',       path: '/dashboard/app-feedback',                icon: MessageSquare },
     ],

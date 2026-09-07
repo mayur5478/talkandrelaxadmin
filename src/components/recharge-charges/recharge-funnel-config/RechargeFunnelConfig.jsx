@@ -157,6 +157,7 @@ function RechargeFunnelConfig() {
               <TR>
                 <Th>Arm</Th>
                 <Th>Assigned</Th>
+                <Th>Unique Phone Numbers</Th>
                 <Th>Converted (recharged)</Th>
                 <Th>Conversion Rate</Th>
                 <Th>Avg. Time to Convert</Th>
@@ -165,7 +166,7 @@ function RechargeFunnelConfig() {
             <TBody>
               {results.length === 0 ? (
                 <TR>
-                  <Td colSpan={5} className="tw-text-center tw-text-fg-tertiary">
+                  <Td colSpan={6} className="tw-text-center tw-text-fg-tertiary">
                     No data yet — results appear once users start getting assigned (mode must not be "Off").
                   </Td>
                 </TR>
@@ -181,6 +182,14 @@ function RechargeFunnelConfig() {
                         {best && <Pill tone="success" className="tw-ml-2">Leading</Pill>}
                       </Td>
                       <Td>{r.assigned}</Td>
+                      <Td>
+                        {r.unique_mobiles}
+                        {r.unique_mobiles < r.assigned && (
+                          <span className="tw-text-fg-tertiary tw-text-[11px] tw-ml-1">
+                            ({r.assigned - r.unique_mobiles} repeat signup{r.assigned - r.unique_mobiles === 1 ? "" : "s"} on same number)
+                          </span>
+                        )}
+                      </Td>
                       <Td>{r.converted}</Td>
                       <Td>{r.conversion_rate != null ? `${(r.conversion_rate * 100).toFixed(1)}%` : "-"}</Td>
                       <Td>{r.avg_minutes_to_convert != null ? `${Math.round(r.avg_minutes_to_convert)} min` : "-"}</Td>
@@ -193,7 +202,7 @@ function RechargeFunnelConfig() {
         )}
       </Card>
       <p className="tw-text-[12px] tw-text-fg-tertiary tw-mt-0">
-        Rule of thumb: wait for at least ~30 conversions per arm before trusting the gap between them.
+        Rule of thumb: wait for at least ~30 conversions per arm (by unique phone number, not raw "assigned") before trusting the gap between them.
       </p>
     </div>
   );

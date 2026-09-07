@@ -54,6 +54,7 @@ const SupportManagement   = lazy(() => import("../support-management/SupportMana
 const Agent               = lazy(() => import("../agent/Agent"));
 const AgentAudit          = lazy(() => import("../agent/AgentAudit"));
 const AppFeedback         = lazy(() => import("../app-feedback/AppFeedback"));
+const Announcements       = lazy(() => import("../announcements/Announcements"));
 
 const Main = () => {
   const {
@@ -120,6 +121,7 @@ const Main = () => {
           <Route path="user-management/profile-view" element={<UserProfile />} />
           <Route path="listener-management/profile-form" element={<ListenerDetailsForm />} />
           <Route path="/push-notifications" element={<PushNotifications />} />
+          <Route path="/announcements" element={<Announcements />} />
           <Route path="/campaigns" element={<Campaigns />} />
           <Route path="/support-tickets" element={<SupportManagement />} />
           <Route path="/agent" element={<Agent />} />

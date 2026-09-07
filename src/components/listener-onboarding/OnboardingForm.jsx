@@ -155,7 +155,7 @@ function OnboardingForm() {
       fd.append("resume", resume);
       if (audioFile) fd.append("audioFile", audioFile);
 
-      const res = await fetch(`${API_BASE}onboarding/form-1/${token}`, { method: "POST", body: fd });
+      const res = await postWithRetry(`${API_BASE}onboarding/form-1/${token}`, fd);
       // ── ROBUST ERROR PARSING ──
       // The proxy in front of the API can return non-JSON (HTML 413/502/524) on
       // upload failures. Try JSON first; on parse failure, surface a usable message.
@@ -222,7 +222,7 @@ function OnboardingForm() {
       });
       Object.entries(compressed).forEach(([k, v]) => { if (v) fd.append(k, v); });
 
-      const res = await fetch(`${API_BASE}onboarding/form-2/${token}`, { method: "POST", body: fd });
+      const res = await postWithRetry(`${API_BASE}onboarding/form-2/${token}`, fd);
       // ── ROBUST ERROR PARSING ──
       // Same rationale as submitForm1 — surface a useful error rather than silently
       // collapsing every failure mode into "Network error".
@@ -245,6 +245,27 @@ function OnboardingForm() {
       setSubmitError(err?.message || "Network error. Please check your connection and try again.");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // ── "Failed to fetch" MITIGATION ──
+  // On flaky mobile connections the upload sometimes dies mid-flight and fetch
+  // rejects with TypeError("Failed to fetch") before any HTTP response exists.
+  // Both submit endpoints are replay-safe (the server short-circuits when the
+  // form/profile row already exists), so one automatic retry after a short
+  // pause converts most of these into a success instead of an error screen.
+  const postWithRetry = async (url, body) => {
+    try {
+      return await fetch(url, { method: "POST", body });
+    } catch (netErr) {
+      await new Promise((r) => setTimeout(r, 2500));
+      try {
+        return await fetch(url, { method: "POST", body });
+      } catch {
+        throw new Error(
+          "Could not reach the server (connection dropped mid-upload). Please check your internet and press Submit again — your entries are still filled in."
+        );
+      }
     }
   };
 

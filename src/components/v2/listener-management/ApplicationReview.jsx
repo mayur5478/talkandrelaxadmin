@@ -195,7 +195,7 @@ function Form1Panel({ id, refetchParent }) {
 
   if (isLoading) return <div className="tw-flex tw-justify-center tw-py-16"><Spinner size={24} /></div>;
   if (isError)   return <div className="tw-p-4"><ErrorBanner message={error?.data?.message || error?.message} /></div>;
-  if (!profile)  return <EmptyState title="No profile data" description="Form 1 hasn't been submitted yet." />;
+  if (!profile)  return <EmptyState title="No profile data" description="Form 2 (listener profile) hasn't been submitted yet." />;
 
   /* read-only view */
   if (!editMode) return (
@@ -433,7 +433,7 @@ function Form2Panel({ id }) {
   if (isError)   return <div className="tw-p-4"><ErrorBanner message={error?.data?.message || error?.message} /></div>;
   if (!fd)       return (
     <div className="tw-p-6">
-      <EmptyState title="No application submitted" description="Form 2 (application docs) hasn't been submitted yet." />
+      <EmptyState title="No application submitted" description="Form 1 (application docs) hasn't been submitted yet." />
     </div>
   );
 
@@ -587,19 +587,23 @@ export default function ApplicationReview() {
       {/* Tabbed content */}
       <Card flush>
         <Tabs value={tab} onChange={setTab}>
+          {/* Numbering matches the candidate's journey: Form 1 = screening/
+              application docs (personal info, voice, resume), Form 2 =
+              listener profile + KYC. The panels were previously labeled the
+              other way round, which confused reviewers. */}
           <TabsList ariaLabel="Application forms">
             <Tab value="form1">
-              <span className="tw-flex tw-items-center tw-gap-1.5"><User size={13} /> Form 1 — Listener profile</span>
+              <span className="tw-flex tw-items-center tw-gap-1.5"><FileText size={13} /> Form 1 — Application docs</span>
             </Tab>
             <Tab value="form2">
-              <span className="tw-flex tw-items-center tw-gap-1.5"><FileText size={13} /> Form 2 — Application docs</span>
+              <span className="tw-flex tw-items-center tw-gap-1.5"><User size={13} /> Form 2 — Listener profile</span>
             </Tab>
           </TabsList>
           <TabPanel value="form1">
-            <Form1Panel id={id} refetchParent={refetch} />
+            <Form2Panel id={id} />
           </TabPanel>
           <TabPanel value="form2">
-            <Form2Panel id={id} />
+            <Form1Panel id={id} refetchParent={refetch} />
           </TabPanel>
         </Tabs>
       </Card>

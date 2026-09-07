@@ -17,6 +17,7 @@ import { rechargeNudgeApi } from "../services/rechargeNudge";
 import { rechargeFunnelConfigApi } from "../services/rechargeFunnelConfig";
 import { blockedMobilesApi } from "../services/blockedMobiles";
 import { notificationsApi } from "../services/notifications";
+import { announcementApi } from "../services/announcements";
 export const store = configureStore({
   reducer: {
     [userApi.reducerPath]: userApi.reducer,
@@ -36,6 +37,7 @@ export const store = configureStore({
     [rechargeFunnelConfigApi.reducerPath]: rechargeFunnelConfigApi.reducer,
     [blockedMobilesApi.reducerPath]: blockedMobilesApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
+    [announcementApi.reducerPath]: announcementApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -56,6 +58,7 @@ export const store = configureStore({
       rechargeFunnelConfigApi.middleware,
       blockedMobilesApi.middleware,
       notificationsApi.middleware,
+      announcementApi.middleware,
     ]),
 });
 
