@@ -3,7 +3,7 @@ import {
   ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight,
   Trash2, XCircle,
   UserX, HeadphonesIcon, Clock, ShieldOff, WifiOff,
-  Wallet, AlertCircle, CheckCircle2, MessageSquareText, PlayCircle,
+  Wallet, AlertCircle, CheckCircle2, MessageSquareText, PlayCircle, Gamepad2,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSessionListQuery } from "../../../../services/listener";
@@ -185,7 +185,26 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
                 </Td>
 
                 {/* Type */}
-                <Td className="tw-capitalize">{s.service_type}</Td>
+                <Td className="tw-capitalize">
+                  {s.service_type}
+                  {/* In-call Ludo. "played" = a board was actually opened; an
+                      invite alone (mostly abandoned) is shown muted. */}
+                  {s.ludo_played > 0 ? (
+                    <span
+                      title={`Played Ludo ${s.ludo_played}× on this call`}
+                      className="tw-ml-1.5 tw-inline-flex tw-items-center tw-gap-1 tw-px-1.5 tw-py-0.5 tw-rounded-full tw-border tw-border-hairline tw-text-[10px] tw-font-medium tw-normal-case tw-text-fg-info tw-bg-fg-info/10 tw-border-fg-info/20"
+                    >
+                      <Gamepad2 size={10} aria-hidden /> Ludo{s.ludo_played > 1 ? ` ×${s.ludo_played}` : ""}
+                    </span>
+                  ) : s.ludo_invited > 0 ? (
+                    <span
+                      title="Ludo invite sent, no game played"
+                      className="tw-ml-1.5 tw-inline-flex tw-items-center tw-gap-1 tw-text-[10px] tw-normal-case tw-text-fg-tertiary"
+                    >
+                      <Gamepad2 size={10} aria-hidden /> invite
+                    </span>
+                  ) : null}
+                </Td>
 
                 {/* User */}
                 <Td>
