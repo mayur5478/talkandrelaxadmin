@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
-import { ShieldOff, Trash2, MicOff, Clock, RefreshCw } from "lucide-react";
+import { ShieldOff, Trash2, MicOff, Clock, RefreshCw, Download } from "lucide-react";
 import { useLazyGetSessionRecordingQuery } from "../../../services/monitoring";
 import { Modal, ModalBody, Spinner, ErrorBanner } from "../../v2/ui";
 
@@ -18,9 +18,30 @@ import { Modal, ModalBody, Spinner, ErrorBanner } from "../../v2/ui";
 export default function RecordingModal({ open, onClose, sessionId, sessionMeta }) {
   const [fetchRecording, { data, error, isFetching }] = useLazyGetSessionRecordingQuery();
 
+  // Separate hook instance so minting the download URL doesn't replace the
+  // playback data (which would swap the <audio> src mid-listen).
+  const [fetchDownload, { isFetching: downloading }] = useLazyGetSessionRecordingQuery();
+  const [dlError, setDlError] = useState(null);
+
   useEffect(() => {
     if (open && sessionId) fetchRecording(sessionId);
+    setDlError(null);
   }, [open, sessionId, fetchRecording]);
+
+  const onDownload = async () => {
+    setDlError(null);
+    try {
+      const res = await fetchDownload({ id: sessionId, download: true }).unwrap();
+      const a = document.createElement("a");
+      a.href = res.data.url; // Content-Disposition: attachment, so the browser saves it
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      setDlError(e?.data?.message || "Download failed.");
+    }
+  };
 
   const s = sessionMeta;
   const rec = data?.data;
@@ -139,9 +160,21 @@ export default function RecordingModal({ open, onClose, sessionId, sessionMeta }
               <dd className="tw-m-0">{fmt(rec.purge_at)}</dd>
             </dl>
 
+            <div className="tw-flex tw-items-center tw-gap-3 tw-mt-2">
+              <button
+                type="button"
+                onClick={onDownload}
+                disabled={downloading}
+                className="tw-flex tw-items-center tw-gap-1.5 tw-bg-transparent tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-px-3 tw-py-1.5 tw-text-[12px] tw-text-fg-secondary hover:tw-bg-bg-secondary tw-transition-colors tw-duration-fast tw-cursor-pointer disabled:tw-opacity-50"
+              >
+                <Download size={12} aria-hidden /> {downloading ? "Preparing…" : "Download"}
+              </button>
+              {dlError && <span className="tw-text-[12px] tw-text-fg-danger">{dlError}</span>}
+            </div>
+
             <p className="tw-text-[12px] tw-text-fg-tertiary tw-border-t tw-border-hairline tw-border-tertiary tw-pt-3 tw-mt-2 tw-mb-0">
-              This playback link expires in {Math.round((rec.expires_in || 300) / 60)} minutes. Your
-              access has been logged.
+              This playback link expires in {Math.round((rec.expires_in || 300) / 60)} minutes.
+              Playback and downloads are logged with your admin identity.
             </p>
           </>
         ) : (

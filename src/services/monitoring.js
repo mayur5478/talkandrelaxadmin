@@ -67,7 +67,12 @@ export const monitoringApi = createApi({
     // every open, or the <audio> src will 403 after expiry.
     // 403 = CALL_RECORDING_ENABLED off, 404 = no recording yet, 410 = purged.
     getSessionRecording: builder.query({
-      query: (id) => `monitoring/session/${id}/recording`,
+      // arg is a session id, or { id, download: true } to mint a file-save URL.
+      query: (arg) => {
+        const id = typeof arg === "object" ? arg.id : arg;
+        const dl = typeof arg === "object" && arg.download ? "?download=1" : "";
+        return `monitoring/session/${id}/recording${dl}`;
+      },
       keepUnusedDataFor: 0,
     }),
     getAlerts: builder.query({
