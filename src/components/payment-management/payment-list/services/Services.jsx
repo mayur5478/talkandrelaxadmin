@@ -65,7 +65,7 @@ function EndReasonBadge({ raw }) {
   );
 }
 
-function Services({ searchUser, searchListener, dateRange, setExcelSessionData, onRefetch }) {
+function Services({ searchUser, searchListener, dateRange, ludo, setExcelSessionData, onRefetch }) {
   const [page,     setPage]     = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [nowTs,    setNowTs]    = useState(() => Date.now());
@@ -82,13 +82,14 @@ function Services({ searchUser, searchListener, dateRange, setExcelSessionData, 
     searchListener: searchListener?.trim() || "",
     fromDate: dateRange[0]?.toISOString(),
     toDate:   dateRange[1]?.toISOString(),
+    ludo:     ludo || "",
   });
 
   useEffect(() => { if (onRefetch) onRefetch.current = refetch; }, [refetch, onRefetch]);
   // Any filter change re-scopes the result set, so the old page number is
   // meaningless — switching to a narrower period while deep in the pages would
   // otherwise land on a blank table.
-  useEffect(() => { setPage(1); }, [searchUser, searchListener, dateRange]);
+  useEffect(() => { setPage(1); }, [searchUser, searchListener, dateRange, ludo]);
   useEffect(() => {
     if (data?.data) setExcelSessionData(data.data);
   }, [data]);

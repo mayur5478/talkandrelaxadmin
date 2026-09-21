@@ -35,6 +35,8 @@ function ServiceHistory() {
   const [searchUser,     setSearchUser]     = useState("");
   const [searchListener, setSearchListener] = useState("");
   const [dateRange,      setDateRange]      = useState([]);
+  // "" = all sessions, "played" = a Ludo board was opened, "any" = played or just invited.
+  const [ludo,           setLudo]           = useState("");
   // "cycle" sends no dates at all, which lets the backend apply its default
   // payout window (26th -> 28th of the next month). That window is what the
   // finance export is cut against, so it stays the default here.
@@ -165,7 +167,7 @@ function ServiceHistory() {
       <motion.div variants={fadeUp} initial="hidden" animate="visible">
         <Card className="tw-p-4">
           <div className="tw-flex tw-flex-wrap tw-gap-3 tw-items-center"
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '12px', alignItems: 'center' }}>
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto auto', gap: '12px', alignItems: 'center' }}>
             {/* User search */}
             <div className="tw-relative">
               <Search size={14} className="tw-absolute tw-left-3 tw-top-1/2 -tw-translate-y-1/2 tw-text-fg-tertiary tw-pointer-events-none" aria-hidden />
@@ -190,6 +192,18 @@ function ServiceHistory() {
               />
             </div>
 
+            {/* Ludo filter */}
+            <select
+              value={ludo}
+              onChange={(e) => setLudo(e.target.value)}
+              aria-label="Ludo filter"
+              className="tw-bg-bg-secondary tw-text-fg-primary tw-text-[13px] tw-border tw-border-hairline tw-border-tertiary tw-rounded-md tw-px-3 tw-py-2 tw-outline-none focus:tw-ring-2 focus:tw-ring-fg-info tw-cursor-pointer"
+            >
+              <option value="">All sessions</option>
+              <option value="played">Ludo played</option>
+              <option value="any">Ludo played or invited</option>
+            </select>
+
             {/* Refresh */}
             <Button
               variant="outline"
@@ -211,6 +225,7 @@ function ServiceHistory() {
             searchUser={searchUser}
             searchListener={searchListener}
             dateRange={dateRange}
+            ludo={ludo}
             setExcelSessionData={setExcelSessionData}
             onRefetch={servicesRefetchRef}
           />

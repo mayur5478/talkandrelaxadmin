@@ -114,10 +114,10 @@ export const listenerApi = createApi({
       }),
     }),
     sessionList: builder.query({
-      query: ({ page = 1, limit = 10, search, searchUser, searchListener, fromDate, toDate }) => ({
+      query: ({ page = 1, limit = 10, search, searchUser, searchListener, fromDate, toDate, ludo }) => ({
         url: `listener/sessions-list`,
         method: "GET",
-        params: { page, limit, search, searchUser, searchListener, fromDate, toDate },
+        params: { page, limit, search, searchUser, searchListener, fromDate, toDate, ludo: ludo || undefined },
       }),
     }),
     giftList: builder.query({
