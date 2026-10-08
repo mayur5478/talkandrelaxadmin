@@ -15,9 +15,14 @@ import { appFeedbackApi } from "../services/appFeedback";
 import { campaignApi } from "../services/campaign";
 import { rechargeNudgeApi } from "../services/rechargeNudge";
 import { rechargeFunnelConfigApi } from "../services/rechargeFunnelConfig";
+import { pushNudgeApi } from "../services/pushNudge";
 import { blockedMobilesApi } from "../services/blockedMobiles";
 import { notificationsApi } from "../services/notifications";
 import { announcementApi } from "../services/announcements";
+import { payoutApi } from "../services/payout";
+import { salaryApi } from "../services/salary";
+import { counsellorApi } from "../services/counsellor";
+import { communityApi } from "../services/community";
 export const store = configureStore({
   reducer: {
     [userApi.reducerPath]: userApi.reducer,
@@ -35,9 +40,14 @@ export const store = configureStore({
     [campaignApi.reducerPath]: campaignApi.reducer,
     [rechargeNudgeApi.reducerPath]: rechargeNudgeApi.reducer,
     [rechargeFunnelConfigApi.reducerPath]: rechargeFunnelConfigApi.reducer,
+    [pushNudgeApi.reducerPath]: pushNudgeApi.reducer,
     [blockedMobilesApi.reducerPath]: blockedMobilesApi.reducer,
     [notificationsApi.reducerPath]: notificationsApi.reducer,
     [announcementApi.reducerPath]: announcementApi.reducer,
+    [payoutApi.reducerPath]: payoutApi.reducer,
+    [salaryApi.reducerPath]: salaryApi.reducer,
+    [counsellorApi.reducerPath]: counsellorApi.reducer,
+    [communityApi.reducerPath]: communityApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([
@@ -56,9 +66,14 @@ export const store = configureStore({
       campaignApi.middleware,
       rechargeNudgeApi.middleware,
       rechargeFunnelConfigApi.middleware,
+      pushNudgeApi.middleware,
       blockedMobilesApi.middleware,
       notificationsApi.middleware,
       announcementApi.middleware,
+      payoutApi.middleware,
+      salaryApi.middleware,
+      counsellorApi.middleware,
+      communityApi.middleware,
     ]),
 });
 

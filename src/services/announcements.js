@@ -26,6 +26,10 @@ export const announcementApi = createApi({
       query: ({ id, ...body }) => ({ url: `/announcement/${id}`, method: "PUT", body }),
       invalidatesTags: ["Announcement"],
     }),
+    deleteAnnouncement: builder.mutation({
+      query: (id) => ({ url: `/announcement/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Announcement"],
+    }),
   }),
 });
 
@@ -33,4 +37,5 @@ export const {
   useGetAnnouncementsQuery,
   useCreateAnnouncementMutation,
   useUpdateAnnouncementMutation,
+  useDeleteAnnouncementMutation,
 } = announcementApi;

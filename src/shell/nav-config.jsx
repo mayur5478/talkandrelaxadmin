@@ -31,6 +31,8 @@ import {
   Wrench,
   Ban,
   Megaphone,
+  Banknote,
+  HeartHandshake,
 } from 'lucide-react';
 
 export const navGroups = [
@@ -51,6 +53,11 @@ export const navGroups = [
         title: 'System Reset',
         path: '/dashboard/system-reset',
         icon: Wrench,
+      },
+      {
+        title: 'Payouts',
+        path: '/dashboard/payout',
+        icon: Banknote,
       },
       {
         title: 'User management',
@@ -77,6 +84,8 @@ export const navGroups = [
         children: [
           { title: 'Recharges & gifts',   path: '/dashboard/payment-management/payment-list' },
           { title: 'Salary payouts',      path: '/dashboard/payment-management/salary-payout' },
+          { title: 'Employees',           path: '/dashboard/staff-salary/employees' },
+          { title: 'Staff salary',        path: '/dashboard/staff-salary' },
           { title: 'GST records',         path: '/dashboard/payment-management/Gst-list' },
           { title: 'Commission info',     path: '/dashboard/payment-management/commission-list' },
           { title: 'Revenue overview',    path: '/dashboard/payment-management/revenue-info' },
@@ -115,6 +124,7 @@ export const navGroups = [
           { title: 'Charge ratio',     path: '/dashboard/recharge-charges/charge-manage' },
           { title: 'Penalty logs',     path: '/dashboard/recharge-charges/penalty-manage' },
           { title: 'Recharge nudge messages', path: '/dashboard/recharge-charges/recharge-nudge-messages' },
+          { title: 'Push nudge results', path: '/dashboard/recharge-charges/push-nudge' },
           { title: 'Recharge funnel test', path: '/dashboard/recharge-charges/recharge-funnel-config' },
         ],
       },
@@ -127,6 +137,23 @@ export const navGroups = [
       { title: 'Listener announcements', path: '/dashboard/announcements',           icon: Megaphone },
       { title: 'Campaigns',          path: '/dashboard/campaigns',                   icon: Bell },
       { title: 'App Feedback',       path: '/dashboard/app-feedback',                icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'Counsellors',
+    items: [
+      {
+        title: 'Counsellors',
+        icon: HeartHandshake,
+        children: [
+          { title: 'Applications & Vetting', path: '/dashboard/counsellors/applications' },
+          { title: 'Network',                path: '/dashboard/counsellors/network' },
+          { title: 'Bookings',               path: '/dashboard/counsellors/bookings' },
+          { title: 'Complaints',             path: '/dashboard/counsellors/complaints' },
+          { title: 'Earnings',               path: '/dashboard/counsellors/earnings' },
+          { title: 'Config',                 path: '/dashboard/counsellors/config' },
+        ],
+      },
     ],
   },
 ];

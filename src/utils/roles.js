@@ -34,6 +34,8 @@
 
 export const ROLE_ADMIN = 'admin';
 export const ROLE_HR = 'hr';
+export const ROLE_FINANCE = 'finance';
+export const ROLE_COUNSELLOR_HEAD = 'counsellor_head';
 
 /** Read the role captured at login (Login.jsx stores it in localStorage). */
 export function getRole() {
@@ -46,6 +48,36 @@ export function getRole() {
 
 export function isHR() {
   return getRole() === ROLE_HR;
+}
+
+export function isFinance() {
+  return getRole() === ROLE_FINANCE;
+}
+
+/*
+ * Finance sees the payout pages only (prepare/approve cycles, bank files, payout profiles). The backend
+ * enforces this: routes/admin/payout/payout.js is secure(["admin","finance"]) and every other route
+ * denies "finance" by default. This list only keeps finance from being shown doors that would 403.
+ */
+export const FINANCE_ALLOWED_PREFIXES = ['/dashboard/payout'];
+
+export function isCounsellorHead() {
+  return getRole() === ROLE_COUNSELLOR_HEAD;
+}
+
+/*
+ * The Head of Counsellors (login role "counsellor_head") sees the Counsellors vertical only, minus the Config
+ * page (the config / head / add-counsellor endpoints are admin/hr on the backend, which enforces it too).
+ */
+export const COUNSELLOR_HEAD_ALLOWED_PREFIXES = ['/dashboard/counsellors'];
+export const COUNSELLOR_HEAD_DENIED_PREFIXES = ['/dashboard/counsellors/config'];
+
+/** Where a role lands after login, and where it is sent when bounced from a page it cannot open. */
+export function defaultLandingPath(role = getRole()) {
+  if (role === ROLE_COUNSELLOR_HEAD) return '/dashboard/counsellors/applications';
+  if (role === ROLE_FINANCE) return '/dashboard/payout';
+  if (role === ROLE_HR) return '/dashboard/listener-management/listeners-list';
+  return '/dashboard/analytics';
 }
 
 /*
@@ -69,6 +101,7 @@ export const HR_ALLOWED_PREFIXES = [
   '/dashboard/business-insights',
   // Status & stories — HR moderates listener status posts.
   '/dashboard/status',
+  '/dashboard/community',
   // Monitoring — HR gets the Online Now tab only (who is actually reachable
   // right now). The page itself narrows the tab list for HR; the other tabs
   // call admin-only endpoints and would 403.
@@ -88,6 +121,11 @@ export const HR_DENIED_PREFIXES = [
 ];
 
 export function canAccessPath(pathname, role = getRole()) {
+  if (role === ROLE_COUNSELLOR_HEAD) {
+    if (COUNSELLOR_HEAD_DENIED_PREFIXES.some((p) => pathname.startsWith(p))) return false;
+    return COUNSELLOR_HEAD_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p));
+  }
+  if (role === ROLE_FINANCE) return FINANCE_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p));
   if (role !== ROLE_HR) return true;
   if (HR_DENIED_PREFIXES.some((p) => pathname.startsWith(p))) return false;
   return HR_ALLOWED_PREFIXES.some((p) => pathname.startsWith(p));
@@ -98,7 +136,7 @@ export function canAccessPath(pathname, role = getRole()) {
  * cannot reach, then drops any parent left with no children.
  */
 export function filterNavGroups(groups, role = getRole()) {
-  if (role !== ROLE_HR) return groups;
+  if (role !== ROLE_HR && role !== ROLE_FINANCE && role !== ROLE_COUNSELLOR_HEAD) return groups;
 
   return groups
     .map((group) => {

@@ -7,6 +7,7 @@ import emailImage from "../assets/email.png";
 import { useGetMeQuery, useLoginMutation } from "../../services/auth";
 import { useNavigate } from "react-router-dom";
 import { setCookie, getCookie } from "../../cookie_helper/cookie";
+import { ROLE_COUNSELLOR_HEAD } from "../../utils/roles";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -32,7 +33,8 @@ function Login() {
       setCookie("token", response.token, 1);
       setCookie("role", response.admin.role, 1);
       refetch();
-      navigate("/dashboard/analytics");
+      // Only the Head of Counsellors lands elsewhere; every other role behaves exactly as before.
+      navigate(String(response.admin.role || "").toLowerCase() === ROLE_COUNSELLOR_HEAD ? "/dashboard/counsellors/applications" : "/dashboard/analytics");
     } catch (err) {
       console.error("Login failed:", err);
     }

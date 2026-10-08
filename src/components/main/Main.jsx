@@ -36,6 +36,7 @@ const Recharge            = lazy(() => import("../recharge-charges/recharge-plan
 const GiftManagement      = lazy(() => import("../recharge-charges/gift-management/GiftManagement"));
 const CoupenManagement    = lazy(() => import("../recharge-charges/coupen-management/CoupenManagement"));
 const RechargeNudgeMessages = lazy(() => import("../recharge-charges/recharge-nudge-messages/RechargeNudgeMessages"));
+const PushNudge = lazy(() => import("../recharge-charges/push-nudge/PushNudge"));
 const RechargeFunnelConfig = lazy(() => import("../recharge-charges/recharge-funnel-config/RechargeFunnelConfig"));
 const ChargeManagement    = lazy(() => import("../recharge-charges/charge-management/ChargeManagement"));
 const PenaltyManage       = lazy(() => import("../recharge-charges/penalty-manage/Penaltymanage"));
@@ -45,7 +46,14 @@ const ServiceHistory      = lazy(() => import("../analytics/ServiceHistory"));
 const CallRejections      = lazy(() => import("../analytics/CallRejections"));
 const DailySummary        = lazy(() => import("../analytics/DailySummary"));
 const Status              = lazy(() => import("../status/Status"));
+const Community           = lazy(() => import("../community/Community"));
 const BlockedMobiles      = lazy(() => import("../blocked-mobiles/BlockedMobiles"));
+const PayoutCycles        = lazy(() => import("../payout/PayoutCycles"));
+const PayoutCycleDetail   = lazy(() => import("../payout/PayoutCycleDetail"));
+const PayoutProfile       = lazy(() => import("../payout/PayoutProfile"));
+const Employees           = lazy(() => import("../salary/Employees"));
+const SalaryCycles        = lazy(() => import("../salary/SalaryCycles"));
+const SalaryCycleDetail   = lazy(() => import("../salary/SalaryCycleDetail"));
 const SendNotificationPage = lazy(() => import("../send-notification/SendNotificationPage"));
 const UserProfile         = lazy(() => import("../user-management/user-profile-view/UserProfile"));
 const PushNotifications   = lazy(() => import("../push-notifications/PushNotifications"));
@@ -55,6 +63,12 @@ const Agent               = lazy(() => import("../agent/Agent"));
 const AgentAudit          = lazy(() => import("../agent/AgentAudit"));
 const AppFeedback         = lazy(() => import("../app-feedback/AppFeedback"));
 const Announcements       = lazy(() => import("../announcements/Announcements"));
+const CounsellorApplications = lazy(() => import("../counsellor/CounsellorApplications"));
+const CounsellorNetwork   = lazy(() => import("../counsellor/CounsellorNetwork"));
+const CounsellorBookings  = lazy(() => import("../counsellor/CounsellorBookings"));
+const CounsellorComplaints = lazy(() => import("../counsellor/CounsellorComplaints"));
+const CounsellorEarnings  = lazy(() => import("../counsellor/CounsellorEarnings"));
+const CounsellorConfig    = lazy(() => import("../counsellor/CounsellorConfig"));
 
 const Main = () => {
   const {
@@ -106,6 +120,7 @@ const Main = () => {
           <Route path="/recharge-charges/gift-manage" element={<GiftManagement />} />
           <Route path="/recharge-charges/coupen-manage" element={<CoupenManagement />} />
           <Route path="/recharge-charges/recharge-nudge-messages" element={<RechargeNudgeMessages />} />
+          <Route path="/recharge-charges/push-nudge" element={<PushNudge />} />
           <Route path="/recharge-charges/recharge-funnel-config" element={<RechargeFunnelConfig />} />
           <Route path="/recharge-charges/charge-manage" element={<ChargeManagement />} />
           <Route path="/recharge-charges/penalty-manage" element={<PenaltyManage />} />
@@ -114,7 +129,14 @@ const Main = () => {
           <Route path="/rejections" element={<CallRejections />} />
           <Route path="/daily-summary" element={<DailySummary />} />
           <Route path="/status" element={<Status />} />
+          <Route path="/community" element={<Community />} />
           <Route path="/blocked-mobiles" element={<BlockedMobiles />} />
+          <Route path="/payout" element={<PayoutCycles />} />
+          <Route path="/payout/cycle/:id" element={<PayoutCycleDetail />} />
+          <Route path="/payout/profiles" element={<PayoutProfile />} />
+          <Route path="/staff-salary" element={<SalaryCycles />} />
+          <Route path="/staff-salary/employees" element={<Employees />} />
+          <Route path="/staff-salary/cycle/:id" element={<SalaryCycleDetail />} />
           <Route path="/send-notification" element={<SendNotificationPage />} />
           <Route path="/contact-queries/report-block" element={<ReportBlock />} />
           <Route path="/listener-management/profile-view" element={<ListenerProfileView />} />
@@ -127,6 +149,13 @@ const Main = () => {
           <Route path="/agent" element={<Agent />} />
           <Route path="/agent/audit" element={<AgentAudit />} />
           <Route path="/app-feedback" element={<AppFeedback />} />
+          <Route path="/counsellors" element={<Navigate to="/dashboard/counsellors/applications" replace />} />
+          <Route path="/counsellors/applications" element={<CounsellorApplications />} />
+          <Route path="/counsellors/network" element={<CounsellorNetwork />} />
+          <Route path="/counsellors/bookings" element={<CounsellorBookings />} />
+          <Route path="/counsellors/complaints" element={<CounsellorComplaints />} />
+          <Route path="/counsellors/earnings" element={<CounsellorEarnings />} />
+          <Route path="/counsellors/config" element={<CounsellorConfig />} />
         </Routes>
       </Suspense>
     </AppShell>

@@ -145,14 +145,14 @@ function OnboardingForm() {
 
   const submitForm1 = async (e) => {
     e.preventDefault();
-    if (!resume) { setSubmitError("Please upload your resume."); return; }
+    if (!resume && !formInfo?.lean) { setSubmitError("Please upload your resume."); return; }
     setSubmitting(true);
     setSubmitError("");
     try {
       const fd = new FormData();
       fd.append("userId", formInfo.userId);
       Object.entries(f1).forEach(([k, v]) => fd.append(k, v));
-      fd.append("resume", resume);
+      if (resume) fd.append("resume", resume);
       if (audioFile) fd.append("audioFile", audioFile);
 
       const res = await postWithRetry(`${API_BASE}onboarding/form-1/${token}`, fd);
@@ -193,9 +193,10 @@ function OnboardingForm() {
 
   const submitForm2 = async (e) => {
     e.preventDefault();
-    const missing = ["profileImage", "displayImage", "adharFront", "adharBack", "pancard"].filter(
-      (k) => !f2Files[k]
-    );
+    const requiredFiles = formInfo?.lean
+      ? ["profileImage", "displayImage"]
+      : ["profileImage", "displayImage", "adharFront", "adharBack", "pancard"];
+    const missing = requiredFiles.filter((k) => !f2Files[k]);
     if (missing.length > 0) { setSubmitError(`Please upload: ${missing.join(", ")}`); return; }
     if (f2.topic.length === 0) { setSubmitError("Please select at least one topic."); return; }
     if (f2.service.length === 0) { setSubmitError("Please select at least one service."); return; }
@@ -314,7 +315,7 @@ function OnboardingForm() {
         <div className="onboarding-error-box">
           <h3>Unable to load form</h3>
           <p>{error}</p>
-          <p>If you need help, please contact <strong>support@talkandrelax.com</strong></p>
+          <p>If you need help, please contact <strong>hr@talkandrelax.com</strong></p>
         </div>
       </div>
     </div>
@@ -414,9 +415,12 @@ function OnboardingForm() {
                 <h4>Documents</h4>
                 <div className="form-row">
                   <div className="form-group file-upload-group">
-                    <label>Resume / CV * <span className="hint">(PDF, DOC — max 10MB)</span></label>
+                    <label>
+                      Resume / CV{formInfo?.lean ? "" : " *"}{" "}
+                      <span className="hint">({formInfo?.lean ? "optional — " : ""}PDF, DOC — max 10MB)</span>
+                    </label>
                     <div className="file-upload-box">
-                      <input type="file" name="resume" id="resume" onChange={handleFileChange} accept=".pdf,.doc,.docx" required />
+                      <input type="file" name="resume" id="resume" onChange={handleFileChange} accept=".pdf,.doc,.docx" />
                       <label htmlFor="resume" className="file-upload-label">
                         {resume ? (
                           <span className="file-chosen">✓ {resume.name}</span>
@@ -494,26 +498,30 @@ function OnboardingForm() {
                     <label>Display Name *</label>
                     <input name="display_name" value={f2.display_name} onChange={handleF2Change} required placeholder="Name shown to users" />
                   </div>
-                  <div className="form-group">
-                    <label>Gender *</label>
-                    <select name="gender" value={f2.gender} onChange={handleF2Change} required>
-                      <option value="">Select gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                    </select>
-                  </div>
+                  {!formInfo?.lean && (
+                    <div className="form-group">
+                      <label>Gender *</label>
+                      <select name="gender" value={f2.gender} onChange={handleF2Change} required>
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Age *</label>
-                    <input type="number" name="age" value={f2.age} onChange={handleF2Change} required min="18" max="70" />
+                {!formInfo?.lean && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Age *</label>
+                      <input type="number" name="age" value={f2.age} onChange={handleF2Change} required min="18" max="70" />
+                    </div>
+                    <div className="form-group">
+                      <label>Date of Birth *</label>
+                      <input type="date" name="dob" value={f2.dob} onChange={handleF2Change} required />
+                    </div>
                   </div>
-                  <div className="form-group">
-                    <label>Date of Birth *</label>
-                    <input type="date" name="dob" value={f2.dob} onChange={handleF2Change} required />
-                  </div>
-                </div>
+                )}
                 <div className="form-group">
                   <label>About You *</label>
                   <textarea name="about" value={f2.about} onChange={handleF2Change} required rows={4} placeholder="Tell users about yourself, your experience, and why you want to be a listener..." />
@@ -561,6 +569,7 @@ function OnboardingForm() {
                 </div>
               </div>
 
+              {!formInfo?.lean && (
               <div className="form-section">
                 <h4>Bank Details <span className="hint">(for earnings payment)</span></h4>
                 <div className="form-row">
@@ -584,21 +593,30 @@ function OnboardingForm() {
                   </div>
                 </div>
               </div>
+              )}
 
               <div className="form-section">
-                <h4>Photos & Documents *</h4>
-                <p className="section-note">All documents are required. Please upload clear, readable images (JPG/PNG, max 10MB each).</p>
+                <h4>{formInfo?.lean ? "Photos *" : "Photos & Documents *"}</h4>
+                <p className="section-note">
+                  {formInfo?.lean
+                    ? "Please upload two clear photos (JPG/PNG, max 10MB each). We will ask for your ID documents and bank details after your application is approved."
+                    : "All documents are required. Please upload clear, readable images (JPG/PNG, max 10MB each)."}
+                </p>
                 <div className="form-row">
                   <FileUploadField label="Profile Photo *" name="profileImage" file={f2Files.profileImage} onChange={handleFileChange} />
                   <FileUploadField label="Display Photo *" name="displayImage" file={f2Files.displayImage} onChange={handleFileChange} />
                 </div>
-                <div className="form-row">
-                  <FileUploadField label="Aadhaar Card (Front) *" name="adharFront" file={f2Files.adharFront} onChange={handleFileChange} />
-                  <FileUploadField label="Aadhaar Card (Back) *" name="adharBack" file={f2Files.adharBack} onChange={handleFileChange} />
-                </div>
-                <div className="form-row">
-                  <FileUploadField label="PAN Card *" name="pancard" file={f2Files.pancard} onChange={handleFileChange} />
-                </div>
+                {!formInfo?.lean && (
+                  <>
+                    <div className="form-row">
+                      <FileUploadField label="Aadhaar Card (Front) *" name="adharFront" file={f2Files.adharFront} onChange={handleFileChange} />
+                      <FileUploadField label="Aadhaar Card (Back) *" name="adharBack" file={f2Files.adharBack} onChange={handleFileChange} />
+                    </div>
+                    <div className="form-row">
+                      <FileUploadField label="PAN Card *" name="pancard" file={f2Files.pancard} onChange={handleFileChange} />
+                    </div>
+                  </>
+                )}
               </div>
 
               {submitError && <div className="onboarding-submit-error">{submitError}</div>}

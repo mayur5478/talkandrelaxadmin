@@ -9,7 +9,13 @@ import setting from "../../assets/green-setting.png";
 import watch from "../../assets/watch.png";
 import aadhar from "../../assets/adhar.png";
 import display from "../../assets/display-image.png";
-import { useListenerProfileQuery, useListenerSoftDeleteMutation } from "../../../services/listener";
+import {
+  useListenerProfileQuery,
+  useListenerSoftDeleteMutation,
+  useListenerGalleryQuery,
+  useAddGalleryPhotosMutation,
+  useDeleteGalleryPhotoMutation,
+} from "../../../services/listener";
 import { useLocation, useNavigate } from "react-router-dom";
 import moment from "moment";
 import TransactionModal from "../../common/transaction-modal/TransactionModal";
@@ -17,6 +23,95 @@ import { useListenerManualRefundMutation } from "../../../services/recharge";
 import { isHR } from "../../../utils/roles";
 import ExportExcel from "../../common/export-modal/ExportExcel";
 import Swal from "sweetalert2";
+// Permanent photo gallery — admin adds/removes pics that live on the listener's
+// profile forever (unlike stories). Multi-select upload, field name "photos".
+function GallerySection({ listenerId }) {
+  const { data, isLoading, refetch } = useListenerGalleryQuery(listenerId);
+  const [addPhotos, { isLoading: isUploading }] = useAddGalleryPhotosMutation();
+  const [deletePhoto, { isLoading: isDeleting }] = useDeleteGalleryPhotoMutation();
+  const [files, setFiles] = useState([]);
+
+  const photos = data?.data || [];
+
+  const handleUpload = async () => {
+    if (files.length === 0) return;
+    const formData = new FormData();
+    files.forEach((f) => formData.append("photos", f));
+    try {
+      await addPhotos({ listenerId, formData }).unwrap();
+      setFiles([]);
+      refetch();
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Upload failed", text: e?.data?.message || "Try again." });
+    }
+  };
+
+  const handleDelete = async (photoId) => {
+    const ok = await Swal.fire({
+      icon: "warning",
+      title: "Remove this photo?",
+      showCancelButton: true,
+      confirmButtonText: "Remove",
+    });
+    if (!ok.isConfirmed) return;
+    try {
+      await deletePhoto(photoId).unwrap();
+      refetch();
+    } catch (e) {
+      Swal.fire({ icon: "error", title: "Delete failed", text: e?.data?.message || "Try again." });
+    }
+  };
+
+  return (
+    <div className="document" style={{ marginTop: 16 }}>
+      <div className="document-text">Photo Gallery (permanent):</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "10px 0", flexWrap: "wrap" }}>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => setFiles(Array.from(e.target.files || []))}
+        />
+        <Button
+          className="profile-btn"
+          disabled={isUploading || files.length === 0}
+          onClick={handleUpload}
+        >
+          {isUploading ? "Uploading..." : `Add ${files.length || ""} photo${files.length === 1 ? "" : "s"}`}
+        </Button>
+      </div>
+      {isLoading ? (
+        <p>Loading gallery...</p>
+      ) : photos.length === 0 ? (
+        <p style={{ color: "#888" }}>No gallery photos yet. Add some above.</p>
+      ) : (
+        <div className="documents-data">
+          {photos.map((p) => (
+            <div key={p.id} className="doc" style={{ position: "relative" }}>
+              <a href={p.image} target="_blank" rel="noreferrer">
+                <img src={p.image} alt="gallery" />
+              </a>
+              <Button
+                size="sm"
+                variant="danger"
+                disabled={isDeleting}
+                onClick={() => handleDelete(p.id)}
+                style={{
+                  position: "absolute", top: 4, right: 4,
+                  padding: "0 8px", lineHeight: "22px", borderRadius: "50%",
+                }}
+                aria-label="Remove photo"
+              >
+                ×
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ListenerProfileView() {
   const [show, setShow] = useState(false);
   const location = useLocation();
@@ -288,6 +383,9 @@ function ListenerProfileView() {
                 <p>Pancard Image</p>
               </a>
             </div>
+          </div>
+          <GallerySection listenerId={id} />
+          <div>
             <TransactionModal
               show={show}
               onClose={() => setShow(false)}

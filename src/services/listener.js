@@ -99,6 +99,26 @@ export const listenerApi = createApi({
         method: "GET",
       }),
     }),
+    // Permanent photo gallery (admin-managed, shown on listener profile view).
+    listenerGallery: builder.query({
+      query: (listenerId) => ({
+        url: `listener/gallery/${listenerId}`,
+        method: "GET",
+      }),
+    }),
+    addGalleryPhotos: builder.mutation({
+      query: ({ listenerId, formData }) => ({
+        url: `listener/gallery/${listenerId}`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
+    deleteGalleryPhoto: builder.mutation({
+      query: (photoId) => ({
+        url: `listener/gallery/${photoId}`,
+        method: "DELETE",
+      }),
+    }),
     listenerDelete: builder.mutation({
       query: (id) => ({
         url: `user/hard-delete-user`,
@@ -218,6 +238,9 @@ export const {
   useRejectRequestMutation,
   useListenerProfileApprovalMutation,
   useListenerProfileQuery,
+  useListenerGalleryQuery,
+  useAddGalleryPhotosMutation,
+  useDeleteGalleryPhotoMutation,
   useListenerDeleteMutation,
   useListenerSoftDeleteMutation,
   useSessionListQuery,

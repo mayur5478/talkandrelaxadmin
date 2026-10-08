@@ -181,6 +181,13 @@ export const links = [
     group: "CONTENT",
   },
   {
+    title: "Community",
+    path: "/dashboard/community",
+    icon: status,
+    type: "button",
+    group: "CONTENT",
+  },
+  {
     title: "Report & Block",
     path: "/dashboard/contact-queries/report-block",
     icon: contact,
