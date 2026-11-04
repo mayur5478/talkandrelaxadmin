@@ -213,7 +213,12 @@ function OnboardingForm() {
       // which preserves Aadhaar/PAN legibility while typically dropping size by 5-10x.
       const compressed = {};
       for (const [k, v] of Object.entries(f2Files)) {
-        compressed[k] = v ? await compressImage(v).catch(() => v) : v;
+        // Profile/display photos only need to look good on a phone card, so
+        // shrink them harder (≈100-150 KB) — candidates on ~3 KB/s mobile data
+        // were dropping mid-upload. KYC documents keep the larger size so
+        // Aadhaar/PAN stay legible.
+        const isPhoto = k === "profileImage" || k === "displayImage";
+        compressed[k] = v ? await compressImage(v, isPhoto ? 1024 : 1600, isPhoto ? 0.72 : 0.82).catch(() => v) : v;
       }
 
       const fd = new FormData();
@@ -272,10 +277,8 @@ function OnboardingForm() {
 
   // Downscale an image File to <= 1600px on the longest side, JPEG q=0.82.
   // Returns a new File. Falls through unchanged if the input isn't an image.
-  const compressImage = async (file) => {
+  const compressImage = async (file, MAX_EDGE = 1600, QUALITY = 0.82) => {
     if (!file || !file.type || !file.type.startsWith("image/")) return file;
-    const MAX_EDGE = 1600;
-    const QUALITY = 0.82;
     const dataUrl = await new Promise((res, rej) => {
       const r = new FileReader();
       r.onload = () => res(r.result);
@@ -620,6 +623,7 @@ function OnboardingForm() {
               </div>
 
               {submitError && <div className="onboarding-submit-error">{submitError}</div>}
+              {submitting && <p className="section-note">Uploading your photos — please keep this page open, this can take a minute on slow internet.</p>}
 
               <button type="submit" className="submit-btn" disabled={submitting}>
                 {submitting ? "Submitting..." : "Submit Profile"}
