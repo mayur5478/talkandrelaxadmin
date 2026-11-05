@@ -243,7 +243,12 @@ function OnboardingForm() {
       if (res.ok) { setSubmitted(true); }
       else {
         const base = data.message || `Submission failed (HTTP ${res.status}).`;
-        const detail = data.error ? ` — ${data.error}` : "";
+        let detail = data.error ? ` — ${data.error}` : "";
+        // Server (400) lists which required fields it did not receive — show them
+        // so a candidate / support can see exactly what is missing.
+        if (Array.isArray(data.missing) && data.missing.length) {
+          detail += ` (missing: ${data.missing.join(", ")})`;
+        }
         setSubmitError(base + detail);
       }
     } catch (err) {
