@@ -2,6 +2,16 @@ import React, { useEffect, useState, useRef } from "react";
 import "./onboardingForm.scss";
 
 const API_BASE = (process.env.REACT_APP_SERVER_URL || "").replace(/\/?$/, "/");
+
+// Date-of-birth picker limits (candidate must be 18-70). Phone date pickers open on
+// today's date, so without a max a candidate can submit a date that makes them age 0.
+const _isoYearsAgo = (y) => {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - y);
+  return d.toISOString().slice(0, 10);
+};
+const DOB_MAX = _isoYearsAgo(18);
+const DOB_MIN = _isoYearsAgo(70);
 const MAX_RECORD_SECONDS = 60;
 
 function OnboardingForm() {
@@ -248,6 +258,11 @@ function OnboardingForm() {
         // so a candidate / support can see exactly what is missing.
         if (Array.isArray(data.missing) && data.missing.length) {
           detail += ` (missing: ${data.missing.join(", ")})`;
+          // Server says the saved date of birth is unusable — reveal the field so
+          // the candidate can correct it right here.
+          if (data.missing.includes("dob") && formInfo?.lean) {
+            setFormInfo((p) => ({ ...p, needsDob: true }));
+          }
         }
         setSubmitError(base + detail);
       }
@@ -379,7 +394,7 @@ function OnboardingForm() {
                   </div>
                   <div className="form-group">
                     <label>Date of Birth *</label>
-                    <input type="date" name="dob" value={f1.dob} onChange={handleF1Change} required />
+                    <input type="date" name="dob" value={f1.dob} onChange={handleF1Change} required min={DOB_MIN} max={DOB_MAX} />
                   </div>
                 </div>
                 <div className="form-row">
@@ -506,7 +521,7 @@ function OnboardingForm() {
                     <label>Display Name *</label>
                     <input name="display_name" value={f2.display_name} onChange={handleF2Change} required placeholder="Name shown to users" />
                   </div>
-                  {!formInfo?.lean && (
+                  {(!formInfo?.lean || formInfo?.needsGender) && (
                     <div className="form-group">
                       <label>Gender *</label>
                       <select name="gender" value={f2.gender} onChange={handleF2Change} required>
@@ -518,15 +533,20 @@ function OnboardingForm() {
                     </div>
                   )}
                 </div>
-                {!formInfo?.lean && (
+                {(!formInfo?.lean || formInfo?.needsDob) && (
                   <div className="form-row">
-                    <div className="form-group">
-                      <label>Age *</label>
-                      <input type="number" name="age" value={f2.age} onChange={handleF2Change} required min="18" max="70" />
-                    </div>
+                    {!formInfo?.lean && (
+                      <div className="form-group">
+                        <label>Age *</label>
+                        <input type="number" name="age" value={f2.age} onChange={handleF2Change} required min="18" max="70" />
+                      </div>
+                    )}
                     <div className="form-group">
                       <label>Date of Birth *</label>
-                      <input type="date" name="dob" value={f2.dob} onChange={handleF2Change} required />
+                      <input type="date" name="dob" value={f2.dob} onChange={handleF2Change} required min={DOB_MIN} max={DOB_MAX} />
+                      {formInfo?.lean && (
+                        <p className="section-note">The date of birth we saved looks incorrect — please enter it again (you must be 18 or older).</p>
+                      )}
                     </div>
                   </div>
                 )}
