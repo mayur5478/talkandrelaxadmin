@@ -14,7 +14,7 @@ const SEV = { 3: ["danger", "High"], 2: ["warning", "Medium"], 1: ["neutral", "L
 const CAT_LABEL = {
   pii_phone: "Phone number", pii_email: "Email", pii_upi: "UPI ID", pii_govt_id: "Govt ID",
   offplatform_app: "Other app", offplatform_contact_share: "Moving off-app",
-  offplatform_payment: "Off-app payment", abuse: "Abuse", sexual: "Sexual",
+  offplatform_payment: "Off-app payment", competitor_app: "Competitor app", abuse: "Abuse", sexual: "Sexual",
   threat: "Threat", self_harm: "Self-harm (support)", possible_minor: "Possible minor (support)",
 };
 
