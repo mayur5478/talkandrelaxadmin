@@ -18,6 +18,20 @@ const CAT_LABEL = {
   threat: "Threat", self_harm: "Self-harm (support)", possible_minor: "Possible minor (support)",
 };
 
+// One participant of the conversation. `sender` marks who wrote the flagged message (chat flags).
+// Calls have no speaker split, so neither side is marked there.
+function PersonLine({ label, name, id, sender }) {
+  return (
+    <div className="tw-flex tw-items-baseline tw-gap-1">
+      <span className="tw-text-fg-tertiary tw-w-[52px] tw-shrink-0">{label}</span>
+      <span className={sender ? "tw-font-semibold tw-text-fg-danger" : "tw-text-fg-primary"} title={id || ""}>
+        {name || (id ? `ID ${String(id).slice(0, 8)}` : "—")}
+      </span>
+      {sender && <span className="tw-text-[10px] tw-text-fg-danger">wrote this</span>}
+    </div>
+  );
+}
+
 export default function Moderation() {
   const [status, setStatus] = useState("open");
   const [source, setSource] = useState("all");
@@ -79,9 +93,10 @@ export default function Moderation() {
                   <Td><Pill tone={tone}>{label}</Pill></Td>
                   <Td>{CAT_LABEL[f.category] || f.category}</Td>
                   <Td>{f.source}</Td>
-                  <Td className="tw-text-xs">
-                    {f.offender === "unknown" ? "—" : f.offender}
-                    <div className="tw-text-fg-tertiary" title={f.session_id}>session {String(f.session_id).slice(0, 8)}</div>
+                  <Td className="tw-text-xs tw-min-w-[170px]">
+                    <PersonLine label="User" name={f.user_name} id={f.user_id} sender={f.offender === "user"} />
+                    <PersonLine label="Listener" name={f.listener_name} id={f.listener_id} sender={f.offender === "listener"} />
+                    <div className="tw-text-fg-tertiary tw-mt-0.5" title={f.session_id}>session {String(f.session_id).slice(0, 8)}</div>
                   </Td>
                   <Td className="tw-max-w-[360px]">
                     <div className="tw-text-xs tw-text-fg-tertiary">{f.matched}</div>
