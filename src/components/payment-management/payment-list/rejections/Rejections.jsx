@@ -109,47 +109,75 @@ function Rejections({ fromDate, toDate }) {
           <THead>
             <TR>
               <Th>Sr#</Th>
-              <Th>Date</Th>
-              <Th>Type</Th>
-              <Th>User</Th>
-              <Th>Listener</Th>
-              <Th>By</Th>
-              <Th>Reason</Th>
+              <Th>When</Th>
+              <Th>Call</Th>
+              <Th>Outcome</Th>
+              <Th>Why it failed</Th>
               <Th>Request ID</Th>
             </TR>
           </THead>
           <TBody>
             {rejections.length === 0 ? (
               <TR>
-                <Td colSpan={8} className="tw-text-center tw-text-fg-tertiary">No rejections found</Td>
+                <Td colSpan={6} className="tw-text-center tw-text-fg-tertiary">No rejections found</Td>
               </TR>
             ) : (
-              rejections.map((r, index) => (
-                <TR key={r.id} isLast={index === rejections.length - 1}>
-                  <Td>{(page - 1) * pageSize + index + 1}</Td>
-                  <Td>{moment(r.rejectedAt).format("DD/MM/YYYY, hh:mm A")}</Td>
-                  <Td>{r.type}</Td>
-                  <Td>
-                    <span
-                      onClick={() => handleViewUser(r.userId)}
-                      className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline"
-                    >
-                      {r.userData?.fullName || "Unknown"}
-                    </span>
-                  </Td>
-                  <Td>
-                    <span
-                      onClick={() => handleViewListener(r.listenerId)}
-                      className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline"
-                    >
-                      {r.listenerData?.fullName || "Listener"}
-                    </span>
-                  </Td>
-                  <Td>{r.rejectedBy}</Td>
-                  <Td>{r.reason}</Td>
-                  <Td className="tw-font-mono tw-text-[12px]">{r.requestId || "N/A"}</Td>
-                </TR>
-              ))
+              rejections.map((r, index) => {
+                const caller = r.caller || "user"; // older backend: assume user -> listener
+                const callerIsUser = caller === "user";
+                const callerName = callerIsUser ? r.userData?.fullName || "Unknown" : r.listenerData?.fullName || "Listener";
+                const calleeName = callerIsUser ? r.listenerData?.fullName || "Listener" : r.userData?.fullName || "Unknown";
+                const openCaller = () => (callerIsUser ? handleViewUser(r.userId) : handleViewListener(r.listenerId));
+                const openCallee = () => (callerIsUser ? handleViewListener(r.listenerId) : handleViewUser(r.userId));
+                const c = r.cause;
+                return (
+                  <TR key={r.id} isLast={index === rejections.length - 1}>
+                    <Td>{(page - 1) * pageSize + index + 1}</Td>
+                    <Td className="tw-whitespace-nowrap">{moment(r.rejectedAt).format("DD/MM/YYYY, hh:mm A")}</Td>
+                    <Td>
+                      <div className="tw-flex tw-items-center tw-gap-1.5 tw-flex-wrap">
+                        <span onClick={openCaller} className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline">
+                          {callerName}
+                        </span>
+                        <span className="tw-text-fg-tertiary" aria-label="called">→</span>
+                        <span onClick={openCallee} className="tw-text-fg-primary tw-font-medium tw-cursor-pointer hover:tw-underline">
+                          {calleeName}
+                        </span>
+                      </div>
+                      <div className="tw-text-[11px] tw-text-fg-tertiary tw-mt-0.5">
+                        {callerIsUser ? "user" : "listener"} called {callerIsUser ? "listener" : "user"} · {r.type}
+                      </div>
+                    </Td>
+                    <Td>
+                      <div className="tw-capitalize">{r.reason}</div>
+                      <div className="tw-text-[11px] tw-text-fg-tertiary">
+                        by {r.rejectedBy}{r.ringSeconds != null ? ` · rang ${r.ringSeconds}s` : ""}
+                      </div>
+                    </Td>
+                    <Td className="tw-max-w-[340px]">
+                      {c ? (
+                        <>
+                          <div className="tw-flex tw-items-center tw-gap-2 tw-flex-wrap">
+                            <span className={`tw-text-[13px] tw-font-medium ${c.tech ? "tw-text-red-400" : "tw-text-fg-primary"}`}>
+                              {c.label}
+                            </span>
+                            <span
+                              title={c.evidence === "recorded" ? "Stated by the server/DB" : "Estimated from timing — not recorded as a fact"}
+                              className={`tw-text-[10px] tw-uppercase tw-px-1.5 tw-py-0.5 tw-rounded-full ${c.evidence === "recorded" ? "tw-bg-green-500/10 tw-text-green-400" : "tw-bg-amber-500/10 tw-text-amber-400"}`}
+                            >
+                              {c.evidence === "recorded" ? "recorded" : "likely"}
+                            </span>
+                          </div>
+                          {c.detail && <div className="tw-text-[12px] tw-text-fg-tertiary tw-mt-0.5">{c.detail}</div>}
+                        </>
+                      ) : (
+                        <span>{r.reason}</span>
+                      )}
+                    </Td>
+                    <Td className="tw-font-mono tw-text-[12px]">{r.requestId || "N/A"}</Td>
+                  </TR>
+                );
+              })
             )}
           </TBody>
         </Table>
