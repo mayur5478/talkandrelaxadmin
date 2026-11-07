@@ -11,7 +11,7 @@ export const monitoringApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["Alerts"],
+  tagTypes: ["Alerts", "Flags"],
   endpoints: (builder) => ({
     getLive: builder.query({ query: () => `monitoring/live` }),
     // Who is online right now, by name — users and listeners, with the
@@ -45,6 +45,21 @@ export const monitoringApi = createApi({
         method: "POST",
         body: { minAgeMin, apply, notify },
       }),
+    }),
+    // Redacted call transcript (moderation service). 403 { disabled:true } when the flag is off.
+    getCallTranscript: builder.query({
+      query: (id) => `monitoring/session/${id}/call-transcript`,
+    }),
+    // Moderation review queue (flags from the Python moderation service).
+    getModerationFlags: builder.query({
+      query: ({ status = "open", source, severity = 1, page = 1 } = {}) =>
+        `monitoring/flags?status=${status}&severity=${severity}&page=${page}` +
+        (source ? `&source=${source}` : ""),
+      providesTags: ["Flags"],
+    }),
+    reviewModerationFlag: builder.mutation({
+      query: ({ id, status }) => ({ url: `monitoring/flags/${id}/review`, method: "POST", body: { status } }),
+      invalidatesTags: ["Flags"],
     }),
     getListeners: builder.query({ query: (days = 7) => `monitoring/listeners?days=${days}` }),
     getBillingIntegrity: builder.query({ query: (days = 7) => `monitoring/billing-integrity?days=${days}` }),
@@ -97,6 +112,9 @@ export const {
   useForceOfflineMutation,
   useWakeListenerMutation,
   useSweepGhostsMutation,
+  useGetCallTranscriptQuery,
+  useGetModerationFlagsQuery,
+  useReviewModerationFlagMutation,
   useGetListenersQuery,
   useGetBillingIntegrityQuery,
   useGetCallHealthQuery,

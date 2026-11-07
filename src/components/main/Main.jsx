@@ -12,6 +12,7 @@ const ApplicationRequestsV2      = lazy(() => import("../v2/listener-management/
 const ProfileApprovalsV2         = lazy(() => import("../v2/listener-management/ProfileApprovals"));
 const ApplicationReview          = lazy(() => import("../v2/listener-management/ApplicationReview"));
 const Monitoring          = lazy(() => import("../monitoring/Monitoring"));
+const Moderation          = lazy(() => import("../moderation/Moderation"));
 const SystemReset         = lazy(() => import("../system-reset/SystemReset"));
 const Users               = lazy(() => import("../user-management/user-list/Users"));
 const ActiveUsers         = lazy(() => import("../user-management/active-users/ActiveUsers"));
@@ -94,6 +95,7 @@ const Main = () => {
           <Route path="/overview" element={<Navigate to="/dashboard/analytics" replace />} />
           <Route path="/analytics" element={<Dashboard />} />
           <Route path="/monitoring" element={<Monitoring />} />
+          <Route path="/moderation" element={<Moderation />} />
           <Route path="/system-reset" element={<SystemReset />} />
           <Route path="/user-management/users-list" element={<Users />} />
           <Route path="/user-management/active-users" element={<ActiveUsers />} />

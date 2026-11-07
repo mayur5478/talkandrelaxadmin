@@ -28,6 +28,7 @@ import {
   Bell,
   Bot,
   Activity,
+  ShieldAlert,
   Wrench,
   Ban,
   Megaphone,
@@ -48,6 +49,11 @@ export const navGroups = [
         title: 'Monitoring',
         path: '/dashboard/monitoring',
         icon: Activity,
+      },
+      {
+        title: 'Moderation',
+        path: '/dashboard/moderation',
+        icon: ShieldAlert,
       },
       {
         title: 'System Reset',
