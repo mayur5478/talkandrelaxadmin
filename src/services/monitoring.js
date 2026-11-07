@@ -52,9 +52,10 @@ export const monitoringApi = createApi({
     }),
     // Moderation review queue (flags from the Python moderation service).
     getModerationFlags: builder.query({
-      query: ({ status = "open", source, severity = 1, page = 1 } = {}) =>
+      query: ({ status = "open", source, severity = 1, page = 1, category } = {}) =>
         `monitoring/flags?status=${status}&severity=${severity}&page=${page}` +
-        (source ? `&source=${source}` : ""),
+        (source ? `&source=${source}` : "") +
+        (category ? `&category=${encodeURIComponent(category)}` : ""),
       providesTags: ["Flags"],
     }),
     reviewModerationFlag: builder.mutation({

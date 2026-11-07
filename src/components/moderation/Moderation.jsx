@@ -36,10 +36,15 @@ export default function Moderation() {
   const [status, setStatus] = useState("open");
   const [source, setSource] = useState("all");
   const [minSev, setMinSev] = useState("1");
+  const [category, setCategory] = useState("all");
   const [page, setPage] = useState(1);
   const [viewing, setViewing] = useState(null); // the flag whose conversation is open
 
-  const params = { status, page, severity: minSev, ...(source !== "all" ? { source } : {}) };
+  const params = {
+    status, page, severity: minSev,
+    ...(source !== "all" ? { source } : {}),
+    ...(category !== "all" ? { category } : {}),
+  };
   const { data, isLoading, isFetching, error } = useGetModerationFlagsQuery(params);
   const [review, { isLoading: saving }] = useReviewModerationFlagMutation();
 
@@ -47,6 +52,16 @@ export default function Moderation() {
   const counts = data?.counts || { open: 0, confirmed: 0, dismissed: 0 };
   const pages = Math.max(1, Math.ceil((data?.total || 0) / (data?.limit || 50)));
   const reset = (fn) => (v) => { fn(v); setPage(1); };
+
+  // Category dropdown: only categories that have flags under the other filters (with their counts).
+  // An older backend sends no counts, so then every known category is listed without a number.
+  const catCounts = data?.categories || {};
+  const hasCatCounts = !!data?.categories;
+  const catKeys = hasCatCounts
+    ? [...Object.keys(CAT_LABEL), ...Object.keys(catCounts).filter((k) => !CAT_LABEL[k])]
+        .filter((k) => catCounts[k] || k === category)
+    : Object.keys(CAT_LABEL);
+  const catTotal = Object.values(catCounts).reduce((a, b) => a + b, 0);
 
   return (
     <div className="tw-space-y-4">
@@ -67,6 +82,19 @@ export default function Moderation() {
           options={[{ value: "all", label: "All" }, { value: "chat", label: "Chat" }, { value: "call", label: "Call" }]} />
         <Segmented ariaLabel="Severity" value={minSev} onChange={reset(setMinSev)}
           options={[{ value: "1", label: "Any" }, { value: "2", label: "Medium+" }, { value: "3", label: "High" }]} />
+        <select
+          aria-label="Category"
+          value={category}
+          onChange={(e) => reset(setCategory)(e.target.value)}
+          className="tw-h-8 tw-px-2 tw-rounded-sm tw-border tw-border-[var(--color-border-tertiary)] tw-bg-bg-secondary tw-text-fg-primary tw-text-[13px]"
+        >
+          <option value="all">{hasCatCounts ? `All categories (${catTotal})` : "All categories"}</option>
+          {catKeys.map((k) => (
+            <option key={k} value={k}>
+              {CAT_LABEL[k] || k}{hasCatCounts ? ` (${catCounts[k] || 0})` : ""}
+            </option>
+          ))}
+        </select>
       </div>
 
       {data?.notSetUp && (
