@@ -18,6 +18,15 @@ const CAT_LABEL = {
   threat: "Threat", self_harm: "Self-harm (support)", possible_minor: "Possible minor (support)",
 };
 
+// 447 -> "7m 27s", 45 -> "45s", 3720 -> "1h 2m"
+function formatDuration(secs) {
+  const s = Math.round(Number(secs) || 0);
+  if (s < 60) return `${s}s`;
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  return h ? `${h}h ${m}m` : `${m}m ${s % 60}s`;
+}
+
 // One participant of the conversation. `sender` marks who wrote the flagged message (chat flags).
 // Calls have no speaker split, so neither side is marked there.
 function PersonLine({ label, name, id, sender }) {
@@ -120,7 +129,17 @@ export default function Moderation() {
                 <TR key={f.id}>
                   <Td><Pill tone={tone}>{label}</Pill></Td>
                   <Td>{CAT_LABEL[f.category] || f.category}</Td>
-                  <Td>{f.source}</Td>
+                  <Td className="tw-text-xs">
+                    <div className="tw-capitalize">{f.source}</div>
+                    {f.source === "call" && f.session_type && (
+                      <Pill tone={f.session_type === "video" ? "info" : "neutral"}>
+                        {f.session_type === "video" ? "Video" : f.session_type === "audio" ? "Audio" : f.session_type}
+                      </Pill>
+                    )}
+                    {f.duration_secs != null && f.duration_secs > 0 && (
+                      <div className="tw-text-fg-tertiary tw-mt-0.5">{formatDuration(f.duration_secs)}</div>
+                    )}
+                  </Td>
                   <Td className="tw-text-xs tw-min-w-[170px]">
                     <PersonLine label="User" name={f.user_name} id={f.user_id} sender={f.offender === "user"} />
                     <PersonLine label="Listener" name={f.listener_name} id={f.listener_id} sender={f.offender === "listener"} />
