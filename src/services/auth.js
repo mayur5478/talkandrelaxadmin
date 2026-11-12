@@ -184,6 +184,14 @@ export const authApi = createApi({
         params: { from, to },
       }),
     }),
+    // Business Insights -> Money Drivers (unit economics + contribution). Admin only.
+    moneyDrivers: builder.query({
+      query: ({ months = 4, refresh } = {}) => ({
+        url: `admin/money-drivers`,
+        method: "GET",
+        params: { months, ...(refresh ? { refresh: 1 } : {}) },
+      }),
+    }),
   }),
 });
 
@@ -211,4 +219,5 @@ export const {
   useAllWalletsQuery,
   useLazyDiagnoseConnectionQuery,
   useMonthlyInsightsQuery,
+  useMoneyDriversQuery,
 } = authApi;

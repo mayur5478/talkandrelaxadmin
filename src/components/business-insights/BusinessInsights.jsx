@@ -20,6 +20,7 @@ import {
 } from "../v2/ui/index.js";
 import { useMonthlyInsightsQuery } from "../../services/auth";
 import { isHR } from "../../utils/roles";
+import MoneyDriversTab from "./MoneyDriversTab";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const MONTH_NAMES_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -1477,6 +1478,7 @@ export default function BusinessInsights() {
           <Tab value="payroll">Payroll</Tab>
           <Tab value="listenerBusiness">Listener Business</Tab>
           {!isHR() && <Tab value="userBusiness">User Business</Tab>}
+          {!isHR() && <Tab value="moneyDrivers">Money Drivers</Tab>}
         </TabsList>
 
         <TabPanel value="overview">
@@ -1505,6 +1507,10 @@ export default function BusinessInsights() {
         </TabPanel>
         <TabPanel value="userBusiness">
           <UserBusinessTab userDailyBusiness={userDailyBusiness} />
+        </TabPanel>
+        <TabPanel value="moneyDrivers">
+          {/* Mounted only when opened, so the extra queries run on demand. Admin only (HR never sees the tab). */}
+          {activeTab === "moneyDrivers" && !isHR() && <MoneyDriversTab />}
         </TabPanel>
       </Tabs>
     </div>
